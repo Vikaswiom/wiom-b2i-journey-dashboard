@@ -1,8 +1,17 @@
 name: Daily refresh
+# Runs at 03:00 IST. If that run fails, 03:30 IST tries again, then 04:00 IST.
+# Each run makes up to 3 attempts. A run skips itself if today's refresh already succeeded.
 on:
   schedule:
-    - cron: '41 3 * * *'   # 09:11 IST every day
-  workflow_dispatch: {}
+    - cron: '30 21 * * *'   # 03:00 IST
+    - cron: '0 22 * * *'    # 03:30 IST
+    - cron: '30 22 * * *'   # 04:00 IST
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Refresh even if today is already done'
+        type: boolean
+        default: true
 permissions:
   contents: write
 concurrency: { group: refresh, cancel-in-progress: false }
@@ -11,17 +20,32 @@ env:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+      - name: Already refreshed today?
+        id: done
+        run: |
+          YDAY=$(date -d 'yesterday' +%F)
+          HAVE=$(python3 -c "import json;print(json.load(open('docs/data/b2i_yesterday_snapshot.json'))['datasets']['y_summary']['rows'][0]['date'])" 2>/dev/null || echo none)
+          echo "yesterday=$YDAY published=$HAVE"
+          if [ "$HAVE" = "$YDAY" ] && [ "${{ github.event_name }}" = "schedule" ]; then echo "skip=true" >> $GITHUB_OUTPUT; echo "Already done today, nothing to do."; else echo "skip=false" >> $GITHUB_OUTPUT; fi
       - uses: actions/setup-python@v5
+        if: steps.done.outputs.skip != 'true'
         with: { python-version: '3.11' }
-      - name: Check Metabase is reachable
-        run: curl -sS -o /dev/null -w "metabase http %{http_code}\n" --max-time 30 https://metabase.wiom.in/api/health
-      - name: Run all queries and shape data
-        env: { METABASE_API_KEY: '${{ secrets.METABASE_API_KEY }}', TZ: 'Asia/Kolkata' }
-        run: python3 refresh_all.py
-      - name: Publish data files
+      - name: Refresh (up to 3 attempts)
+        if: steps.done.outputs.skip != 'true'
+        env: { METABASE_API_KEY: '${{ secrets.METABASE_API_KEY }}' }
+        run: |
+          for i in 1 2 3; do
+            echo "::group::Attempt $i"
+            if python3 check_fresh.py && python3 refresh_all.py; then echo "::endgroup::"; echo "Attempt $i succeeded"; exit 0; fi
+            echo "::endgroup::"; echo "Attempt $i failed"
+            [ $i -lt 3 ] && sleep 180
+          done
+          echo "All 3 attempts failed; the next scheduled run will try again."; exit 1
+      - name: Publish
+        if: steps.done.outputs.skip != 'true'
         run: |
           python3 build_site.py
           mkdir -p docs/data
