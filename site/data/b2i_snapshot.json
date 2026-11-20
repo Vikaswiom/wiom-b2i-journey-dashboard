@@ -1,5 +1,5 @@
 {
-"generated_at": "2026-11-20T12:54+05:30",
+"generated_at": "2026-11-20T12:13+05:30",
 "cohort": "Install tasks created 17 to 5 days before generation (IST), outcomes observed to generation time",
 "datasets": {
 "summary": {
@@ -239,8 +239,8 @@
 {
 "stage_no": 1,
 "stage": "After FPN",
-"outcome": "System cancelled",
-"reason": "CSP suspended",
+"outcome": "CSP declined",
+"reason": "Customer unreachable",
 "tasks": 4
 },
 {
@@ -253,8 +253,8 @@
 {
 "stage_no": 1,
 "stage": "After FPN",
-"outcome": "CSP declined",
-"reason": "Customer unreachable",
+"outcome": "System cancelled",
+"reason": "CSP suspended",
 "tasks": 4
 },
 {

@@ -1,0 +1,2195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CSP Booking-to-Install Journey</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root { color-scheme: light;
+  --color-bg: #fbfbfa; --color-fg: #1f1e1c; --color-fg-muted: #6b6862; --color-panel: #ffffff; --color-border-line: #e4e2dc;
+  --color-ok: #2f8f5b; --color-warn: #c47a12; --color-bad: #c6403a;
+  --series-1: #3a6fd8; --series-2: #8a5cc7; --series-3: #1c9aa8; --series-4: #c75c8a;
+  --cds-chart-muted: #b9b5ad; --cds-chart-grid: #ebe9e3; --cds-chart-axis: #c9c6be; --cds-text-secondary: #6b6862;
+  --cds-surface-popover: #ffffff; --cds-border: #dcd9d2; --cds-shadow-popover: 0 6px 24px rgba(0,0,0,.12);
+  --font-anthropic-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --font-anthropic-serif: "Source Serif 4", Georgia, serif;
+  --cds-font-size-caption: 12px; --cds-font-size-body: 14px; --cds-font-size-heading: 18px; --cds-font-size-title: 30px; --cds-font-weight-medium: 600;
+  --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 14px; --cds-gap-lg: 20px; --cds-gap-xl: 32px;
+  --cds-pad-xs: 4px; --cds-pad-sm: 8px; --cds-pad-md: 12px; --cds-pad-lg: 18px; --cds-pad-xl: 24px; --cds-radius: 10px;
+  --cds-dur-slow: 500ms; --cds-ease-out: cubic-bezier(.2,.8,.2,1); }
+@media (prefers-color-scheme: dark) { :root { color-scheme: dark;
+  --color-bg: #161615; --color-fg: #ecebe7; --color-fg-muted: #a09c94; --color-panel: #1f1f1d; --color-border-line: #33322f;
+  --color-ok: #5cc28a; --color-warn: #e0a24a; --color-bad: #ec6d66;
+  --series-1: #7aa2f0; --series-2: #b48ee6; --series-3: #4cc4d1; --series-4: #e88ab3;
+  --cds-chart-muted: #5d5a54; --cds-chart-grid: #2b2a27; --cds-chart-axis: #45433f; --cds-text-secondary: #a09c94;
+  --cds-surface-popover: #262624; --cds-border: #3a3936; --cds-shadow-popover: 0 6px 24px rgba(0,0,0,.5); } }
+html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: 14px; }
+#dash-root { max-width: 1200px; margin: 0 auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+[hidden] { display: none !important; }
+.dash-select { font: inherit; font-size: 13px; color: var(--color-fg); background-color: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 8px; padding: 6px 10px; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>window.__DASH_FILES__ = {"summary": "data/b2i_snapshot.json", "steps": "data/b2i_snapshot.json", "offer": "data/b2i_snapshot.json", "fpn_reach": "data/b2i_snapshot.json", "exits": "data/b2i_snapshot.json", "fpn_response": "data/b2i_snapshot.json", "bookings": "data/b2i_snapshot.json", "csp_groups": "data/b2i_snapshot.json", "hourly": "data/b2i_snapshot.json", "daily": "data/b2i_snapshot.json", "d_summary": "data/b2i_deep_snapshot.json", "d_steps": "data/b2i_deep_snapshot.json", "d_timing": "data/b2i_deep_snapshot.json", "d_days": "data/b2i_deep_snapshot.json", "d_late": "data/b2i_deep_snapshot.json", "d_assign_to_install": "data/b2i_deep_snapshot.json", "d_stuck": "data/b2i_deep_snapshot.json", "d_reasons": "data/b2i_deep_snapshot.json", "d_live": "data/b2i_deep_snapshot.json", "y_summary": "data/b2i_yesterday_snapshot.json", "y_split": "data/b2i_yesterday_snapshot.json", "y_late": "data/b2i_yesterday_snapshot.json", "y_funnel": "data/b2i_yesterday_snapshot.json", "y_leaks": "data/b2i_yesterday_snapshot.json", "trend": "data/b2i_yesterday_snapshot.json", "y_compare": "data/b2i_yesterday_snapshot.json", "y_flags": "data/b2i_yesterday_snapshot.json", "y_activity": "data/b2i_yesterday_snapshot.json", "y_lag": "data/b2i_yesterday_snapshot.json", "y_promise": "data/b2i_yesterday_snapshot.json", "c_summary": "data/b2i_csp_snapshot.json", "c_segments": "data/b2i_csp_snapshot.json", "c_csps": "data/b2i_csp_snapshot.json"};</script>
+<script>/* Minimal stand-in for the claude.ai dashboard runtime, so the same page runs on GitHub Pages.
+   Implements what this page uses: dash.loader, dash.data, dash.draw, dash.colors, dash.setLink. */
+(function () {
+  const FILES = window.__DASH_FILES__;          // {datasetId: "data/file.json"}
+  const loaders = {}, drawings = {}, results = {}, state = {}, mounted = new WeakMap();
+  let loaded = false;
+  const dash = {
+    colors: ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)'],
+    loader(id, def) { loaders[id] = def; },
+    data(id) {
+      if (!loaded) return { status: 'loading', data: [] };
+      const r = results[id];
+      if (!r) return { status: 'missing', data: [] };
+      if (r.error) return { status: 'error', data: [], message: r.error };
+      return { status: 'ok', data: r.data, columns: r.columns, meta: r.meta };
+    },
+    draw(name, def) {
+      if (def === undefined) { runDrawing(name); return; }
+      drawings[name] = def; if (loaded) runDrawing(name);
+    },
+    setLink(id) { try { history.replaceState(null, '', id ? '#' + id : location.pathname); } catch (e) { /* ignore */ } },
+    onData() {}, params() { return {}; }, setParams() {}, resetParams() {}, refresh() {}
+  };
+  function runOn(el, name) {
+    const def = drawings[name]; if (!def) return;
+    try {
+      if (typeof def === 'function') { def(el); return; }
+      if (!mounted.has(el)) { el.replaceChildren(); mounted.set(el, def.mount ? def.mount(el) : undefined); }
+      if (def.update) def.update(el, mounted.get(el));
+    } catch (e) { console.error('drawing ' + name + ' failed', e); }
+  }
+  function visible(el) { return !el.closest('[hidden]'); }
+  function runDrawing(name) { document.querySelectorAll('[data-draw="' + name + '"]').forEach((el) => { if (visible(el)) runOn(el, name); }); }
+  function runAll(root) { (root || document).querySelectorAll('[data-draw]').forEach((el) => { if (visible(el)) runOn(el, el.getAttribute('data-draw')); }); }
+  window.dash = dash;
+  window.claude = { use: async () => null };
+  async function load() {
+    const byFile = {};
+    Object.entries(FILES).forEach(([id, f]) => { (byFile[f] = byFile[f] || []).push(id); });
+    await Promise.all(Object.entries(byFile).map(async ([file, ids]) => {
+      let answer = null, err = null;
+      try { const r = await fetch(file + '?v=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); answer = await r.json(); }
+      catch (e) { err = 'Failed to load ' + file + ': ' + e.message; }
+      for (const id of ids) {
+        if (err) { results[id] = { error: err }; continue; }
+        try {
+          const out = loaders[id] ? await loaders[id].fn({ answer }) : answer;
+          results[id] = Array.isArray(out) ? { data: out, columns: out[0] ? Object.keys(out[0]) : [] } : { data: out.data, columns: out.columns, meta: out.meta };
+        } catch (e) { results[id] = { error: e.message }; }
+      }
+    }));
+    loaded = true; runAll();
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    runAll();   // first frame: placeholders
+    load();
+    let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => runAll(), 150); });
+    new MutationObserver((ms) => { ms.forEach((m) => { if (m.attributeName === 'hidden' && !m.target.hidden) runAll(m.target); }); })
+      .observe(document.body, { attributes: true, subtree: true, attributeFilter: ['hidden'] });
+  });
+})();
+</script>
+</head>
+<body>
+<div id="dash-root">
+<style>
+/* Layout: one reading column; journey is a centred funnel of rows with leak branches, deep-dive sections below. */
+.bj { --bj-ok: var(--color-ok); --bj-bad: var(--color-bad); --bj-warn: var(--color-warn); --bj-muted: var(--color-fg-muted); display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+.bj h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+.bj h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; text-wrap: balance; }
+.bj p { margin: 0; max-width: 72ch; line-height: 1.5; }
+.bj .muted { color: var(--color-fg-muted); }
+.bj .cap { font-size: var(--cds-font-size-caption); }
+.bj .num { font-variant-numeric: tabular-nums; }
+.bj-head { display: grid; gap: var(--cds-gap-sm); }
+.bj-eyebrow { font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase; color: var(--color-fg-muted); }
+.bj-take { font-size: var(--cds-font-size-body); }
+.bj-take b { font-weight: var(--cds-font-weight-medium); }
+.bj-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--cds-gap-md); }
+.bj-kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: grid; gap: 2px; align-content: start; }
+.bj-kpi .v { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.bj-kpi .l { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.bj-sec { display: grid; gap: var(--cds-gap-md); }
+.bj-sec > header { display: grid; gap: 4px; }
+
+/* Journey */
+.bj-journey { display: grid; gap: 0; position: relative; }
+.bj-row { display: grid; grid-template-columns: minmax(200px, 260px) minmax(0, 1fr) minmax(150px, 190px); gap: var(--cds-gap-md); align-items: center; padding: 10px 0; }
+.bj-step { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; min-width: 0; }
+.bj-dot { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); background: var(--color-bg); border: 1.5px solid var(--color-border-line); font-variant-numeric: tabular-nums; }
+.bj-row.is-end .bj-dot { background: var(--bj-ok); border-color: var(--bj-ok); color: var(--color-bg); }
+.bj-sname { font-weight: var(--cds-font-weight-medium); line-height: 1.25; }
+.bj-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin-top: 2px; }
+.bj-chip { font-size: 11px; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--color-border-line); color: var(--color-fg-muted); white-space: nowrap; }
+.bj-track { position: relative; height: 34px; display: flex; justify-content: center; align-items: center; min-width: 0; }
+.bj-bar { height: 100%; border-radius: 6px; background: var(--bj-c, var(--cds-chart-muted)); min-width: 3px; transition: opacity .15s; }
+.bj-bar:hover { opacity: .85; }
+.bj-barlabel { position: absolute; inset: 0; display: grid; place-items: center; font-variant-numeric: tabular-nums; font-weight: var(--cds-font-weight-medium); pointer-events: none; }
+.bj-barlabel span { background: var(--color-bg); padding: 1px 8px; border-radius: 99px; border: 1px solid var(--color-border-line); font-size: var(--cds-font-size-caption); }
+.bj-stats { display: grid; gap: 2px; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.bj-stats .big { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+.bj-leak { display: grid; grid-template-columns: minmax(200px, 260px) minmax(0, 1fr) minmax(150px, 190px); gap: var(--cds-gap-md); }
+.bj-leak-btn { grid-column: 2 / 4; justify-self: start; display: inline-flex; gap: 8px; align-items: center; font: inherit; font-size: var(--cds-font-size-caption); color: var(--bj-bad); background: transparent; border: 1px dashed var(--bj-bad); border-radius: 99px; padding: 3px 12px; cursor: pointer; }
+.bj-leak-btn:hover, .bj-leak-btn[aria-expanded="true"] { background: color-mix(in srgb, var(--bj-bad) 10%, transparent); }
+.bj-leak-btn:focus-visible { outline: 2px solid var(--bj-bad); outline-offset: 2px; }
+.bj-leak-small { grid-column: 2 / 4; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding-left: 4px; }
+.bj-why { grid-column: 2 / 4; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; gap: 6px; margin: 4px 0 6px; }
+.bj-why-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(60px, 1fr) 56px; gap: 10px; align-items: center; font-size: var(--cds-font-size-caption); }
+.bj-why-row .r { min-width: 0; }
+.bj-why-row .r small { display: block; color: var(--color-fg-muted); }
+.bj-why-row .m { height: 8px; border-radius: 4px; }
+.bj-why-row .n { text-align: right; font-variant-numeric: tabular-nums; font-weight: var(--cds-font-weight-medium); }
+.bj-onsite { border-left: 2px solid var(--color-border-line); margin-left: 13px; padding-left: 14px; }
+.bj-onsite-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 6px 0 2px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.bj-onsite .bj-row { grid-template-columns: minmax(172px, 232px) minmax(0, 1fr) minmax(150px, 190px); }
+.bj-onsite .bj-leak, .bj-onsite .bj-why-wrap { grid-template-columns: minmax(172px, 232px) minmax(0, 1fr) minmax(150px, 190px); }
+.bj-onsite .bj-why { grid-column: 1 / 4; }
+.bj-onsite .bj-leak-btn { grid-column: 1 / 4; }
+.bj-why-wrap { display: grid; grid-template-columns: minmax(200px, 260px) minmax(0, 1fr) minmax(150px, 190px); gap: var(--cds-gap-md); }
+
+/* Generic charts */
+.bj-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-md); min-width: 0; }
+.bj-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--cds-gap-md); }
+.bj-stack { display: flex; height: 44px; border-radius: 8px; overflow: hidden; width: 100%; }
+.bj-stack > div { min-width: 2px; display: grid; place-items: center; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); color: var(--color-bg); font-variant-numeric: tabular-nums; overflow: hidden; white-space: nowrap; cursor: default; }
+.bj-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: var(--cds-font-size-caption); }
+.bj-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.bj-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.bj-legend b { font-variant-numeric: tabular-nums; font-weight: var(--cds-font-weight-medium); }
+.bj-reach { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--cds-gap-sm); }
+.bj-reach > div { display: grid; gap: 4px; }
+.bj-reach .rv { font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; font-weight: var(--cds-font-weight-medium); }
+.bj-reach .rb { height: 6px; border-radius: 3px; background: var(--cds-chart-grid); overflow: hidden; }
+.bj-reach .rb > i { display: block; height: 100%; background: var(--bj-c); }
+.bj-hbars { display: grid; gap: 10px; }
+.bj-hbar { display: grid; grid-template-columns: minmax(110px, 170px) minmax(0, 1fr); gap: 10px; align-items: center; font-size: var(--cds-font-size-caption); }
+.bj-hbar .lbl { min-width: 0; }
+.bj-hbar .lbl small { display: block; color: var(--color-fg-muted); }
+.bj-hbar .bars { display: grid; gap: 3px; min-width: 0; }
+.bj-hbar .b { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.bj-hbar .b > i { height: 12px; border-radius: 3px; display: block; min-width: 2px; }
+.bj-hbar .b > span { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bj-chart { position: relative; min-height: 220px; min-width: 0; }
+.bj-chart svg { display: block; overflow: visible; }
+.bj-chart text { fill: var(--cds-text-secondary); font-size: 11px; font-family: var(--font-anthropic-sans); }
+.bj-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); box-shadow: var(--cds-shadow-popover); border-radius: 8px; padding: 6px 10px; font-size: var(--cds-font-size-caption); line-height: 1.4; z-index: 5; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bj-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 80ch; line-height: 1.5; }
+.bj-fail { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: var(--cds-pad-md) 0; }
+.bj details { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-md); }
+.bj summary { cursor: pointer; font-weight: var(--cds-font-weight-medium); }
+.bj-tablewrap { overflow-x: auto; margin-top: var(--cds-gap-sm); }
+.bj table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); }
+.bj th, .bj td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.bj th { color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); white-space: nowrap; }
+.bj td code, .bj-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+.bj ul.bj-defs { margin: var(--cds-gap-sm) 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: var(--cds-font-size-caption); line-height: 1.5; max-width: 80ch; }
+
+
+/* Tabs and heat tables (page 2) */
+.bj { --bj-early: var(--cds-chart-muted); }
+.bj-tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--color-border-line); padding-bottom: 0; }
+.bj-tab { font: inherit; font-size: var(--cds-font-size-body); background: transparent; color: var(--color-fg-muted); border: 0; border-bottom: 2px solid transparent; padding: 8px 12px 10px; cursor: pointer; margin-bottom: -1px; }
+.bj-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.bj-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.bj-page { display: grid; gap: var(--cds-gap-xl); }
+.bj-goto { justify-self: start; font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 99px; padding: 6px 14px; cursor: pointer; }
+.bj-goto:hover { border-color: var(--color-fg-muted); }
+.bj-goto:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.bj table.bj-heat { min-width: 640px; }
+.bj-heat th[scope="row"] { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); white-space: nowrap; }
+.bj-heat td.num { text-align: center; font-variant-numeric: tabular-nums; min-width: 64px; border-radius: 4px; }
+.bj-heat thead th { text-align: center; }
+.bj-heat thead th:first-child { text-align: left; }
+.bj-card > label + select { justify-self: start; }
+
+
+/* Yesterday page */
+.bj-eq { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr); gap: var(--cds-gap-sm); align-items: stretch; }
+.bj-eqcard { background: var(--color-panel); border: 1px solid var(--color-border-line); border-top: 4px solid var(--bj-c, var(--color-fg)); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; gap: 2px; align-content: start; min-width: 0; }
+.bj-eqcard.is-total { border-top-color: var(--color-fg); }
+.bj-eqcard .k { font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase; color: var(--color-fg-muted); }
+.bj-eqcard .v { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 2.2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.bj-eqcard .l { font-weight: var(--cds-font-weight-medium); }
+.bj-eqcard .s { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.bj-eqop { align-self: center; font-family: var(--font-anthropic-serif); font-size: 1.8rem; color: var(--color-fg-muted); }
+.bj-callout { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 8px; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+.bj-callout .v { font-family: var(--font-anthropic-serif); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.bj-callout b { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.bj-row.is-key .bj-sname { text-decoration: underline; text-decoration-color: var(--color-border-line); text-underline-offset: 4px; }
+@media (max-width: 1000px) {
+  .bj-eq { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .bj-eqop { display: none; }
+}
+
+
+.bj-eqcard .p { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; color: var(--bj-c, var(--color-fg)); }
+.bj-eqcard.is-total .p { color: var(--color-fg-muted); }
+.bj-toggle { display: inline-flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--color-border-line); border-radius: 99px; padding: 2px; justify-self: start; background: var(--color-panel); }
+.bj-tbtn { font: inherit; font-size: var(--cds-font-size-caption); background: transparent; color: var(--color-fg-muted); border: 0; border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.bj-tbtn[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+.bj-tbtn:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.bj-cardhead { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+.bj table.bj-ttable { min-width: 1100px; }
+.bj td.num { font-variant-numeric: tabular-nums; }
+
+
+.bj-lagbar { display: flex; width: 100%; max-width: 520px; height: 18px; border-radius: 4px; overflow: hidden; }
+.bj-lagbar > i { display: grid; place-items: center; height: 100%; min-width: 2px; font-style: normal; font-size: 10px; font-weight: 600; color: var(--color-bg); font-variant-numeric: tabular-nums; overflow: hidden; }
+.bj-hbar .b:has(.bj-lagbar) { flex-wrap: wrap; }
+.bj-dir { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 8px 12px; }
+.bj-dir .lab { font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); }
+.bj-headlinks { display: flex; flex-wrap: wrap; gap: 8px; }
+.bj-promise { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--cds-gap-md); }
+.bj-pgroup { border-top: 4px solid var(--bj-c); padding-top: 8px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.bj-pgroup .gh { display: flex; gap: 8px; align-items: baseline; font-weight: var(--cds-font-weight-medium); }
+.bj-pgroup .gh b { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: 1.5rem; font-variant-numeric: tabular-nums; margin-left: auto; }
+.bj-pgroup .li { display: grid; grid-template-columns: minmax(0,1fr) auto 52px; gap: 8px; font-size: var(--cds-font-size-caption); }
+.bj-pgroup .li .num { text-align: right; font-variant-numeric: tabular-nums; }
+.bj table.bj-defs-table { min-width: 640px; }
+.bj-defs-table td:first-child { white-space: nowrap; }
+.bj-segcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--cds-gap-md); }
+.bj-segcard { font: inherit; text-align: left; color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-top: 4px solid var(--bj-c); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: grid; gap: 4px; cursor: pointer; }
+.bj-segcard[aria-pressed="true"] { outline: 2px solid var(--bj-c); outline-offset: 1px; }
+.bj-segcard:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.bj-segcard .t { font-weight: var(--cds-font-weight-medium); }
+.bj-segcard .v { font-family: var(--font-anthropic-serif); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.bj-filters { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.bj-input { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: 8px; padding: 6px 10px; min-width: 180px; }
+.bj-tall { max-height: 560px; overflow-y: auto; }
+.bj table.bj-ctable { min-width: 1150px; }
+.bj-ctable thead th { position: sticky; top: 0; background: var(--color-panel); z-index: 1; }
+.bj-ctable td.num { text-align: right; }
+.bj-ctable td .pill { white-space: normal; }
+.bj-status { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; font-size: var(--cds-font-size-caption); padding: 8px 12px; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); }
+.bj-status b { font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+.bj-status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--color-ok); margin-right: 6px; vertical-align: middle; }
+/* Daily tracker flags */
+.bj-flaghead { display: flex; gap: 14px; align-items: center; background: color-mix(in srgb, var(--bj-c, var(--color-ok)) 10%, var(--color-panel)); border: 1px solid color-mix(in srgb, var(--bj-c, var(--color-ok)) 45%, var(--color-border-line)); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+.bj-flaghead .ic { width: 32px; height: 32px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--bj-c, var(--color-ok)); color: var(--color-bg); font-weight: 700; }
+.bj-flaghead .hl { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+.bj-flagcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--cds-gap-md); }
+.bj-flagcards:empty { display: none; }
+.bj-flagcard { background: var(--color-panel); border: 1px solid var(--color-border-line); border-left: 4px solid var(--bj-c); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: grid; gap: 4px; align-content: start; min-width: 0; }
+.bj-flagcard .m { font-weight: var(--cds-font-weight-medium); }
+.bj-flagcard .v { font-family: var(--font-anthropic-serif); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.bj-flagcard .v .muted { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); }
+.bj .pill { justify-self: start; display: inline-block; font-size: 11px; font-weight: var(--cds-font-weight-medium); padding: 1px 8px; border-radius: 99px; color: var(--bj-c); border: 1px solid var(--bj-c); background: color-mix(in srgb, var(--bj-c) 10%, transparent); white-space: nowrap; }
+.bj-checks { display: grid; gap: 8px; position: relative; }
+.bj-check { display: grid; grid-template-columns: minmax(260px, 400px) minmax(80px, 1fr) minmax(110px, 150px); gap: 12px; align-items: center; font-size: var(--cds-font-size-caption); }
+.bj-check .lbl { display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 8px; align-items: center; min-width: 0; }
+.bj-check .lbl .pill { justify-self: start; }
+.bj-more { border-top: 1px dashed var(--color-border-line); padding-top: 10px; }
+.bj-more > summary { cursor: pointer; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: 8px; }
+.bj-check .pill.sm { min-width: 0; }
+.bj-check .trk { position: relative; height: 18px; }
+.bj-check .trk::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: var(--cds-chart-grid); }
+.bj-check .band { position: absolute; top: 4px; height: 10px; border-radius: 3px; background: color-mix(in srgb, var(--color-fg) 14%, transparent); }
+.bj-check .avg { position: absolute; top: 2px; width: 2px; height: 14px; margin-left: -1px; background: var(--color-fg-muted); }
+.bj-check .dot { position: absolute; top: 3px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; border: 2px solid var(--color-bg); }
+.bj-check .val { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 680px) { .bj-check { grid-template-columns: minmax(0, 1fr) auto; } .bj-check .trk { grid-column: 1 / -1; grid-row: 2; } }
+
+@media (max-width: 680px) {
+  .bj-row, .bj-onsite .bj-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "step stats" "track track"; row-gap: 6px; }
+  .bj-step { grid-area: step; }
+  .bj-stats { grid-area: stats; text-align: right; }
+  .bj-track { grid-area: track; }
+  .bj-leak, .bj-why-wrap, .bj-onsite .bj-leak, .bj-onsite .bj-why-wrap { grid-template-columns: minmax(0, 1fr); }
+  .bj-leak-btn, .bj-leak-small, .bj-why, .bj-onsite .bj-why, .bj-onsite .bj-leak-btn { grid-column: 1 / -1; }
+  .bj-onsite { margin-left: 6px; padding-left: 10px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bj-bar.grow { animation: bjgrow var(--cds-dur-slow) var(--cds-ease-out) both; }
+  @keyframes bjgrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+}
+</style>
+
+<div class="bj">
+  <nav class="bj-tabs" id="bj-tabs" role="tablist" aria-label="Pages">
+    <button type="button" class="bj-tab" role="tab" id="tab-overview" aria-controls="overview" aria-selected="true">Overview: install back to FPN</button>
+    <button type="button" class="bj-tab" role="tab" id="tab-after-assign" aria-controls="after-assign" aria-selected="false" tabindex="-1">Deep dive: after technician assigned</button>
+    <button type="button" class="bj-tab" role="tab" id="tab-daily-tracker" aria-controls="daily-tracker" aria-selected="false" tabindex="-1">Daily tracker</button>
+    <button type="button" class="bj-tab" role="tab" id="tab-csp-reschedule" aria-controls="csp-reschedule" aria-selected="false" tabindex="-1">CSP reschedule behaviour</button>
+    <button type="button" class="bj-tab" role="tab" id="tab-definitions" aria-controls="definitions" aria-selected="false" tabindex="-1">Definitions</button>
+  </nav>
+  <div class="bj-status" id="bj-status">
+    <span><span class="dot" aria-hidden="true"></span>Data updated <b data-draw="num" data-source="y_summary" data-field="snapshot" data-row="0" data-fmt="stamp">—</b></span>
+    <span>Yesterday = <b data-draw="num" data-source="y_summary" data-field="date" data-row="0" data-fmt="dayname">—</b></span>
+    <span class="muted">Refreshes every morning at about 9:15 AM IST</span>
+  </div>
+
+  <section class="bj-page" id="overview">
+  <header class="bj-head" id="top" data-ou="0" data-od="0">
+    <div class="bj-eyebrow">CSP app · install tasks created <span data-draw="num" data-source="summary" data-field="cohort_from" data-row="0" data-fmt="date">—</span> to <span data-draw="num" data-source="summary" data-field="cohort_to" data-row="0" data-fmt="date">—</span></div>
+    <h1>CSP Booking-to-Install Journey</h1>
+    <p class="bj-take" id="takeaway"><b data-draw="num" data-source="summary" data-field="installed" data-row="0" data-fmt="int" data-fetchpriority="high">—</b> installations came from <b data-draw="num" data-source="summary" data-field="tasks" data-row="0" data-fmt="int">—</b> Booking FPNs sent to CSPs, so <b data-draw="num" data-source="summary" data-field="install_pct" data-row="0" data-fmt="pct">—</b> of FPNs became an install. Tracing back from the install, the biggest leak is at the very start: <b data-draw="num" data-source="summary" data-field="noaction_pct" data-row="0" data-fmt="pct">—</b> of FPNs expired with no response from the CSP.</p>
+  </header>
+
+  <div class="bj-kpis" id="kpis" data-ou="1" data-od="1">
+    <div class="bj-kpi" id="kpi-installed"><span class="v" data-draw="num" data-source="summary" data-field="installed" data-row="0" data-fmt="int">—</span><span class="l">Installations</span></div>
+    <div class="bj-kpi" id="kpi-offered"><span class="v" data-draw="num" data-source="summary" data-field="tasks" data-row="0" data-fmt="int">—</span><span class="l">Booking FPNs sent to CSPs</span></div>
+    <div class="bj-kpi" id="kpi-accept"><span class="v" data-draw="num" data-source="summary" data-field="accept_pct" data-row="0" data-fmt="pct">—</span><span class="l">FPNs the CSP accepted</span></div>
+    <div class="bj-kpi" id="kpi-task-install"><span class="v" data-draw="num" data-source="summary" data-field="install_pct" data-row="0" data-fmt="pct">—</span><span class="l">Tasks that became an install</span></div>
+    <div class="bj-kpi" id="kpi-booking-install"><span class="v" data-draw="num" data-source="summary" data-field="booking_install_pct" data-row="0" data-fmt="pct">—</span><span class="l">Bookings installed, after any reassignment</span></div>
+    <div class="bj-kpi" id="kpi-time"><span class="v" data-draw="num" data-source="summary" data-field="median_e2e_hours" data-row="0" data-fmt="h">—</span><span class="l">Median time from FPN to install</span></div>
+  </div>
+
+  <section class="bj-sec" id="journey" data-ou="2" data-od="2">
+    <header>
+      <h2 data-dir-only="up">The journey, traced back from install to FPN</h2>
+      <h2 data-dir-only="down" hidden>The journey, from Booking FPN to install</h2>
+      <p class="muted cap">Read from the top. Each bar is the number of tasks that reached the step; one task is one booking sent to one CSP as a Booking FPN. Press a red “lost” tag to see why tasks dropped between two steps.</p>
+    </header>
+    <div class="bj-dir" data-dirpage="overview"><span class="lab">Read this funnel</span><span class="bj-toggle" role="group" aria-label="Funnel direction"><button type="button" class="bj-tbtn" data-dir="up" aria-pressed="true">Install → back to FPN</button><button type="button" class="bj-tbtn" data-dir="down" aria-pressed="false">FPN → forward to install</button></span><span class="cap muted">Flips the steps below. Install at the top, or the Booking FPN at the top.</span></div>
+      <div class="bj-journey" data-draw="journey" data-source="steps exits summary">—</div>
+    <button type="button" class="bj-goto" data-goto="after-assign">Deep dive: what happens after the technician is assigned →</button>
+  </section>
+
+
+
+
+
+
+  <section class="bj-sec" id="reassign" data-ou="3" data-od="7">
+    <header>
+      <h2>Every reassignment costs installs</h2>
+      <p class="muted cap">Bookings by how many CSPs got the FPN, and the share that ended up installed.</p>
+    </header>
+    <div class="bj-card">
+      <div class="bj-chart" data-draw="reassign" data-source="bookings" role="img" aria-label="Install rate by number of CSPs the booking was sent to"></div>
+      <p class="bj-note"><span data-draw="num" data-source="summary" data-field="bookings_reassigned_pct" data-row="0" data-fmt="pct">—</span> of bookings went to more than one CSP. Later CSPs often get the harder bookings too, such as bad coverage or a customer who has gone cold, so part of this drop is the booking, not the CSP.</p>
+    </div>
+  </section>
+
+  <section class="bj-sec" id="who" data-ou="4" data-od="5">
+    <header>
+      <h2>Most unanswered FPNs sit with a small group of CSPs</h2>
+      <p class="muted cap">CSPs grouped by the share of their FPNs they accepted in this window.</p>
+    </header>
+    <div class="bj-card">
+      <div class="bj-hbars" data-draw="cspgroups" data-source="csp_groups"></div>
+      <div class="bj-legend"><span><i style="background: var(--cds-chart-muted)"></i>Share of all FPNs</span><span><i style="background: var(--color-bad)"></i>Share of all “no response”</span></div>
+    </div>
+  </section>
+
+  <section class="bj-sec" id="hours" data-ou="5" data-od="6">
+    <header>
+      <h2>When the FPN lands</h2>
+      <p class="muted cap">FPNs by hour of day (IST) they reached the CSP. Bars show volume; lines show what share were accepted or got no response.</p>
+    </header>
+    <div class="bj-card">
+      <div class="bj-chart" data-draw="hourly" data-source="hourly" role="img" aria-label="FPNs, accept rate and no-response rate by hour of day"></div>
+      <div class="bj-legend"><span><i style="background: var(--cds-chart-grid)"></i>FPNs</span><span><i style="background: var(--color-ok)"></i>Accepted %</span><span><i style="background: var(--color-bad)"></i>No response %</span></div>
+    </div>
+  </section>
+
+  <section class="bj-sec" id="decision" data-ou="6" data-od="3">
+    <header>
+      <h2>Back at the start: the Booking FPN and the CSP's decision</h2>
+      <p class="muted cap">What happened to every FPN, and how long it took. “No response” means the FPN hit its deadline and the system took it back.</p>
+    </header>
+    <div class="bj-card" id="offer-card">
+      <div class="bj-stack" data-draw="offerstack" data-source="offer"></div>
+      <div class="bj-legend" data-draw="offerlegend" data-source="offer"></div>
+    </div>
+    <div class="bj-card" id="fpn-reach">
+      <div><b>Did the Booking FPN reach the CSP?</b> <span class="muted cap">Share of FPNs sent, from the CSP app's own events</span></div>
+      <div class="bj-reach" data-draw="reach" data-source="fpn_reach"></div>
+    </div>
+    <div class="bj-card" id="fpn-response">
+      <div><b>Tapping the FPN goes with far more accepts</b> <span class="muted cap">Accepted, no response and installed, as a share of tasks in each group</span></div>
+      <div class="bj-hbars" data-draw="fpnresp" data-source="fpn_response"></div>
+      <div class="bj-legend" id="fpn-legend"><span><i style="background: var(--color-ok)"></i>Accepted</span><span><i style="background: var(--color-bad)"></i>No response</span><span><i style="background: var(--cds-chart-muted)"></i>Installed</span></div>
+      <p class="bj-note">This shows association, not cause: CSPs who tap are also the ones who were going to act anyway.</p>
+    </div>
+  </section>
+
+  <section class="bj-sec" id="daily" data-ou="7" data-od="8">
+    <header>
+      <h2>Day by day</h2>
+      <p class="muted cap">By the day the task was created. Later days have had less time to finish, so their install share can still rise a little.</p>
+    </header>
+    <div class="bj-card">
+      <div class="bj-chart" data-draw="daily" data-source="daily" role="img" aria-label="Accepted, no-response and installed share by task creation day"></div>
+      <div class="bj-legend"><span><i style="background: var(--color-ok)"></i>Accepted %</span><span><i style="background: var(--color-bad)"></i>No response %</span><span><i style="background: var(--color-fg)"></i>Installed %</span></div>
+    </div>
+  </section>
+
+  <details id="dictionary" data-ou="9" data-od="9">
+    <summary>Event dictionary: which backend and app event marks each step, from install back to FPN</summary>
+    <div class="bj-tablewrap">
+      <table data-source="steps" data-row-key="step_no">
+        <thead><tr><th data-field="step_no">#</th><th data-field="step">Step</th><th data-field="actor">Who acts</th><th data-field="backend_event">Backend state change (TAS)</th><th data-field="app_event">CSP app event (CleverTap)</th><th data-field="tasks">Tasks</th></tr></thead>
+        <tbody data-draw="dict"></tbody>
+      </table>
+    </div>
+  </details>
+
+  <details id="ov-definitions" data-ou="10" data-od="10">
+    <summary>Definitions, data sources and caveats</summary>
+    <ul class="bj-defs">
+      <li><b>Task</b>: one booking sent to one CSP as a Booking FPN, the TAS install execution candidate. When a CSP declines or ignores an FPN, the booking goes to another CSP as a new task. So the task-level install share is lower than the booking-level one.</li>
+      <li><b>Cohort</b>: every install task created <span data-draw="num" data-source="summary" data-field="cohort_from" data-row="0" data-fmt="date">—</span> to <span data-draw="num" data-source="summary" data-field="cohort_to" data-row="0" data-fmt="date">—</span> (IST): a 13-day window ending 5 days before the last update, so every task has had time to finish. It moves forward with each refresh. Since 3 Nov every task goes through the CSP-acceptance flow. Outcomes are counted up to the snapshot time, at least 3.5 days after the last task. Under 1% of tasks were still open.</li>
+      <li><b>Backend steps</b> come from <code>CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG</code>, the first time each task reached the state. <b>FPN steps</b> come from CSP app events in <code>CLEVERTAP_CSP_API.EVENTS_DATA</code>, joined on <code>execution_id</code>: <code>install_task_created</code> (push sent), <code>fpn_delivered</code> (full-page popup drawn on the phone), <code>fpn_action_taken</code> (tap or dismiss) and <code>install_candidate_opened</code>.</li>
+      <li><b>No response</b>: the task left <code>AWAITING_CSP_ACCEPTANCE</code> with reason <code>TIMEOUT_P41</code>. <b>Timed out, task not moved</b>: reason <code>CSP_NO_SHOW</code> after the CSP had accepted.</li>
+      <li><b>Installed</b>: the technician submitted the customer's happy code (OTP) and it was verified (<code>AWAITING_CUSTOMER_OTP → RATING_PENDING</code>). That is when the customer's internet goes live. The customer rating that follows is not needed to count as installed.</li>
+      <li>“Other (free text)” is the largest failure reason after acceptance. Those notes are not yet categorised.</li>
+      <li>This is a fixed snapshot from Snowflake through Metabase. Each source in Sources holds the exact SQL.</li>
+    </ul>
+  </details>
+  </section>
+
+  <section class="bj-page" id="after-assign" hidden>
+    <header class="bj-head" id="aa-top">
+      <div class="bj-eyebrow">Deep dive · tasks created <span data-draw="num" data-source="d_summary" data-field="cohort_from" data-row="0" data-fmt="date">—</span> to <span data-draw="num" data-source="d_summary" data-field="cohort_to" data-row="0" data-fmt="date">—</span> that got a technician</div>
+      <h1>After the Technician Is Assigned</h1>
+      <p class="bj-take" id="aa-takeaway"><b data-draw="num" data-source="d_summary" data-field="assigned" data-row="0" data-fmt="int">—</b> tasks got a technician and <b data-draw="num" data-source="d_summary" data-field="install_pct" data-row="0" data-fmt="pct">—</b> of them were installed. <b data-draw="num" data-source="d_summary" data-field="on_or_before_pct" data-row="0" data-fmt="pct">—</b> of installs happened on or before the slot day. Of the <b data-draw="num" data-source="d_summary" data-field="not_installed" data-row="0" data-fmt="int">—</b> that were not installed, almost all stopped before the technician reached customer home.</p>
+    </header>
+
+    <div class="bj-kpis" id="aa-kpis">
+      <div class="bj-kpi"><span class="v" data-draw="num" data-source="d_summary" data-field="assigned" data-row="0" data-fmt="int">—</span><span class="l">Tasks with a technician assigned</span></div>
+      <div class="bj-kpi"><span class="v" data-draw="num" data-source="d_summary" data-field="installed" data-row="0" data-fmt="int">—</span><span class="l">Installed</span></div>
+      <div class="bj-kpi"><span class="v" data-draw="num" data-source="d_summary" data-field="on_or_before_pct" data-row="0" data-fmt="pct">—</span><span class="l">Installs on or before the slot day</span></div>
+      <div class="bj-kpi"><span class="v" data-draw="num" data-source="d_summary" data-field="after_slot" data-row="0" data-fmt="int">—</span><span class="l">Installs after the slot day (late)</span></div>
+      <div class="bj-kpi"><span class="v" data-draw="num" data-source="d_summary" data-field="median_assign_to_install_hours" data-row="0" data-fmt="h">—</span><span class="l">Median time from technician assigned to install</span></div>
+    </div>
+
+    <section class="bj-sec" id="aa-funnel">
+      <header>
+        <h2 data-dir-only="up">The small funnel, from install back to technician assigned</h2>
+        <h2 data-dir-only="down" hidden>The small funnel, from technician assigned to install</h2>
+        <p class="muted cap">Read from the top. Times are medians from the step below. Once the technician is at the home, the on-site steps take about <span data-draw="num" data-source="d_summary" data-field="onsite_median_min" data-row="0">—</span> minutes in total; the wait is getting there.</p>
+      </header>
+      <div class="bj-dir" data-dirpage="after-assign"><span class="lab">Read this funnel</span><span class="bj-toggle" role="group" aria-label="Funnel direction"><button type="button" class="bj-tbtn" data-dir="up" aria-pressed="true">Install → back to FPN</button><button type="button" class="bj-tbtn" data-dir="down" aria-pressed="false">FPN → forward to install</button></span><span class="cap muted">Flips the steps below. Install at the top, or technician assigned at the top.</span></div>
+      <div class="bj-journey" data-draw="minifunnel" data-source="d_steps d_summary">—</div>
+    </section>
+
+    <section class="bj-sec" id="aa-timing">
+      <header>
+        <h2>Installed: before, on or after the slot day</h2>
+        <p class="muted cap">The slot is a whole day the customer picked (00:00–23:59). “Slot day” is the date on the task when it was installed, after any reschedule. <span data-draw="num" data-source="d_summary" data-field="rescheduled_pct" data-row="0" data-fmt="pct">—</span> of these tasks were rescheduled at least once.</p>
+      </header>
+      <div class="bj-card">
+        <div class="bj-stack" data-draw="timingstack" data-source="d_timing"></div>
+        <div class="bj-legend" data-draw="timinglegend" data-source="d_timing"></div>
+      </div>
+      <div class="bj-card">
+        <div><b>Days between the slot day and the install</b> <span class="muted cap">Negative = installed early, 0 = on the day, positive = late. Lighter part of each bar = rescheduled tasks.</span></div>
+        <div class="bj-chart" data-draw="dayshist" data-source="d_days" role="img" aria-label="Installs by days before or after the slot day"></div>
+        <p class="bj-note">Technicians reached the customer home before the slot day on <span data-draw="num" data-source="d_summary" data-field="arrived_before_slot" data-row="0" data-fmt="int">—</span> tasks, on the day on <span data-draw="num" data-source="d_summary" data-field="arrived_on_slot" data-row="0" data-fmt="int">—</span> and after it on <span data-draw="num" data-source="d_summary" data-field="arrived_after_slot" data-row="0" data-fmt="int">—</span>. Early installs are usually same-day or next-day visits agreed with the customer, which the backend counts as on time.</p>
+      </div>
+    </section>
+
+    <section class="bj-sec" id="aa-late">
+      <header>
+        <h2>When late, how late</h2>
+        <p class="muted cap">Late installs, by hours after the slot day ended (midnight IST).</p>
+      </header>
+      <div class="bj-grid2">
+        <div class="bj-card">
+          <div><b>How late the <span data-draw="num" data-source="d_summary" data-field="after_slot" data-row="0" data-fmt="int">—</span> late installs were</b></div>
+          <div class="bj-hbars" data-draw="latebars" data-source="d_late"></div>
+          <p class="bj-note">Most late installs happen the next day: they slip by one day rather than many.</p>
+        </div>
+        <div class="bj-card">
+          <div><b>Time from technician assigned to install</b> <span class="muted cap">Split by install timing</span></div>
+          <div class="bj-hbars" data-draw="a2ibars" data-source="d_assign_to_install"></div>
+          <div class="bj-legend"><span><i style="background: var(--bj-early)"></i>Before slot day</span><span><i style="background: var(--color-ok)"></i>On slot day</span><span><i style="background: var(--color-warn)"></i>After slot day</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bj-sec" id="aa-stuck">
+      <header>
+        <h2>Not installed: where it stopped and for how long</h2>
+        <p class="muted cap">The <span data-draw="num" data-source="d_summary" data-field="not_installed" data-row="0" data-fmt="int">—</span> tasks that got a technician but no install. Each cell counts tasks by the step where they stopped and how long they sat there before the task ended (or until now, if still open).</p>
+      </header>
+      <div class="bj-card">
+        <label class="cap muted" for="aa-outcome">Show</label>
+        <select class="dash-select" id="aa-outcome" data-draw="outcomepick" data-source="d_stuck" aria-label="Outcome"></select>
+        <div class="bj-tablewrap" data-draw="stuckheat" data-source="d_stuck"></div>
+        <p class="bj-note"><span data-draw="num" data-source="d_summary" data-field="noshow_3d" data-row="0" data-fmt="int">—</span> of the <span data-draw="num" data-source="d_summary" data-field="noshow_total" data-row="0" data-fmt="int">—</span> system timeouts sat for 3+ days before the system closed them. CSP-reported failures are spread over the first three days.</p>
+      </div>
+      <div class="bj-card">
+        <div><b>Reasons recorded, by outcome</b></div>
+        <div class="bj-why" style="margin:0" data-draw="stuckreasons" data-source="d_reasons"></div>
+      </div>
+    </section>
+
+    <section class="bj-sec" id="aa-live">
+      <header>
+        <h2>Right now: open tasks after technician assignment</h2>
+        <p class="muted cap">Every task currently between “technician assigned” and “installed”, whatever day it was created, at snapshot time (<span data-draw="num" data-source="d_summary" data-field="snapshot" data-row="0" data-fmt="ts">—</span>). <span data-draw="num" data-source="d_summary" data-field="live_open" data-row="0" data-fmt="int">—</span> open; <span data-draw="num" data-source="d_summary" data-field="live_past_slot" data-row="0" data-fmt="int">—</span> are already past their slot day.</p>
+      </header>
+      <div class="bj-card">
+        <div class="bj-tablewrap" data-draw="liveheat" data-source="d_live"></div>
+      </div>
+    </section>
+
+    <details id="aa-definitions">
+      <summary>Definitions and data sources for this page</summary>
+      <ul class="bj-defs">
+        <li><b>Cohort</b>: install tasks created <span data-draw="num" data-source="d_summary" data-field="cohort_from" data-row="0" data-fmt="date">—</span> to <span data-draw="num" data-source="d_summary" data-field="cohort_to" data-row="0" data-fmt="date">—</span> (IST) that reached <code>TECHNICIAN_ASSIGNED</code>, the same tasks as the overview. This page was taken a little later, so one more task had finished installing.</li>
+        <li><b>Slot day</b>: <code>INSTALL_EXECUTION_CANDIDATES.SLOT_DATE</code>, which matches <code>slot_day</code> on the backend's <code>TAS_INSTALL_TERMINAL</code> event. <b>Early / on / late</b> compares the IST install date with it. The backend's own <code>on_time</code> flag counts early and on-the-day installs as on time.</li>
+        <li><b>Rescheduled</b>: the task has at least one <code>ES_INSTALL_SLOT_AUTO_REDATED</code> event with source <code>CSP_RESCHEDULE</code>.</li>
+        <li><b>Where it stopped</b>: the state the task was in just before it ended (failed, cancelled or timed out), or its current state if still open. <b>Time there</b> runs from when it entered that state to when it ended, or to now.</li>
+        <li><b>Right now</b> reads current state from <code>INSTALL_EXECUTION_CANDIDATES</code> (latest Fivetran row) for all open tasks, not only this cohort.</li>
+        <li>Every source in Sources holds the exact SQL behind it.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="bj-page" id="daily-tracker" hidden>
+    <header class="bj-head" id="y-top">
+      <div class="bj-eyebrow">Daily tracker · yesterday, <span data-draw="num" data-source="y_summary" data-field="date" data-row="0" data-fmt="dayname">—</span> (IST)</div>
+      <h1>Daily Tracker</h1>
+      <p class="bj-take" id="y-takeaway"><b data-draw="num" data-source="y_summary" data-field="installs" data-row="0" data-fmt="int">—</b> installs were done yesterday. <b data-draw="num" data-source="y_summary" data-field="x" data-row="0" data-fmt="int">—</b> were on time and never rescheduled, <b data-draw="num" data-source="y_summary" data-field="y_on_time" data-row="0" data-fmt="int">—</b> were rescheduled and then installed early or on time, <b data-draw="num" data-source="y_summary" data-field="y_late" data-row="0" data-fmt="int">—</b> were rescheduled and still installed late, and <b data-draw="num" data-source="y_summary" data-field="z" data-row="0" data-fmt="int">—</b> were late without any reschedule. Of the <b data-draw="num" data-source="y_summary" data-field="assigned" data-row="0" data-fmt="int">—</b> tasks due yesterday that had a technician, <b data-draw="num" data-source="y_summary" data-field="installed_on_day" data-row="0" data-fmt="int">—</b> were installed that day.</p>
+    </header>
+
+    <section class="bj-sec" id="y-flags">
+      <div class="bj-flaghead" data-draw="yflaghead" data-source="y_flags"></div>
+      <div class="bj-flagcards" data-draw="yflagcards" data-source="y_flags"></div>
+      <div class="bj-card" id="y-checks">
+        <div class="bj-cardhead"><b>Top 5 checks, yesterday against the usual range</b> <span class="muted cap">Shaded band = the middle 80% of the previous days (10th–90th percentile). Line = average. Dot = yesterday.</span></div>
+        <div class="bj-checks" data-draw="ychecks" data-source="y_flags"></div>
+        <details class="bj-more" id="y-more-checks">
+          <summary data-draw="ychecksmorelabel" data-source="y_flags">—</summary>
+          <div class="bj-checks" data-draw="ychecksmore" data-source="y_flags"></div>
+        </details>
+        <p class="bj-note">A check is <b>off</b> when yesterday is 2 or more standard deviations worse than the average of the previous 28 days, and <b>watch</b> at 1.5 to 2. Checks that use the CSP-acceptance step compare only against days since 3 Nov 2026.</p>
+      </div>
+    </section>
+
+    <section class="bj-sec" id="y-promise">
+      <header>
+        <h2>Supposed to be installed yesterday: what happened</h2>
+        <p class="muted cap">Every booking whose slot day was yesterday, counted once per booking, with where it stands now. Late and delayed can still move: a booking delayed yesterday may be installed today.</p>
+      </header>
+      <div class="bj-callout">
+        <span class="v" data-draw="num" data-source="y_summary" data-field="pr_supposed" data-row="0" data-fmt="int">—</span>
+        <span>bookings were supposed to be installed yesterday.</span>
+        <b data-draw="num" data-source="y_summary" data-field="pr_g_on_time" data-row="0" data-fmt="int">—</b><span>were installed on time</span>
+        <span class="muted">(<span data-draw="num" data-source="y_summary" data-field="pr_g_on_time_pct" data-row="0" data-fmt="pct">—</span>).</span>
+      </div>
+      <div class="bj-card">
+        <div class="bj-stack" data-draw="ypromisestack" data-source="y_promise"></div>
+        <div class="bj-promise" data-draw="ypromisegroups" data-source="y_promise"></div>
+      </div>
+    </section>
+
+    <section class="bj-sec" id="y-activity">
+      <header>
+        <h2 data-dir-only="up">Yesterday's installs, traced back to the FPN</h2>
+        <h2 data-dir-only="down" hidden>Yesterday, from new FPNs to installs</h2>
+        <p class="muted cap">Everything that happened yesterday, read from the top: installs done (happy code submitted), then customer homes reached, technicians assigned, CSP accepts and new Booking FPNs. Each step counts tasks that reached it for the first time yesterday, so “% of the previous step” compares the day's volumes, not one group of tasks.</p>
+      </header>
+      <div class="bj-dir" data-dirpage="daily-tracker"><span class="lab">Read this funnel</span><span class="bj-toggle" role="group" aria-label="Funnel direction"><button type="button" class="bj-tbtn" data-dir="up" aria-pressed="true">Install → back to FPN</button><button type="button" class="bj-tbtn" data-dir="down" aria-pressed="false">FPN → forward to install</button></span><span class="cap muted">Flips the steps below. Install at the top, or new FPNs at the top.</span></div>
+      <div class="bj-journey" data-draw="yactfunnel" data-source="y_activity">—</div>
+      <div class="bj-card" id="y-lag">
+        <div class="bj-cardhead"><b>Where yesterday's <span data-draw="num" data-source="y_summary" data-field="installs" data-row="0" data-fmt="int">—</span> installs came from</b> <span class="muted cap">For each earlier step, when it happened for these installs</span></div>
+        <div class="bj-hbars" data-draw="ylag" data-source="y_lag"></div>
+        <div class="bj-legend"><span><i style="background: var(--color-ok)"></i>Same day</span><span><i class="bj-sw0"></i>1 day before</span><span><i style="background: var(--color-warn)"></i>2–3 days before</span><span><i style="background: var(--color-bad)"></i>4+ days before</span></div>
+      </div>
+    </section>
+
+    <section class="bj-sec" id="y-split">
+      <header>
+        <h2>Every install yesterday, split three ways</h2>
+        <p class="muted cap">On time means installed on or before the slot day. Rescheduled means the CSP moved the date at least once before installing.</p>
+      </header>
+      <div class="bj-eq" id="y-eq">
+        <div class="bj-eqcard" style="--bj-c: var(--color-ok)">
+          <span class="v" data-draw="num" data-source="y_summary" data-field="x" data-row="0" data-fmt="int">—</span>
+          <span class="p"><span data-draw="num" data-source="y_summary" data-field="x_pct" data-row="0" data-fmt="pct">—</span> of installs</span>
+          <span class="l">On time, never rescheduled</span>
+          <span class="s"><span data-draw="num" data-source="y_summary" data-field="x_on_day" data-row="0" data-fmt="int">—</span> on the slot day · <span data-draw="num" data-source="y_summary" data-field="x_early" data-row="0" data-fmt="int">—</span> before it</span>
+        </div>
+        <div class="bj-eqop" aria-hidden="true">+</div>
+        <div class="bj-eqcard" style="--bj-c: var(--bj-early)">
+          <span class="v" data-draw="num" data-source="y_summary" data-field="y_on_time" data-row="0" data-fmt="int">—</span>
+          <span class="p"><span data-draw="num" data-source="y_summary" data-field="y_on_time_pct" data-row="0" data-fmt="pct">—</span> of installs</span>
+          <span class="l">Rescheduled, installed early or on time</span>
+          <span class="s"><span data-draw="num" data-source="y_summary" data-field="y_early" data-row="0" data-fmt="int">—</span> before the new date · <span data-draw="num" data-source="y_summary" data-field="y_on_day" data-row="0" data-fmt="int">—</span> on it</span>
+        </div>
+        <div class="bj-eqop" aria-hidden="true">+</div>
+        <div class="bj-eqcard" style="--bj-c: color-mix(in srgb, var(--bj-early) 45%, var(--color-warn))">
+          <span class="v" data-draw="num" data-source="y_summary" data-field="y_late" data-row="0" data-fmt="int">—</span>
+          <span class="p"><span data-draw="num" data-source="y_summary" data-field="y_late_pct" data-row="0" data-fmt="pct">—</span> of installs</span>
+          <span class="l">Rescheduled, installed late</span>
+          <span class="s">after the new date</span>
+        </div>
+        <div class="bj-eqop" aria-hidden="true">+</div>
+        <div class="bj-eqcard" style="--bj-c: var(--color-warn)">
+          <span class="v" data-draw="num" data-source="y_summary" data-field="z" data-row="0" data-fmt="int">—</span>
+          <span class="p"><span data-draw="num" data-source="y_summary" data-field="z_pct" data-row="0" data-fmt="pct">—</span> of installs</span>
+          <span class="l">Late, never rescheduled</span>
+          <span class="s">installed after the slot day</span>
+        </div>
+        <div class="bj-eqop" aria-hidden="true">=</div>
+        <div class="bj-eqcard is-total">
+          <span class="v" data-draw="num" data-source="y_summary" data-field="installs" data-row="0" data-fmt="int">—</span>
+          <span class="p">100%</span>
+          <span class="l">Installs yesterday</span>
+          <span class="s"><span data-draw="num" data-source="y_summary" data-field="late_total" data-row="0" data-fmt="int">—</span> late in all</span>
+        </div>
+      </div>
+      <div class="bj-card">
+        <div class="bj-stack" data-draw="ysplitstack" data-source="y_split"></div>
+        <div class="bj-legend" data-draw="ysplitlegend" data-source="y_split"></div>
+        <p class="bj-note">Of the <span data-draw="num" data-source="y_summary" data-field="y" data-row="0" data-fmt="int">—</span> rescheduled installs, <span data-draw="num" data-source="y_summary" data-field="y_after_original" data-row="0" data-fmt="int">—</span> happened after the day the customer first picked, so they were late for the customer even when on time for the new date.</p>
+      </div>
+      <div class="bj-card">
+        <div><b>How late the late installs were</b> <span class="muted cap">Days after the slot day</span></div>
+        <div class="bj-hbars" data-draw="ylatebars" data-source="y_late"></div>
+      </div>
+    </section>
+
+    <section class="bj-sec" id="y-compare">
+      <header>
+        <h2>Yesterday compared</h2>
+        <p class="muted cap">Yesterday against the day before, the same weekday last week, and the averages of the 7 and 28 days before it. Shares are pooled over the days, not averaged. Green means better, red means worse.</p>
+      </header>
+      <div class="bj-card">
+        <div class="bj-tablewrap">
+          <table data-source="y_compare" data-row-key="field">
+            <thead><tr><th>Metric</th><th data-field="yesterday">Yesterday</th><th>Day before</th><th>Same day last week</th><th>Prev 7 days</th><th>Prev 28 days</th></tr></thead>
+            <tbody data-draw="ycompare"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="bj-sec" id="y-funnel">
+      <header>
+        <h2 data-dir-only="up">Tasks due yesterday, traced back from install</h2>
+        <h2 data-dir-only="down" hidden>Tasks due yesterday, from due to installed</h2>
+        <p class="muted cap">Every open task whose slot day was yesterday when the day began, counted at midnight. Read from the top: installed on the day, then each earlier step down to all tasks due. Press a red tag to see where the rest went.</p>
+      </header>
+      <div class="bj-callout" id="y-callout">
+        <span class="v" data-draw="num" data-source="y_summary" data-field="installed_on_day" data-row="0" data-fmt="int">—</span>
+        <span>installed of</span>
+        <span class="v" data-draw="num" data-source="y_summary" data-field="assigned" data-row="0" data-fmt="int">—</span>
+        <span>with a technician assigned:</span>
+        <b data-draw="num" data-source="y_summary" data-field="assigned_to_installed_pct" data-row="0" data-fmt="pct">—</b>
+      </div>
+      <div class="bj-dir" data-dirpage="daily-tracker"><span class="lab">Read this funnel</span><span class="bj-toggle" role="group" aria-label="Funnel direction"><button type="button" class="bj-tbtn" data-dir="up" aria-pressed="true">Install → back to FPN</button><button type="button" class="bj-tbtn" data-dir="down" aria-pressed="false">FPN → forward to install</button></span><span class="cap muted">Flips the steps below. Installed on the day at the top, or all due tasks at the top.</span></div>
+      <div class="bj-journey" data-draw="yfunnel" data-source="y_funnel y_leaks">—</div>
+      <p class="bj-note">Yesterday's <span data-draw="num" data-source="y_summary" data-field="installs" data-row="0" data-fmt="int">—</span> installs = <span data-draw="num" data-source="y_summary" data-field="installed_on_day" data-row="0" data-fmt="int">—</span> tasks due yesterday and installed on the day + <span data-draw="num" data-source="y_summary" data-field="installs_not_due_yday" data-row="0" data-fmt="int">—</span> installs of tasks due on other days (early or late). “Due yesterday” counts tasks, so a booking sent to two CSPs counts twice at the bottom step.</p>
+    </section>
+
+    <section class="bj-sec" id="y-trend">
+      <header>
+        <h2>Day by day, week by week, month by month</h2>
+        <p class="muted cap">The same numbers as above for every day since 1 Aug 2026. CSP reschedules are only recorded from 18 Sep, so before that no install shows as rescheduled. The “accepted by CSP” step exists for every task only from 3 Nov.</p>
+      </header>
+      <div class="bj-toggle" role="group" aria-label="Period" id="y-grain">
+        <button type="button" class="bj-tbtn" data-grain="day" aria-pressed="true">Daily (last 35 days)</button>
+        <button type="button" class="bj-tbtn" data-grain="week" aria-pressed="false">Weekly</button>
+        <button type="button" class="bj-tbtn" data-grain="month" aria-pressed="false">Monthly</button>
+      </div>
+      <div class="bj-card">
+        <div class="bj-cardhead"><b>Bookings due each day: on time, late, delayed or not going ahead</b> <span class="muted cap">Counted per booking by its slot day. Recent periods can still move from delayed to late.</span></div>
+        <div class="bj-chart" data-draw="ytrendpromise" data-source="trend" role="img" aria-label="Booking outcomes by slot day"></div>
+        <div class="bj-legend"><span><i style="background: var(--color-ok)"></i>On time</span><span><i style="background: var(--color-warn)"></i>Late</span><span><i class="bj-sw0"></i>Delayed, not installed yet</span><span><i style="background: var(--cds-chart-muted)"></i>Not going ahead</span></div>
+      </div>
+      <div class="bj-card">
+        <div class="bj-cardhead"><b>The day's funnel: FPNs, accepts, technicians, customer homes reached, installs</b>
+          <span class="bj-toggle sm" role="group" aria-label="Measure" id="y-actmode"><button type="button" class="bj-tbtn" data-mode="count" aria-pressed="true">Counts</button><button type="button" class="bj-tbtn" data-mode="ratio" aria-pressed="false">Ratios</button></span>
+        </div>
+        <div class="bj-chart" data-draw="ytrendact" data-source="trend" role="img" aria-label="Daily activity funnel by period"></div>
+        <div class="bj-legend" data-draw="ytrendactlegend" data-source="trend"></div>
+      </div>
+      <div class="bj-card">
+        <div class="bj-cardhead"><b>Installs: on time, rescheduled or late</b>
+          <span class="bj-toggle sm" role="group" aria-label="Scale" id="y-scale"><button type="button" class="bj-tbtn" data-scale="pct" aria-pressed="true">Share %</button><button type="button" class="bj-tbtn" data-scale="count" aria-pressed="false">Count</button></span>
+        </div>
+        <div class="bj-chart" data-draw="ytrendsplit" data-source="trend" role="img" aria-label="Install split by period"></div>
+        <div class="bj-legend"><span><i style="background: var(--color-ok)"></i>On time · on the slot day</span><span><i style="background: color-mix(in srgb, var(--color-ok) 55%, transparent)"></i>On time · before the slot day</span><span><i style="background: var(--bj-early)"></i>Rescheduled, installed early or on time</span><span><i style="background: color-mix(in srgb, var(--bj-early) 45%, var(--color-warn))"></i>Rescheduled, installed late</span><span><i style="background: var(--color-warn)"></i>Late · never rescheduled</span></div>
+      </div>
+      <div class="bj-card">
+        <div class="bj-cardhead"><b>Tasks due on the day: how many got installed that day</b></div>
+        <div class="bj-chart" data-draw="ytrendfunnel" data-source="trend" role="img" aria-label="Due-day conversion by period"></div>
+        <div class="bj-legend"><span><i class="bj-sw0"></i>Technician assigned → installed on the day</span><span><i style="background: var(--color-ok)"></i>Due → installed on the day</span><span><i style="background: var(--cds-chart-muted)"></i>Due → technician assigned</span></div>
+      </div>
+      <div class="bj-card">
+        <div class="bj-cardhead"><b>All periods</b> <span class="muted cap">Latest first. Partial periods are marked.</span></div>
+        <div class="bj-tablewrap">
+          <table class="bj-ttable">
+            <thead><tr><th>Period</th><th>FPNs sent</th><th>Accepted</th><th>Technician assigned</th><th>Technician reached customer home</th><th>Installs</th><th>Installs ÷ technicians assigned</th><th>On time, never rescheduled</th><th>Rescheduled, early or on time</th><th>Rescheduled, late</th><th>Late, never rescheduled</th><th>All late</th><th>Due</th><th>Due with technician</th><th>Due, installed on day</th><th>Assigned → installed</th><th>Due → installed</th></tr></thead>
+            <tbody data-draw="ytrendtable" data-source="trend"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <details id="y-definitions">
+      <summary>Definitions and data sources for this page</summary>
+      <ul class="bj-defs">
+        <li><b>Yesterday</b>: the IST calendar day before the snapshot (<span data-draw="num" data-source="y_summary" data-field="snapshot" data-row="0" data-fmt="ts">—</span>).</li>
+        <li><b>Installs yesterday</b>: tasks that first reached <code>CONNECTION_ACTIVE</code> during the day. The slot day is <code>slot_day</code> from the backend's <code>TAS_INSTALL_TERMINAL</code> event (the date on the task at install). <b>Rescheduled</b>: at least one <code>ES_INSTALL_SLOT_AUTO_REDATED</code> with source <code>CSP_RESCHEDULE</code> before the install.</li>
+        <li><b>Due yesterday</b>: tasks that were open at 00:00 IST yesterday (or created during the day) and whose slot day at that moment was yesterday. It is rebuilt from the reschedule events, so a task moved to a later date during the day still counts as due. Each step counts what happened by midnight.</li>
+        <li>Because “due” uses the slot as it stood when the day began, and the split above uses the slot at install time, a task rescheduled during the day can be “installed on the day” in the funnel but “before the slot day” in the split.</li>
+        <li>This is a snapshot. Each source in Sources holds the exact SQL, which always works out “yesterday” from the current date.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="bj-page" id="csp-reschedule" hidden>
+    <header class="bj-head" id="c-top">
+      <div class="bj-eyebrow">CSP behaviour · installs <span data-draw="num" data-source="c_summary" data-field="window_from" data-row="0" data-fmt="date">—</span> to <span data-draw="num" data-source="c_summary" data-field="window_to" data-row="0" data-fmt="date">—</span></div>
+      <h1>CSP Reschedule Behaviour</h1>
+      <p class="bj-take" id="c-takeaway"><b data-draw="num" data-source="c_summary" data-field="late_no_resched" data-row="0" data-fmt="int">—</b> installs in the last 30 days were late and never rescheduled (<span data-draw="num" data-source="c_summary" data-field="late_no_resched_pct" data-row="0" data-fmt="pct">—</span> of all installs). <b data-draw="num" data-source="c_summary" data-field="never_late" data-row="0" data-fmt="int">—</b> of them came from <b data-draw="num" data-source="c_summary" data-field="never_csps" data-row="0" data-fmt="int">—</b> CSPs that have never used reschedule, who may not know it exists. The other <b data-draw="num" data-source="c_summary" data-field="some_late" data-row="0" data-fmt="int">—</b> came from <b data-draw="num" data-source="c_summary" data-field="some_csps" data-row="0" data-fmt="int">—</b> CSPs that do use reschedule, just not every time.</p>
+    </header>
+
+    <section class="bj-sec" id="c-segments">
+      <header>
+        <h2>Four kinds of CSP</h2>
+        <p class="muted cap">Every CSP with at least one install in the window. “Used reschedule” means at least one CSP reschedule since 18 Sep 2026, when the backend started recording them. Press a card to list those CSPs below.</p>
+      </header>
+      <div class="bj-segcards" data-draw="csegcards" data-source="c_segments"></div>
+      <p class="bj-note">The app version is not what stops them: <span data-draw="num" data-source="c_summary" data-field="resched_on_1_2_18" data-row="0" data-fmt="int">—</span> CSPs on the older 1.2.18 app rescheduled in the last 30 days, so the feature is there on both versions in use.</p>
+    </section>
+
+    <section class="bj-sec" id="c-scatter">
+      <header>
+        <h2>Late installs without a reschedule, against reschedules used</h2>
+        <p class="muted cap">One dot per CSP. Dots on the left edge have not rescheduled in the last 30 days. Bigger dot = more installs. Point at a dot for the CSP.</p>
+      </header>
+      <div class="bj-card">
+        <div class="bj-chart" data-draw="cscatter" data-source="c_csps" role="img" aria-label="CSPs by reschedules used and late installs without a reschedule"></div>
+        <div class="bj-legend" data-draw="cseglegend" data-source="c_segments"></div>
+      </div>
+    </section>
+
+    <section class="bj-sec" id="c-list">
+      <header>
+        <h2>CSP list</h2>
+        <p class="muted cap">Sorted by late installs never rescheduled. “Open overdue, never rescheduled” are tasks still open past their slot day right now with no reschedule: the ones to act on today.</p>
+      </header>
+      <div class="bj-card">
+        <div class="bj-filters">
+          <label class="cap muted" for="c-seg">Show</label>
+          <select class="dash-select" id="c-seg" aria-label="CSP group">
+            <option value="">All CSPs</option>
+            <option value="1">Never used reschedule, installs late</option>
+            <option value="2">Uses reschedule sometimes, still late without it</option>
+            <option value="3">Uses reschedule, never late without it</option>
+            <option value="4">Never late, never rescheduled</option>
+          </select>
+          <label class="cap muted" for="c-search">Find</label>
+          <input id="c-search" class="bj-input" type="search" placeholder="CSP name or ID" autocomplete="off">
+          <span class="cap muted" data-draw="ccount" data-source="c_csps"></span>
+        </div>
+        <div class="bj-tablewrap bj-tall">
+          <table class="bj-ctable" data-source="c_csps" data-row-key="csp_id">
+            <thead><tr><th>CSP</th><th>Group</th><th data-field="installs">Installs</th><th data-field="late_no_resched">Late, never rescheduled</th><th data-field="late_no_resched_pct">% of installs</th><th data-field="avg_days_late_no_resched">Avg days late</th><th data-field="ontime_resched">Rescheduled, early or on time</th><th data-field="late_resched">Rescheduled, late</th><th data-field="resched_events_30d">Reschedules, last 30 days</th><th data-field="last_resched_day">Last reschedule</th><th data-field="open_overdue_no_resched">Open overdue, never rescheduled</th><th data-field="app_version">App version</th></tr></thead>
+            <tbody data-draw="ctable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <details id="c-definitions">
+      <summary>How this page is worked out</summary>
+      <ul class="bj-defs">
+        <li><b>Window</b>: installs from <span data-draw="num" data-source="c_summary" data-field="window_from" data-row="0" data-fmt="date">—</span> to <span data-draw="num" data-source="c_summary" data-field="window_to" data-row="0" data-fmt="date">—</span> (the 30 days up to yesterday, IST), by the CSP that did the install.</li>
+        <li><b>Late, never rescheduled</b>: installed after the slot day with no CSP reschedule on that task before the install.</li>
+        <li><b>Used reschedule</b>: any <code>ES_INSTALL_SLOT_AUTO_REDATED</code> with source <code>CSP_RESCHEDULE</code> on the CSP's tasks since 18 Sep 2026. The app sends no event when a CSP opens the reschedule option, so a CSP who looked at it but didn't use it counts as never used.</li>
+        <li><b>App version</b>: the latest CSP app version seen on the owner's or manager's phone in the last 10 days. Blank = no app activity from them in that time.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="bj-page" id="definitions" hidden>
+    <header class="bj-head">
+      <div class="bj-eyebrow">Reference</div>
+      <h1>Definitions</h1>
+      <p class="bj-take">What every step, number and flag on this dashboard means, and where it comes from. Times are IST. A “task” is one booking sent to one CSP as a Booking FPN; a booking that goes to two CSPs has two tasks.</p>
+    </header>
+
+    <section class="bj-sec" id="def-basics">
+      <h2>Basics</h2>
+      <div class="bj-tablewrap"><table class="bj-defs-table"><thead><tr><th>Term</th><th>What it means</th><th>Where it comes from</th></tr></thead><tbody>
+        <tr><td><b>Booking</b></td><td>One customer's request for a connection. Counted once, however many CSPs it was sent to.</td><td><code>CONNECTION_ID</code> in TAS</td></tr>
+        <tr><td><b>Task</b></td><td>One booking sent to one CSP as a Booking FPN. If the CSP declines or doesn't respond, the booking is sent to another CSP as a new task.</td><td><code>INSTALL_EXECUTION_CANDIDATES.EXECUTION_CANDIDATE_ID</code></td></tr>
+        <tr><td><b>Slot day</b></td><td>The day the customer picked for the install. It is a whole day (00:00–23:59), not a time window. It changes when the CSP reschedules.</td><td><code>SLOT_DATE</code>; history from <code>ES_INSTALL_SLOT_AUTO_REDATED</code></td></tr>
+        <tr><td><b>Yesterday</b></td><td>The IST calendar day before the snapshot was taken.</td><td>—</td></tr>
+        <tr><td><b>Cohort</b> (Overview, Deep dive)</td><td>All install tasks created <span data-draw="num" data-source="summary" data-field="cohort_from" data-row="0" data-fmt="date">—</span> to <span data-draw="num" data-source="summary" data-field="cohort_to" data-row="0" data-fmt="date">—</span>: a 13-day window ending 5 days before the last update, which moves forward with each refresh. From 3 Nov every task goes through the CSP-acceptance step.</td><td>First <code>ASSIGNED</code> transition</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="bj-sec" id="def-steps">
+      <h2>Journey steps, in process order</h2>
+      <div class="bj-tablewrap"><table class="bj-defs-table"><thead><tr><th>Step</th><th>What it means</th><th>Backend state change (TAS)</th><th>CSP app event (CleverTap)</th></tr></thead><tbody>
+        <tr><td><b>Booking FPN sent to CSP</b></td><td>The task is created for a CSP and the full-page alert is pushed to the CSP's phone.</td><td><code>→ ASSIGNED → AWAITING_CSP_ACCEPTANCE</code></td><td><code>install_task_created</code></td></tr>
+        <tr><td><b>FPN shown</b></td><td>The full-page alert was actually drawn on the phone.</td><td>—</td><td><code>fpn_delivered</code></td></tr>
+        <tr><td><b>FPN tapped / dismissed</b></td><td>The CSP tapped the alert's button, or closed it.</td><td>—</td><td><code>fpn_action_taken</code> (<code>action</code>)</td></tr>
+        <tr><td><b>Accepted by the CSP</b></td><td>The CSP accepted the FPN. Before 3 Nov there was no accept step, so this is nearly the same as FPNs sent for earlier dates.</td><td><code>AWAITING_CSP_ACCEPTANCE → AWAITING_TECHNICIAN_ASSIGNMENT</code></td><td><code>install_accepted</code></td></tr>
+        <tr><td><b>Declined</b></td><td>The CSP turned the FPN down, with a reason (no coverage, no Netbox, other).</td><td><code>→ DECLINED</code></td><td><code>install_declined</code></td></tr>
+        <tr><td><b>No response</b></td><td>The FPN reached its deadline (about 16 h median) without accept or decline, and the system took it back.</td><td><code>→ CANCELLED_BY_UPSTREAM</code>, reason <code>TIMEOUT_P41</code></td><td>—</td></tr>
+        <tr><td><b>Technician assigned</b></td><td>The CSP picked the technician (Rohit) who will do the install.</td><td><code>→ TECHNICIAN_ASSIGNED</code></td><td><code>install_task_assigned</code></td></tr>
+        <tr><td><b>Technician reached customer home</b></td><td>The technician marked arrival at the customer's home.</td><td><code>→ ARRIVED_AT_SITE</code></td><td>—</td></tr>
+        <tr><td><b>Selfie + Aadhaar</b></td><td>Proof of presence and customer KYC.</td><td><code>→ INSTALLATION_IN_PROGRESS_PRE_FEE → FEE_COLLECTION_PENDING</code></td><td>—</td></tr>
+        <tr><td><b>Security fee collected</b></td><td>The customer paid the router security deposit.</td><td><code>FEE_COLLECTION_PENDING → INSTALLATION_IN_PROGRESS_POST_FEE</code></td><td>—</td></tr>
+        <tr><td><b>Device set up + speed test</b></td><td>Router shared, connection details entered, device photo and speed test done.</td><td><code>→ AWAITING_CUSTOMER_OTP</code></td><td>—</td></tr>
+        <tr><td><b>Installed</b> (happy code submitted)</td><td>The technician entered the customer's happy code (OTP) and it was verified. <b>This is when the customer's internet is switched on</b>: the connection is activated and the Netbox is marked deployed. Every install count, install time and on-time / late figure on this dashboard uses this moment.</td><td><code>AWAITING_CUSTOMER_OTP → RATING_PENDING</code></td><td>—</td></tr>
+        <tr><td><b>Customer rating</b> (not counted)</td><td>After the happy code the technician submits the customer's rating, which closes the task in the backend (<code>CONNECTION_ACTIVE</code>). It usually follows within seconds, but sometimes days later. It is not a step on this dashboard and does not change when an install is counted.</td><td><code>RATING_PENDING → CONNECTION_ACTIVE</code></td><td><code>installation_completed</code></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="bj-sec" id="def-timing">
+      <h2>On time, late, rescheduled, delayed</h2>
+      <div class="bj-tablewrap"><table class="bj-defs-table"><thead><tr><th>Term</th><th>What it means</th></tr></thead><tbody>
+        <tr><td><b>On time</b></td><td>Installed on or before the slot day.</td></tr>
+        <tr><td><b>On the slot day / early</b></td><td>The two kinds of on time: installed on the slot day itself, or before it.</td></tr>
+        <tr><td><b>Late</b></td><td>Installed after the slot day ended (after midnight IST). “Days late” counts calendar days after the slot day.</td></tr>
+        <tr><td><b>Rescheduled</b></td><td>The CSP moved the date at least once before installing (<code>ES_INSTALL_SLOT_AUTO_REDATED</code>, source <code>CSP_RESCHEDULE</code>). Recorded only from 18 Sep 2026.</td></tr>
+        <tr><td><b>Rescheduled, installed early or on time</b></td><td>Rescheduled, then installed on or before the new date.</td></tr>
+        <tr><td><b>Rescheduled, installed late</b></td><td>Rescheduled, and still installed after the new date.</td></tr>
+        <tr><td><b>On time, never rescheduled</b> / <b>Late, never rescheduled</b></td><td>Installs with no reschedule, on or before the slot day / after it.</td></tr>
+        <tr><td><b>Delayed, not installed yet</b></td><td>A booking that was due but has not been installed by the snapshot and is still open: rescheduled to a later day, overdue and still open, or still waiting for a CSP to accept.</td></tr>
+        <tr><td><b>Not going ahead</b></td><td>A booking that was due and is now closed without an install: no CSP accepted in time (every FPN expired), a CSP declined, a CSP reported failure, the customer cancelled, or the system dropped it. A new CSP may still be tried later.</td></tr>
+        <tr><td><b>System timeout, task not moved</b></td><td>After accepting, the CSP did not move the task forward before its deadline, so the system closed it (<code>CSP_NO_SHOW</code>). Most of these sat for 3+ days first.</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="bj-sec" id="def-tracker">
+      <h2>Daily tracker terms</h2>
+      <div class="bj-tablewrap"><table class="bj-defs-table"><thead><tr><th>Term</th><th>What it means</th></tr></thead><tbody>
+        <tr><td><b>Supposed to be installed yesterday</b></td><td>Bookings whose slot day was yesterday: open with that slot day when the day began (or created during the day), or installed early for that day. Counted once per booking.</td></tr>
+        <tr><td><b>Tasks due yesterday</b></td><td>The same idea counted per task, used for the step-by-step funnel of yesterday's due tasks. A booking sent to two CSPs counts twice here.</td></tr>
+        <tr><td><b>The day's funnel</b></td><td>How many tasks reached each step for the first time during the day: FPNs sent, accepts, technicians assigned, customer homes reached, installs (happy code submitted). These are the day's volumes, not one group of tasks followed through.</td></tr>
+        <tr><td><b>Where yesterday's installs came from</b></td><td>For each install done yesterday, how many days before it each earlier step happened.</td></tr>
+        <tr><td><b>Off / Watch / Better than usual / Unusual / Normal</b></td><td>Yesterday compared with the average of the previous 28 days (acceptance-step checks only since 3 Nov). Off = 2 or more standard deviations worse. Watch = 1.5 to 2 worse. Better than usual = 2 or more better. Unusual = a volume with no good direction, 2 or more away. The usual range shown is the middle 80% of those days.</td></tr>
+        <tr><td><b>Compared to</b></td><td>The day before, the same weekday last week, and the previous 7 and 28 days. Shares are pooled over the days.</td></tr>
+        <tr><td><b>Daily / weekly / monthly</b></td><td>Weeks start on Monday. Partial weeks and months are marked. Daily shows the last 35 days.</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="bj-sec" id="def-csp">
+      <h2>CSP reschedule behaviour</h2>
+      <div class="bj-tablewrap"><table class="bj-defs-table"><thead><tr><th>Term</th><th>What it means</th></tr></thead><tbody>
+        <tr><td><b>Never used reschedule, installs late</b></td><td>Had at least one late install with no reschedule in the last 30 days, and has never used reschedule since 18 Sep 2026. Most likely doesn't know the option exists.</td></tr>
+        <tr><td><b>Uses reschedule sometimes, still late without it</b></td><td>Has used reschedule, but still had late installs where the date was never moved.</td></tr>
+        <tr><td><b>Uses reschedule, never late without it</b></td><td>Every late or slipped install in the window was rescheduled first.</td></tr>
+        <tr><td><b>Never late, never rescheduled</b></td><td>No late installs in the window and no reschedules.</td></tr>
+        <tr><td><b>Open overdue, never rescheduled</b></td><td>Tasks open right now, past their slot day, with no reschedule.</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="bj-sec" id="def-data">
+      <h2>Data and limits</h2>
+      <ul class="bj-defs">
+        <li>Backend steps: <code>PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG</code> (first time each task reaches a state), <code>INSTALL_EXECUTION_CANDIDATES</code>, and the TAS outbox events <code>TAS_INSTALL_TERMINAL</code> and <code>ES_INSTALL_SLOT_AUTO_REDATED</code>.</li>
+        <li>CSP app events: <code>PROD_DB.CLEVERTAP_CSP_API.EVENTS_DATA</code>, joined to tasks on <code>execution_id</code>.</li>
+        <li>History starts 1 Aug 2026. Reschedules are recorded from 18 Sep 2026. The CSP-acceptance step exists for every task from 3 Nov 2026.</li>
+        <li>Every number is a snapshot from Snowflake through Metabase; the exact SQL is in Sources for each figure.</li>
+      </ul>
+    </section>
+  </section>
+
+</div>
+
+<script>
+// Loaders: every dataset reads one section of the snapshot file.
+dash.loader('summary', { description: 'Headline figures from the snapshot', fn: ({ answer }) => { const s = answer.datasets.summary; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('steps', { description: 'Journey steps from the snapshot', fn: ({ answer }) => { const s = answer.datasets.steps; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('offer', { description: 'Offer outcomes from the snapshot', fn: ({ answer }) => { const s = answer.datasets.offer; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('fpn_reach', { description: 'FPN reach from the snapshot', fn: ({ answer }) => { const s = answer.datasets.fpn_reach; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('exits', { description: 'Drop-off reasons from the snapshot', fn: ({ answer }) => { const s = answer.datasets.exits; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('fpn_response', { description: 'Outcomes by FPN response from the snapshot', fn: ({ answer }) => { const s = answer.datasets.fpn_response; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('bookings', { description: 'Booking outcomes by CSPs tried from the snapshot', fn: ({ answer }) => { const s = answer.datasets.bookings; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('csp_groups', { description: 'CSP acceptance groups from the snapshot', fn: ({ answer }) => { const s = answer.datasets.csp_groups; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('hourly', { description: 'FPNs by hour of day from the snapshot', fn: ({ answer }) => { const s = answer.datasets.hourly; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('daily', { description: 'Daily cohort funnel from the snapshot', fn: ({ answer }) => { const s = answer.datasets.daily; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+</script>
+
+<script>
+window.BJ = (function () {
+  const int = d3.format(',');
+  const fmt = (v, kind) => {
+    if (v === null || v === undefined || v === '') return '—';
+    if (kind === 'int') return int(+v);
+    if (kind === 'pct') return (+v).toFixed(1) + '%';
+    if (kind === 'h') return (+v).toFixed(1) + ' h';
+    if (kind === 'stamp') { const t = String(v); return d3.utcFormat('%a %-d %b %Y')(new Date(t.slice(0, 10) + 'T00:00:00Z')) + ', ' + t.slice(11, 16) + ' IST'; }
+    if (kind === 'dayname') return d3.utcFormat('%A %-d %b %Y')(new Date(v + 'T00:00:00Z'));
+    if (kind === 'ts') return String(v).slice(0, 16).replace('T', ' ') + ' IST';
+    if (kind === 'date') return d3.utcFormat('%-d %b')(new Date(v + 'T00:00:00Z'));
+    return String(v);
+  };
+  const dur = (m) => {
+    if (m === null || m === undefined) return '';
+    m = +m;
+    if (m < 60) return Math.round(m) + ' min';
+    if (m < 48 * 60) return (m / 60).toFixed(1) + ' h';
+    return (m / 1440).toFixed(1) + ' days';
+  };
+  const mark = (el, source, field, where) => { el.setAttribute('data-source', source); el.setAttribute('data-field', field); if (where) el.setAttribute('data-where', where); return el; };
+  const tipper = (host) => {
+    let t = host.querySelector(':scope > .bj-tip');
+    if (!t) { t = document.createElement('div'); t.className = 'bj-tip'; t.hidden = true; host.appendChild(t); }
+    return {
+      show(evt, lines) {
+        t.replaceChildren(...lines.map((l, i) => { const d = document.createElement('div'); if (i === 0) d.style.fontWeight = '600'; d.textContent = l; return d; }));
+        t.hidden = false;
+        const r = host.getBoundingClientRect();
+        let x = evt.clientX - r.left + 12, y = evt.clientY - r.top + 12;
+        const tw = t.offsetWidth, th = t.offsetHeight;
+        if (x + tw > host.clientWidth) x = Math.max(0, evt.clientX - r.left - tw - 12);
+        if (y + th > host.clientHeight + 40) y = Math.max(0, evt.clientY - r.top - th - 12);
+        t.style.left = x + 'px'; t.style.top = y + 'px';
+      },
+      hide() { t.hidden = true; }
+    };
+  };
+  const tipFor = (host) => ({ show: (e, l) => tipper(host).show(e, l), hide: () => { const t = host.querySelector(':scope > .bj-tip'); if (t) t.hidden = true; } });
+  const enc = (v) => String(v).replace(/%/g, '%25').replace(/&/g, '%26').replace(/=/g, '%3D');
+  const numEl = (tag, source, field, where, value, kind, suffix, cls) => { const w = document.createElement(tag); if (cls) w.className = cls; const n = mark(document.createElement('span'), source, field, where); n.textContent = fmt(value, kind); w.append(n); if (suffix) w.append(document.createTextNode(suffix)); return w; };
+  const outcomeColor = (o) => ({ 'Accepted': 'var(--color-ok)', 'No response': 'var(--color-bad)', 'Declined': 'var(--color-warn)', 'System cancelled': 'var(--color-bad)', 'CSP declined': 'var(--color-warn)', 'CSP reported failure': 'var(--color-warn)', 'Customer cancelled': 'var(--cds-chart-muted)' })[o] || 'var(--cds-chart-muted)';
+  const failed = (el, st) => { const p = document.createElement('div'); p.className = 'bj-fail'; p.textContent = st === 'error' ? 'Failed to load' : '—'; el.replaceChildren(p); };
+  return { fmt, dur, mark, tipper, tipFor, enc, numEl, outcomeColor, failed };
+})();
+
+// Single figures anywhere on the page.
+dash.draw('num', (el) => {
+  const d = dash.data(el.dataset.source);
+  if (d.status !== 'ok') { el.textContent = '—'; return; }
+  const row = d.data[+(el.dataset.row || 0)];
+  el.textContent = BJ.fmt(row ? row[el.dataset.field] : null, el.dataset.fmt);
+});
+
+// The journey funnel with leak branches.
+dash.draw('journey', {
+  mount(el) { return { open: new Set([1]) }; },
+  update(el, state) {
+    const S = dash.data('steps'), E = dash.data('exits'), M = dash.data('summary');
+    if (S.status !== 'ok' || E.status !== 'ok' || M.status !== 'ok') { BJ.failed(el, [S, E, M].some(x => x.status === 'error') ? 'error' : 'loading'); return; }
+    const steps = S.data, exits = E.data, total = +steps[0].tasks;
+    const first = !el.dataset.drawn; el.dataset.drawn = '1';
+    const tip = BJ.tipFor(el);
+    const actorColor = { 'System': 'var(--cds-chart-muted)', 'CSP': dash.colors[0], 'Technician': dash.colors[1] || dash.colors[0], 'Customer': dash.colors[2] || dash.colors[0] };
+    const kids = [];
+
+    const stepRow = (s) => {
+      const row = document.createElement('div'); row.className = 'bj-row' + (+s.step_no === steps.length ? ' is-end' : ''); row.id = 'step-' + s.step_no;
+      const st = document.createElement('div'); st.className = 'bj-step';
+      const dot = document.createElement('div'); dot.className = 'bj-dot'; dot.textContent = s.step_no;
+      const txt = document.createElement('div'); txt.style.minWidth = '0';
+      const nm = document.createElement('div'); nm.className = 'bj-sname'; nm.textContent = s.step;
+      const sub = document.createElement('div'); sub.className = 'bj-sub';
+      const chip = document.createElement('span'); chip.className = 'bj-chip'; chip.textContent = s.actor; chip.style.borderColor = actorColor[s.actor]; chip.style.color = 'var(--color-fg)';
+      const det = document.createElement('span'); det.textContent = s.detail;
+      sub.append(chip, det); txt.append(nm, sub); st.append(dot, txt);
+
+      const tr = document.createElement('div'); tr.className = 'bj-track';
+      const bar = document.createElement('div'); bar.className = 'bj-bar' + (first ? ' grow' : '');
+      bar.style.width = Math.max(0.4, 100 * s.tasks / total) + '%';
+      bar.style.setProperty('--bj-c', +s.step_no === steps.length ? 'var(--color-ok)' : actorColor[s.actor]);
+      const bl = document.createElement('div'); bl.className = 'bj-barlabel';
+      const blab = BJ.mark(document.createElement('span'), 'steps', 'tasks', 'step_no=' + s.step_no); blab.textContent = BJ.fmt(s.tasks, 'int');
+      bl.append(blab); tr.append(bar, bl);
+      bar.addEventListener('pointermove', (e) => tip.show(e, [s.step, BJ.fmt(s.tasks, 'int') + ' tasks', BJ.fmt(s.pct_of_offered, 'pct') + ' of FPNs sent', s.pct_of_prev !== null ? BJ.fmt(s.pct_of_prev, 'pct') + ' of the previous step' : 'Where every task starts', s.backend_event]));
+      bar.addEventListener('pointerleave', () => tip.hide());
+
+      const stats = document.createElement('div'); stats.className = 'bj-stats';
+      const a = BJ.numEl('div', 'steps', 'pct_of_offered', 'step_no=' + s.step_no, s.pct_of_offered, 'pct', ' of FPNs sent', 'big');
+      stats.append(a);
+      if (s.pct_of_prev !== null) stats.append(BJ.numEl('div', 'steps', 'pct_of_prev', 'step_no=' + s.step_no, s.pct_of_prev, 'pct', ' of the previous step', 'muted'));
+      if (s.median_min_from_prev !== null) { const c = document.createElement('div'); c.className = 'muted'; c.textContent = BJ.dur(s.median_min_from_prev) + ' after the previous step (median)' + (s.p90_min_from_prev !== null ? ' · p90 ' + BJ.dur(s.p90_min_from_prev) : ''); stats.append(c); }
+      row.append(st, tr, stats);
+      return row;
+    };
+
+    const whyPanel = (stageNo, title) => {
+      const rows = exits.filter(x => +x.stage_no === stageNo);
+      const sum = d3.sum(rows, x => +x.tasks);
+      const box = document.createElement('div'); box.className = 'bj-why'; box.id = 'why-' + stageNo;
+      const h = document.createElement('div'); h.className = 'cap muted'; h.textContent = title; box.append(h);
+      const max = d3.max(rows, x => +x.tasks) || 1;
+      rows.forEach(x => {
+        const r = document.createElement('div'); r.className = 'bj-why-row';
+        const l = document.createElement('div'); l.className = 'r'; const t1 = document.createElement('span'); t1.textContent = x.reason; const t2 = document.createElement('small'); t2.textContent = x.outcome; l.append(t1, t2);
+        const m = document.createElement('div'); m.className = 'm'; m.style.width = (100 * x.tasks / max) + '%'; m.style.background = BJ.outcomeColor(x.outcome);
+        const n = BJ.mark(document.createElement('div'), 'exits', 'tasks', 'stage_no=' + stageNo + '&reason=' + BJ.enc(x.reason) + '&outcome=' + BJ.enc(x.outcome)); n.className = 'n'; n.textContent = BJ.fmt(x.tasks, 'int');
+        r.title = (100 * x.tasks / sum).toFixed(1) + '% of tasks lost here';
+        r.append(l, m, n); box.append(r);
+      });
+      return box;
+    };
+
+    const leak = (stageNo, lost, label, inGroup) => {
+      const wrap = document.createElement('div'); wrap.className = 'bj-leak';
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'bj-leak-btn';
+      const open = state.open.has(stageNo);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false'); btn.setAttribute('aria-controls', 'why-' + stageNo);
+      btn.textContent = (open ? '▾ ' : '▸ ') + '−' + BJ.fmt(lost, 'int') + ' lost ' + label;
+      btn.addEventListener('click', () => { state.open.has(stageNo) ? state.open.delete(stageNo) : state.open.add(stageNo); dash.draw('journey'); });
+      wrap.append(btn);
+      const out = [wrap];
+      if (open) { const w = document.createElement('div'); w.className = 'bj-why-wrap'; const top = exits.filter(x => +x.stage_no === stageNo); w.append(whyPanel(stageNo, 'Why ' + BJ.fmt(d3.sum(top, x => +x.tasks), 'int') + ' tasks left the journey ' + label)); out.push(w); }
+      return out;
+    };
+
+    const last = steps.length - 1;
+    const dir = (window.BJDIR || {})[(el.closest('.bj-page') || {}).id] || 'up';
+    const grp = document.createElement('div'); grp.className = 'bj-onsite'; grp.id = 'onsite';
+    const gh = document.createElement('div'); gh.className = 'bj-onsite-head';
+    const lostOnsite = steps[3].tasks - steps[last].tasks;
+    const ght = document.createElement('span'); ght.textContent = 'On site, after reaching customer home: ' + BJ.fmt(lostOnsite, 'int') + ' of ' + BJ.fmt(steps[3].tasks, 'int') + ' lost (' + (100 * lostOnsite / steps[3].tasks).toFixed(1) + '%)';
+    gh.append(ght); grp.append(gh);
+    const smallLeak = (i) => { const sm = document.createElement('div'); sm.className = 'bj-leak'; const t = document.createElement('div'); t.className = 'bj-leak-small'; t.textContent = '−' + BJ.fmt(steps[i].lost_after_prev, 'int') + ' between ' + steps[i - 1].step.toLowerCase() + ' and ' + steps[i].step.toLowerCase(); sm.append(t); return sm; };
+    const onsiteLeak = leak(4, lostOnsite, 'on site, between reaching customer home and install');
+    if (dir === 'up') {
+      for (let i = last; i >= 4; i--) { grp.append(stepRow(steps[i])); if (i > 4 && steps[i].lost_after_prev > 0) grp.append(smallLeak(i)); }
+      grp.append(...onsiteLeak);
+      kids.push(grp);
+      kids.push(stepRow(steps[3]));
+      kids.push(...leak(3, steps[2].tasks - steps[3].tasks, 'between technician assigned and reaching customer home'));
+      kids.push(stepRow(steps[2]));
+      kids.push(...leak(2, steps[1].tasks - steps[2].tasks, 'between accepting and assigning a technician'));
+      kids.push(stepRow(steps[1]));
+      kids.push(...leak(1, steps[0].tasks - steps[1].tasks, 'at the FPN: never accepted'));
+      kids.push(stepRow(steps[0]));
+    } else {
+      kids.push(stepRow(steps[0]));
+      kids.push(...leak(1, steps[0].tasks - steps[1].tasks, 'at the FPN: never accepted'));
+      kids.push(stepRow(steps[1]));
+      kids.push(...leak(2, steps[1].tasks - steps[2].tasks, 'between accepting and assigning a technician'));
+      kids.push(stepRow(steps[2]));
+      kids.push(...leak(3, steps[2].tasks - steps[3].tasks, 'between technician assigned and reaching customer home'));
+      kids.push(stepRow(steps[3]));
+      grp.append(...onsiteLeak);
+      for (let i = 4; i <= last; i++) { if (i > 4 && steps[i].lost_after_prev > 0) grp.append(smallLeak(i)); grp.append(stepRow(steps[i])); }
+      kids.push(grp);
+    }
+    el.replaceChildren(...kids);
+  }
+});
+
+// Offer outcome stacked bar + legend.
+dash.draw('offerstack', (el) => {
+  const d = dash.data('offer');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const total = d3.sum(d.data, r => +r.tasks);
+  el.replaceChildren(...d.data.map(r => {
+    const s = BJ.mark(document.createElement('div'), 'offer', 'pct', 'outcome=' + r.outcome);
+    s.style.width = (100 * r.tasks / total) + '%'; s.style.background = BJ.outcomeColor(r.outcome);
+    s.textContent = r.pct >= 6 ? BJ.fmt(r.pct, 'pct') : '';
+    s.title = r.outcome + ': ' + BJ.fmt(r.tasks, 'int') + ' tasks (' + BJ.fmt(r.pct, 'pct') + ')';
+    return s;
+  }));
+});
+dash.draw('offerlegend', (el) => {
+  const d = dash.data('offer');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  el.replaceChildren(...d.data.map(r => {
+    const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = BJ.outcomeColor(r.outcome);
+    const t = document.createElement('span'); t.textContent = r.outcome + ' ';
+    const b = BJ.mark(document.createElement('b'), 'offer', 'tasks', 'outcome=' + r.outcome); b.textContent = BJ.fmt(r.tasks, 'int');
+    s.append(i, t, b);
+    if (r.median_min !== null) { const m = document.createElement('span'); m.className = 'muted'; m.textContent = ' · median ' + BJ.dur(r.median_min); s.append(m); }
+    return s;
+  }));
+});
+
+// FPN reach strip.
+dash.draw('reach', (el) => {
+  const d = dash.data('fpn_reach');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const r = d.data[0];
+  const items = [['fpn_pushed', 'Push sent', 'var(--cds-chart-muted)'], ['fpn_rendered', 'Full-page popup shown', dash.colors[0]], ['fpn_tapped', 'CSP tapped the popup', 'var(--color-ok)'], ['fpn_dismissed', 'CSP dismissed it', 'var(--color-warn)'], ['task_opened', 'Task opened in app (any route)', dash.colors[1] || dash.colors[0]]];
+  el.replaceChildren(...items.map(([k, lab, c]) => {
+    const box = document.createElement('div');
+    const v = BJ.mark(document.createElement('div'), 'fpn_reach', k + '_pct', null); v.setAttribute('data-row', '0'); v.className = 'rv'; v.textContent = BJ.fmt(r[k + '_pct'], 'pct');
+    const bar = document.createElement('div'); bar.className = 'rb'; const i = document.createElement('i'); i.style.width = r[k + '_pct'] + '%'; i.style.setProperty('--bj-c', c); bar.append(i);
+    const l = BJ.numEl('div', 'fpn_reach', k, null, r[k], 'int', '', 'cap muted'); l.firstChild.setAttribute('data-row', '0'); l.prepend(document.createTextNode(lab + ' · '));
+    box.append(v, bar, l); return box;
+  }));
+});
+
+// Outcomes by FPN response.
+dash.draw('fpnresp', (el) => {
+  const d = dash.data('fpn_response');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const series = [['accept_pct', 'var(--color-ok)'], ['no_response_pct', 'var(--color-bad)'], ['install_pct', 'var(--cds-chart-muted)']];
+  el.replaceChildren(...d.data.map(r => {
+    const row = document.createElement('div'); row.className = 'bj-hbar';
+    const l = document.createElement('div'); l.className = 'lbl'; const t = document.createElement('span'); t.textContent = r.fpn_response;
+    const sm = BJ.numEl('small', 'fpn_response', 'tasks', 'fpn_response=' + BJ.enc(r.fpn_response), r.tasks, 'int', ' tasks'); l.append(t, sm);
+    const bars = document.createElement('div'); bars.className = 'bars';
+    series.forEach(([k, c]) => {
+      const b = document.createElement('div'); b.className = 'b'; const i = document.createElement('i'); i.style.width = (0.8 * r[k]) + '%'; i.style.background = c;
+      const s = BJ.mark(document.createElement('span'), 'fpn_response', k, 'fpn_response=' + BJ.enc(r.fpn_response)); s.textContent = BJ.fmt(r[k], 'pct');
+      b.append(i, s); bars.append(b);
+    });
+    row.append(l, bars); return row;
+  }));
+});
+
+// CSP groups: share of offers vs share of no-response.
+dash.draw('cspgroups', (el) => {
+  const d = dash.data('csp_groups');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  el.replaceChildren(...d.data.map(r => {
+    const row = document.createElement('div'); row.className = 'bj-hbar';
+    const l = document.createElement('div'); l.className = 'lbl'; const t = document.createElement('span'); t.textContent = r.csp_group;
+    const sm = document.createElement('small'); const c1 = BJ.mark(document.createElement('span'), 'csp_groups', 'csps', 'csp_group=' + BJ.enc(r.csp_group)); c1.textContent = BJ.fmt(r.csps, 'int');
+    const c2 = document.createElement('span'); c2.textContent = ' CSPs · installs ';
+    const c3 = BJ.mark(document.createElement('span'), 'csp_groups', 'install_pct', 'csp_group=' + BJ.enc(r.csp_group)); c3.textContent = BJ.fmt(r.install_pct, 'pct');
+    const c4 = document.createElement('span'); c4.textContent = ' of tasks';
+    sm.append(c1, c2, c3, c4); l.append(t, sm);
+    const bars = document.createElement('div'); bars.className = 'bars';
+    [['share_of_tasks', 'var(--cds-chart-muted)', ' of FPNs'], ['share_of_no_response', 'var(--color-bad)', ' of no-response']].forEach(([k, c, suf]) => {
+      const b = document.createElement('div'); b.className = 'b'; const i = document.createElement('i'); i.style.width = (0.8 * r[k]) + '%'; i.style.background = c;
+      const s = BJ.mark(document.createElement('span'), 'csp_groups', k, 'csp_group=' + BJ.enc(r.csp_group)); s.textContent = BJ.fmt(r[k], 'pct');
+      const s2 = document.createElement('span'); s2.className = 'muted'; s2.textContent = suf;
+      b.append(i, s, s2); bars.append(b);
+    });
+    row.append(l, bars); return row;
+  }));
+});
+
+// Reassignment: install % by CSPs tried (SVG bars).
+dash.draw('reassign', (el) => {
+  const d = dash.data('bookings');
+  if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
+  const rows = d.data, W = el.clientWidth || 600, H = 230, m = { t: 24, r: 8, b: 44, l: 36 };
+  const x = d3.scaleBand().domain(rows.map(r => r.csps_tried)).range([m.l, W - m.r]).padding(0.28);
+  const y = d3.scaleLinear().domain([0, 60]).range([H - m.b, m.t]);
+  const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Install share by number of CSPs the booking was sent to');
+  svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat(v => v + '%')).call(g => { g.select('.domain').remove(); g.selectAll('line').style('stroke', 'var(--cds-chart-grid)'); });
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickFormat(v => v === '1' ? '1 CSP' : v + ' CSPs')).call(g => g.select('.domain').style('stroke', 'var(--cds-chart-axis)'));
+  const tip = BJ.tipFor(el);
+  const g = svg.append('g').selectAll('g').data(rows).join('g');
+  g.append('rect').attr('x', r => x(r.csps_tried)).attr('width', x.bandwidth()).attr('y', r => y(r.install_pct)).attr('height', r => y(0) - y(r.install_pct)).attr('rx', 4)
+    .style('fill', (r, i) => i === 0 ? 'var(--color-ok)' : dash.colors[0])
+    .on('pointermove', (e, r) => tip.show(e, [r.csps_tried === '1' ? 'Sent to 1 CSP' : 'Sent to ' + r.csps_tried + ' CSPs', BJ.fmt(r.bookings, 'int') + ' bookings', BJ.fmt(r.installed, 'int') + ' installed (' + BJ.fmt(r.install_pct, 'pct') + ')']))
+    .on('pointerleave', () => tip.hide());
+  g.append('text').attr('x', r => x(r.csps_tried) + x.bandwidth() / 2).attr('y', r => y(r.install_pct) - 6).attr('text-anchor', 'middle').style('fill', 'var(--color-fg)').style('font-weight', 600).text(r => BJ.fmt(r.install_pct, 'pct'))
+    .attr('data-source', 'bookings').attr('data-field', 'install_pct').attr('data-where', r => 'csps_tried=' + BJ.enc(r.csps_tried));
+  g.append('text').attr('x', r => x(r.csps_tried) + x.bandwidth() / 2).attr('y', H - 10).attr('text-anchor', 'middle').text(r => BJ.fmt(r.bookings, 'int') + ' bookings');
+  el.replaceChildren(svg.node());
+});
+
+// Hourly: volume bars + accept / no-response lines.
+dash.draw('hourly', (el) => {
+  const d = dash.data('hourly');
+  if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
+  const rows = d.data.map(r => ({ ...r, hour: +r.hour })), W = el.clientWidth || 600, H = 240, m = { t: 14, r: 40, b: 28, l: 36 };
+  const x = d3.scaleBand().domain(d3.range(24)).range([m.l, W - m.r]).padding(0.15);
+  const yv = d3.scaleLinear().domain([0, d3.max(rows, r => +r.tasks)]).nice().range([H - m.b, m.t]);
+  const yp = d3.scaleLinear().domain([0, 100]).range([H - m.b, m.t]);
+  const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'FPNs, accept rate and no-response rate by hour');
+  svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(yp).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat(v => v + '%')).call(g => { g.select('.domain').remove(); g.selectAll('line').style('stroke', 'var(--cds-chart-grid)'); });
+  svg.append('g').attr('transform', `translate(${W - m.r},0)`).call(d3.axisRight(yv).ticks(4).tickSize(0).tickPadding(6)).call(g => g.select('.domain').remove());
+  const step = W < 500 ? 6 : 3;
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickValues(d3.range(0, 24, step)).tickSize(0).tickPadding(8).tickFormat(h => String(h).padStart(2, '0') + ':00')).call(g => g.select('.domain').style('stroke', 'var(--cds-chart-axis)'));
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', r => x(r.hour)).attr('width', x.bandwidth()).attr('y', r => yv(r.tasks)).attr('height', r => yv(0) - yv(r.tasks)).attr('rx', 2).style('fill', 'var(--cds-chart-grid)');
+  const cx = r => x(r.hour) + x.bandwidth() / 2;
+  [['accept_pct', 'var(--color-ok)'], ['no_response_pct', 'var(--color-bad)']].forEach(([k, c]) => {
+    svg.append('path').datum(rows).attr('d', d3.line().x(cx).y(r => yp(r[k]))).style('fill', 'none').style('stroke', c).style('stroke-width', 2);
+    svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', cx).attr('cy', r => yp(r[k])).attr('r', 2.5).style('fill', c);
+  });
+  const tip = BJ.tipFor(el);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', r => x(r.hour) - x.step() * x.paddingInner() / 2).attr('width', x.step()).attr('y', m.t).attr('height', H - m.t - m.b).style('fill', 'transparent')
+    .on('pointermove', (e, r) => tip.show(e, [String(r.hour).padStart(2, '0') + ':00–' + String(r.hour).padStart(2, '0') + ':59', BJ.fmt(r.tasks, 'int') + ' FPNs', 'Accepted ' + BJ.fmt(r.accept_pct, 'pct'), 'No response ' + BJ.fmt(r.no_response_pct, 'pct')]))
+    .on('pointerleave', () => tip.hide());
+  el.replaceChildren(svg.node());
+});
+
+// Daily cohort lines.
+dash.draw('daily', (el) => {
+  const d = dash.data('daily');
+  if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
+  const parse = s => new Date(s + 'T00:00:00Z');
+  const rows = d.data.map(r => ({ ...r, dt: parse(r.date) })), W = el.clientWidth || 600, H = 240, m = { t: 16, r: 60, b: 28, l: 36 };
+  const x = d3.scaleUtc().domain(d3.extent(rows, r => r.dt)).range([m.l, W - m.r]);
+  const y = d3.scaleLinear().domain([0, 60]).range([H - m.b, m.t]);
+  const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Daily accepted, no-response and installed share');
+  svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat(v => v + '%')).call(g => { g.select('.domain').remove(); g.selectAll('line').style('stroke', 'var(--cds-chart-grid)'); });
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(W < 500 ? 4 : 7).tickSize(0).tickPadding(8).tickFormat(d3.utcFormat('%-d %b'))).call(g => g.select('.domain').style('stroke', 'var(--cds-chart-axis)'));
+  const series = [['accept_pct', 'var(--color-ok)', 'Accepted'], ['no_response_pct', 'var(--color-bad)', 'No response'], ['install_pct', 'var(--color-fg)', 'Installed']];
+  series.forEach(([k, c, lab]) => {
+    svg.append('path').datum(rows).attr('d', d3.line().x(r => x(r.dt)).y(r => y(r[k]))).style('fill', 'none').style('stroke', c).style('stroke-width', 2);
+    svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', r => x(r.dt)).attr('cy', r => y(r[k])).attr('r', 2.5).style('fill', c);
+    const last = rows[rows.length - 1];
+    svg.append('text').attr('x', x(last.dt) + 6).attr('y', y(last[k]) + 4).style('fill', c).style('font-weight', 600).text(BJ.fmt(last[k], 'pct'))
+      .attr('data-source', 'daily').attr('data-field', k).attr('data-where', 'date=' + last.date);
+  });
+  const tip = BJ.tipFor(el);
+  const bw = (W - m.l - m.r) / Math.max(1, rows.length - 1);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', r => x(r.dt) - bw / 2).attr('width', bw).attr('y', m.t).attr('height', H - m.t - m.b).style('fill', 'transparent')
+    .on('pointermove', (e, r) => tip.show(e, [d3.utcFormat('%a %-d %b')(r.dt), BJ.fmt(r.tasks, 'int') + ' FPNs sent', 'Accepted ' + BJ.fmt(r.accept_pct, 'pct'), 'No response ' + BJ.fmt(r.no_response_pct, 'pct'), 'Installed ' + BJ.fmt(r.install_pct, 'pct') + ' (' + BJ.fmt(r.installed, 'int') + ')']))
+    .on('pointerleave', () => tip.hide());
+  el.replaceChildren(svg.node());
+});
+
+// Event dictionary table body.
+dash.draw('dict', (el) => {
+  const d = dash.data('steps');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  el.replaceChildren(...d.data.slice().reverse().map(r => {
+    const tr = document.createElement('tr');
+    [['step_no'], ['step'], ['actor'], ['backend_event', true], ['app_event', true], ['tasks']].forEach(([k, code]) => {
+      const td = document.createElement('td');
+      if (code) { const c = document.createElement('code'); c.textContent = r[k]; td.append(c); } else td.textContent = k === 'tasks' ? BJ.fmt(r[k], 'int') : r[k];
+      tr.append(td);
+    });
+    return tr;
+  }));
+});
+</script>
+
+<script>
+// Loaders for the deep-dive snapshot.
+dash.loader('d_summary', { description: 'Deep-dive headline figures', fn: ({ answer }) => { const s = answer.datasets.d_summary; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('d_steps', { description: 'Steps from technician assigned to install', fn: ({ answer }) => { const s = answer.datasets.d_steps; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('d_timing', { description: 'Installs before, on or after the slot day', fn: ({ answer }) => { const s = answer.datasets.d_timing; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('d_days', { description: 'Installs by days from the slot day', fn: ({ answer }) => { const s = answer.datasets.d_days; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('d_late', { description: 'Late installs by hours after the slot day', fn: ({ answer }) => { const s = answer.datasets.d_late; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('d_assign_to_install', { description: 'Time from technician assigned to install', fn: ({ answer }) => { const s = answer.datasets.d_assign_to_install; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('d_stuck', { description: 'Not-installed tasks by stage and time there', fn: ({ answer }) => { const s = answer.datasets.d_stuck; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('d_reasons', { description: 'Reasons for not-installed tasks', fn: ({ answer }) => { const s = answer.datasets.d_reasons; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('d_live', { description: 'Open tasks right now by stage and age', fn: ({ answer }) => { const s = answer.datasets.d_live; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+</script>
+
+<script>
+// Tabs: show one page at a time, keep it in the link.
+(function () {
+  document.querySelectorAll('.bj').forEach((el) => el.style.setProperty('--bj-early', dash.colors[0]));
+  const pages = () => Array.from(document.querySelectorAll('.bj-page'));
+  const tabs = () => Array.from(document.querySelectorAll('.bj-tab'));
+  const show = (id, scroll) => {
+    if (!pages().some((p) => p.id === id)) return;
+    pages().forEach((p) => { p.hidden = p.id !== id; });
+    tabs().forEach((t) => { const on = t.getAttribute('aria-controls') === id; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
+    dash.setLink(id);
+    if (scroll) { const n = document.getElementById('bj-tabs'); if (n) n.scrollIntoView({ block: 'start' }); }
+  };
+  tabs().forEach((t) => t.addEventListener('click', () => show(t.getAttribute('aria-controls'), false)));
+  document.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => show(b.getAttribute('data-goto'), true)));
+  let h = (location.hash || '').slice(1);
+  if (h === 'yesterday') h = 'daily-tracker';
+  if (h) {
+    const target = document.getElementById(h);
+    const page = target && target.closest('.bj-page');
+    if (page) show(page.id, false);
+  }
+})();
+</script>
+
+<script>
+// Small funnel: install on top, technician assigned at the bottom.
+dash.draw('minifunnel', (el) => {
+  const S = dash.data('d_steps');
+  if (S.status !== 'ok') { BJ.failed(el, S.status); return; }
+  const steps = S.data, total = +steps[0].tasks, last = steps.length - 1;
+  const tip = BJ.tipFor(el);
+  const kids = [];
+  const row = (s) => {
+    const r = document.createElement('div'); r.className = 'bj-row' + (+s.step_no === steps.length ? ' is-end' : '');
+    const st = document.createElement('div'); st.className = 'bj-step';
+    const dot = document.createElement('div'); dot.className = 'bj-dot'; dot.textContent = s.step_no;
+    const nm = document.createElement('div'); nm.className = 'bj-sname'; nm.textContent = s.step;
+    st.append(dot, nm);
+    const tr = document.createElement('div'); tr.className = 'bj-track';
+    const bar = document.createElement('div'); bar.className = 'bj-bar';
+    bar.style.width = Math.max(0.4, 100 * s.tasks / total) + '%';
+    bar.style.setProperty('--bj-c', +s.step_no === steps.length ? 'var(--color-ok)' : (+s.step_no === 1 ? dash.colors[0] : (dash.colors[1] || dash.colors[0])));
+    const bl = document.createElement('div'); bl.className = 'bj-barlabel';
+    const lab = BJ.mark(document.createElement('span'), 'd_steps', 'tasks', 'step_no=' + s.step_no); lab.textContent = BJ.fmt(s.tasks, 'int'); bl.append(lab);
+    tr.append(bar, bl);
+    bar.addEventListener('pointermove', (e) => tip.show(e, [s.step, BJ.fmt(s.tasks, 'int') + ' tasks', BJ.fmt(s.pct_of_assigned, 'pct') + ' of tasks with a technician']));
+    bar.addEventListener('pointerleave', () => tip.hide());
+    const stats = document.createElement('div'); stats.className = 'bj-stats';
+    stats.append(BJ.numEl('div', 'd_steps', 'pct_of_assigned', 'step_no=' + s.step_no, s.pct_of_assigned, 'pct', ' of assigned', 'big'));
+    if (s.pct_of_prev !== null) stats.append(BJ.numEl('div', 'd_steps', 'pct_of_prev', 'step_no=' + s.step_no, s.pct_of_prev, 'pct', ' of the previous step', 'muted'));
+    if (s.median_min !== null) { const c = document.createElement('div'); c.className = 'muted'; c.textContent = BJ.dur(s.median_min) + ' after the previous step (median)' + (s.p90_min !== null ? ' · p90 ' + BJ.dur(s.p90_min) : ''); stats.append(c); }
+    r.append(st, tr, stats);
+    return r;
+  };
+  const dir = (window.BJDIR || {})[(el.closest('.bj-page') || {}).id] || 'up';
+  const leakFor = (i) => {
+    const out = [];
+    if (i > 0 && steps[i].lost > 0) {
+      const lk = document.createElement('div'); lk.className = 'bj-leak';
+      if (i === 1) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'bj-leak-btn';
+        b.textContent = '−' + BJ.fmt(steps[i].lost, 'int') + ' never reached customer home · see where they stopped';
+        b.addEventListener('click', () => { const t = document.getElementById('aa-stuck'); if (t) t.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
+        lk.append(b);
+      } else {
+        const t = document.createElement('div'); t.className = 'bj-leak-small'; t.textContent = '−' + BJ.fmt(steps[i].lost, 'int') + ' between ' + steps[i - 1].step.toLowerCase() + ' and ' + steps[i].step.toLowerCase(); lk.append(t);
+      }
+      out.push(lk);
+    }
+    return out;
+  };
+  if (dir === 'up') { for (let i = last; i >= 0; i--) { kids.push(row(steps[i])); kids.push(...leakFor(i)); } }
+  else { for (let i = 0; i <= last; i++) { kids.push(...leakFor(i)); kids.push(row(steps[i])); } }
+  el.replaceChildren(...kids);
+});
+
+const BJ_TIMING_COLOR = (t) => ({ 'Before slot day': 'var(--bj-early)', 'On slot day': 'var(--color-ok)', 'After slot day': 'var(--color-warn)' })[t] || 'var(--cds-chart-muted)';
+window.BJ_TIMING_COLOR = BJ_TIMING_COLOR;
+
+dash.draw('timingstack', (el) => {
+  const d = dash.data('d_timing');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const total = d3.sum(d.data, (r) => +r.installs);
+  el.replaceChildren(...d.data.map((r) => {
+    const s = BJ.mark(document.createElement('div'), 'd_timing', 'pct', 'timing=' + r.timing);
+    s.style.width = (100 * r.installs / total) + '%'; s.style.background = window.BJ_TIMING_COLOR(r.timing);
+    s.textContent = r.pct >= 6 ? BJ.fmt(r.pct, 'pct') : '';
+    s.title = r.timing + ': ' + BJ.fmt(r.installs, 'int') + ' installs';
+    return s;
+  }));
+});
+dash.draw('timinglegend', (el) => {
+  const d = dash.data('d_timing');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  el.replaceChildren(...d.data.map((r) => {
+    const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = window.BJ_TIMING_COLOR(r.timing);
+    const t = document.createElement('span'); t.textContent = r.timing + ' ';
+    const b = BJ.mark(document.createElement('b'), 'd_timing', 'installs', 'timing=' + r.timing); b.textContent = BJ.fmt(r.installs, 'int');
+    const m = document.createElement('span'); m.className = 'muted'; m.textContent = ' · ';
+    const rs = BJ.mark(document.createElement('span'), 'd_timing', 'rescheduled', 'timing=' + r.timing); rs.className = 'muted'; rs.textContent = BJ.fmt(r.rescheduled, 'int');
+    const m2 = document.createElement('span'); m2.className = 'muted'; m2.textContent = ' rescheduled';
+    s.append(i, t, b, m, rs, m2); return s;
+  }));
+});
+
+dash.draw('dayshist', (el) => {
+  const d = dash.data('d_days');
+  if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
+  const rows = d.data.map((r) => ({ ...r, k: +r.days_vs_slot }));
+  const lo = Math.min(-3, d3.min(rows, (r) => r.k)), hi = Math.max(3, d3.max(rows, (r) => r.k));
+  const dom = d3.range(lo, hi + 1);
+  const byK = new Map(rows.map((r) => [r.k, r]));
+  const W = el.clientWidth || 600, H = 250, m = { t: 22, r: 8, b: 40, l: 40 };
+  const x = d3.scaleBand().domain(dom).range([m.l, W - m.r]).padding(0.2);
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => +r.installs)]).nice().range([H - m.b, m.t]);
+  const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Installs by days from slot day');
+  svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat(d3.format(','))).call((g) => { g.select('.domain').remove(); g.selectAll('line').style('stroke', 'var(--cds-chart-grid)'); });
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickFormat((k) => k === 0 ? 'Slot day' : (k > 0 ? '+' + k : String(k)))).call((g) => g.select('.domain').style('stroke', 'var(--cds-chart-axis)'));
+  svg.append('text').attr('x', m.l).attr('y', H - 4).text('← earlier · days · later →');
+  const tip = BJ.tipFor(el);
+  const col = (k) => window.BJ_TIMING_COLOR(k < 0 ? 'Before slot day' : (k === 0 ? 'On slot day' : 'After slot day'));
+  dom.forEach((k) => {
+    const r = byK.get(k); if (!r) return;
+    const g = svg.append('g');
+    const yTop = y(r.installs), yMid = y(r.not_rescheduled);
+    g.append('rect').attr('x', x(k)).attr('width', x.bandwidth()).attr('y', yMid).attr('height', y(0) - yMid).attr('rx', 2).style('fill', col(k));
+    g.append('rect').attr('x', x(k)).attr('width', x.bandwidth()).attr('y', yTop).attr('height', yMid - yTop).attr('rx', 2).style('fill', col(k)).style('opacity', 0.45);
+    g.append('text').attr('x', x(k) + x.bandwidth() / 2).attr('y', yTop - 6).attr('text-anchor', 'middle').style('fill', 'var(--color-fg)').style('font-weight', 600).text(BJ.fmt(r.installs, 'int'))
+      .attr('data-source', 'd_days').attr('data-field', 'installs').attr('data-where', 'days_vs_slot=' + k);
+    g.append('rect').attr('x', x(k)).attr('width', x.bandwidth()).attr('y', m.t).attr('height', H - m.t - m.b).style('fill', 'transparent')
+      .on('pointermove', (e) => tip.show(e, [k === 0 ? 'On the slot day' : (k < 0 ? (-k) + (k === -1 ? ' day' : ' days') + ' before the slot day' : k + (k === 1 ? ' day' : ' days') + ' after the slot day'), BJ.fmt(r.installs, 'int') + ' installs', BJ.fmt(r.rescheduled, 'int') + ' of them rescheduled']))
+      .on('pointerleave', () => tip.hide());
+  });
+  el.replaceChildren(svg.node());
+});
+
+dash.draw('latebars', (el) => {
+  const d = dash.data('d_late');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const max = d3.max(d.data, (r) => +r.installs) || 1;
+  el.replaceChildren(...d.data.map((r) => {
+    const row = document.createElement('div'); row.className = 'bj-hbar';
+    const l = document.createElement('div'); l.className = 'lbl'; l.textContent = r.late_by;
+    const bars = document.createElement('div'); bars.className = 'bars';
+    const b = document.createElement('div'); b.className = 'b';
+    const i = document.createElement('i'); i.style.width = (75 * r.installs / max) + '%'; i.style.background = 'var(--color-warn)';
+    const n = BJ.mark(document.createElement('span'), 'd_late', 'installs', 'late_by=' + r.late_by); n.textContent = BJ.fmt(r.installs, 'int');
+    const p = BJ.mark(document.createElement('span'), 'd_late', 'pct_of_late', 'late_by=' + r.late_by); p.className = 'muted'; p.textContent = BJ.fmt(r.pct_of_late, 'pct');
+    b.append(i, n, p); bars.append(b); row.append(l, bars); return row;
+  }));
+});
+
+dash.draw('a2ibars', (el) => {
+  const d = dash.data('d_assign_to_install');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const max = d3.max(d.data, (r) => +r.installs) || 1;
+  const tip = BJ.tipFor(el);
+  el.replaceChildren(...d.data.map((r) => {
+    const row = document.createElement('div'); row.className = 'bj-hbar';
+    const l = document.createElement('div'); l.className = 'lbl'; l.textContent = r.assign_to_install;
+    const bars = document.createElement('div'); bars.className = 'bars';
+    const b = document.createElement('div'); b.className = 'b';
+    const wrap = document.createElement('div'); wrap.style.display = 'flex'; wrap.style.width = (75 * r.installs / max) + '%'; wrap.style.height = '12px'; wrap.style.borderRadius = '3px'; wrap.style.overflow = 'hidden';
+    [['before_slot_day', 'Before slot day'], ['on_slot_day', 'On slot day'], ['after_slot_day', 'After slot day']].forEach(([k, t]) => {
+      const seg = document.createElement('i'); seg.style.display = 'block'; seg.style.height = '100%'; seg.style.width = (100 * r[k] / r.installs) + '%'; seg.style.background = window.BJ_TIMING_COLOR(t); wrap.append(seg);
+    });
+    wrap.addEventListener('pointermove', (e) => tip.show(e, [r.assign_to_install + ' after assignment', BJ.fmt(r.installs, 'int') + ' installs', 'Before slot day ' + BJ.fmt(r.before_slot_day, 'int'), 'On slot day ' + BJ.fmt(r.on_slot_day, 'int'), 'After slot day ' + BJ.fmt(r.after_slot_day, 'int')]));
+    wrap.addEventListener('pointerleave', () => tip.hide());
+    const n = BJ.mark(document.createElement('span'), 'd_assign_to_install', 'installs', 'assign_to_install=' + BJ.enc(r.assign_to_install)); n.textContent = BJ.fmt(r.installs, 'int');
+    b.append(wrap, n); bars.append(b); row.append(l, bars); return row;
+  }));
+});
+
+dash.draw('outcomepick', (sel) => {
+  const d = dash.data('d_stuck');
+  const prev = sel.value;
+  const outs = d.status === 'ok' ? Array.from(new Set(d.data.map((r) => r.outcome))) : [];
+  const totals = new Map(outs.map((o) => [o, d3.sum(d.data.filter((r) => r.outcome === o), (r) => +r.tasks)]));
+  outs.sort((a, b) => totals.get(b) - totals.get(a));
+  sel.replaceChildren(new Option('All outcomes', ''), ...outs.map((o) => new Option(o + ' (' + BJ.fmt(totals.get(o), 'int') + ')', o)));
+  sel.value = outs.includes(prev) ? prev : '';
+  sel.onchange = () => { dash.draw('stuckheat'); dash.draw('stuckreasons'); };
+});
+
+window.BJ_HEAT = function (rows, rowKey, rowOrder, colKey, colOrder, colLabels, color, extraCols) {
+  const rowsList = Array.from(new Set(rows.map((r) => r[rowKey]))).sort((a, b) => rowOrder(a) - rowOrder(b));
+  const cell = new Map();
+  rows.forEach((r) => { const k = r[rowKey] + '|' + r[colKey]; cell.set(k, (cell.get(k) || 0) + (+r.tasks)); });
+  const max = d3.max(Array.from(cell.values())) || 1;
+  const table = document.createElement('table'); table.className = 'bj-heat';
+  const thead = document.createElement('thead'); const hr = document.createElement('tr');
+  const th0 = document.createElement('th'); th0.textContent = 'Stopped at'; hr.append(th0);
+  colOrder.forEach((c) => { const th = document.createElement('th'); th.textContent = colLabels(c); hr.append(th); });
+  (extraCols || []).forEach((ec) => { const th = document.createElement('th'); th.textContent = ec.label; hr.append(th); });
+  const tht = document.createElement('th'); tht.textContent = 'Total'; hr.append(tht);
+  thead.append(hr); table.append(thead);
+  const tb = document.createElement('tbody');
+  rowsList.forEach((rk) => {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th'); th.scope = 'row'; th.textContent = rk; tr.append(th);
+    let tot = 0;
+    colOrder.forEach((c) => {
+      const v = cell.get(rk + '|' + c) || 0; tot += v;
+      const td = document.createElement('td'); td.className = 'num';
+      td.textContent = v ? BJ.fmt(v, 'int') : '·';
+      if (v) td.style.background = `color-mix(in srgb, ${color} ${Math.round(10 + 70 * v / max)}%, transparent)`;
+      tr.append(td);
+    });
+    (extraCols || []).forEach((ec) => { const td = document.createElement('td'); td.className = 'num'; const v = ec.value(rk); td.textContent = v ? BJ.fmt(v, 'int') : '·'; tr.append(td); });
+    const tt = document.createElement('td'); tt.className = 'num'; tt.style.fontWeight = '600'; tt.textContent = BJ.fmt(tot, 'int'); tr.append(tt);
+    tb.append(tr);
+  });
+  table.append(tb);
+  return table;
+};
+
+const BJ_STAGE_ORDER = ['Technician assigned, not at home', 'Technician reached customer home', 'Selfie / Aadhaar', 'Waiting for fee', 'Device setup', 'Waiting for happy code', 'Waiting for rating', 'Other'];
+const BJ_TIME_ORDER = ['Under 2 h', '2–12 h', '12–24 h', '1–2 days', '2–3 days', '3+ days'];
+window.BJ_STAGE_ORDER = BJ_STAGE_ORDER; window.BJ_TIME_ORDER = BJ_TIME_ORDER;
+
+dash.draw('stuckheat', (el) => {
+  const d = dash.data('d_stuck');
+  if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
+  const pick = document.getElementById('aa-outcome');
+  const o = pick ? pick.value : '';
+  const rows = d.data.filter((r) => !o || r.outcome === o);
+  el.replaceChildren(window.BJ_HEAT(rows, 'stage', (s) => window.BJ_STAGE_ORDER.indexOf(s), 'time_in_stage', window.BJ_TIME_ORDER, (c) => c, 'var(--color-bad)'));
+});
+
+dash.draw('stuckreasons', (el) => {
+  const d = dash.data('d_reasons');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const pick = document.getElementById('aa-outcome');
+  const o = pick ? pick.value : '';
+  const rows = d.data.filter((r) => !o || r.outcome === o).slice().sort((a, b) => b.tasks - a.tasks).slice(0, 14);
+  const max = d3.max(rows, (r) => +r.tasks) || 1;
+  el.replaceChildren(...rows.map((x) => {
+    const r = document.createElement('div'); r.className = 'bj-why-row';
+    const l = document.createElement('div'); l.className = 'r'; const t1 = document.createElement('span'); t1.textContent = x.reason; const t2 = document.createElement('small'); t2.textContent = x.outcome + ' · stopped at: ' + x.stage; l.append(t1, t2);
+    const m = document.createElement('div'); m.className = 'm'; m.style.width = (100 * x.tasks / max) + '%'; m.style.background = BJ.outcomeColor(x.outcome === 'System timeout (no-show)' ? 'System cancelled' : x.outcome);
+    const n = BJ.mark(document.createElement('div'), 'd_reasons', 'tasks', 'outcome=' + BJ.enc(x.outcome) + '&stage=' + BJ.enc(x.stage) + '&reason=' + BJ.enc(x.reason)); n.className = 'n'; n.textContent = BJ.fmt(x.tasks, 'int');
+    r.append(l, m, n); return r;
+  }));
+});
+
+dash.draw('liveheat', (el) => {
+  const d = dash.data('d_live');
+  if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
+  const past = (stage) => d3.sum(d.data.filter((r) => r.stage === stage && +r.slot_order >= 3), (r) => +r.tasks);
+  el.replaceChildren(window.BJ_HEAT(d.data, 'stage', (s) => window.BJ_STAGE_ORDER.indexOf(s), 'time_in_stage', window.BJ_TIME_ORDER, (c) => 'In stage ' + c, 'var(--color-warn)', [{ label: 'Past slot day', value: past }]));
+});
+</script>
+
+<script>
+dash.loader('y_summary', { description: 'Yesterday: headline figures', fn: ({ answer }) => { const s = answer.datasets.y_summary; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('y_split', { description: 'Yesterday: installs split by reschedule and timing', fn: ({ answer }) => { const s = answer.datasets.y_split; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('y_late', { description: 'Yesterday: late installs by days late', fn: ({ answer }) => { const s = answer.datasets.y_late; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('y_funnel', { description: 'Yesterday: funnel of tasks due yesterday', fn: ({ answer }) => { const s = answer.datasets.y_funnel; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('y_leaks', { description: 'Yesterday: where due tasks went instead', fn: ({ answer }) => { const s = answer.datasets.y_leaks; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+</script>
+
+<script>
+const Y_PART_COLOR = (p) => ({ 'On the slot day': 'var(--color-ok)', 'Before the slot day': 'color-mix(in srgb, var(--color-ok) 55%, transparent)', 'On time for the new date': 'var(--bj-early)', 'Late even after rescheduling': 'color-mix(in srgb, var(--bj-early) 45%, var(--color-warn))', 'Late': 'var(--color-warn)' })[p] || 'var(--cds-chart-muted)';
+window.Y_PART_COLOR = (p) => ({ 'On time, never rescheduled · on the slot day': 'var(--color-ok)', 'On time, never rescheduled · before the slot day': 'color-mix(in srgb, var(--color-ok) 55%, transparent)', 'Rescheduled, installed early or on time': 'var(--bj-early)', 'Rescheduled, installed late': 'color-mix(in srgb, var(--bj-early) 45%, var(--color-warn))', 'Late, never rescheduled': 'var(--color-warn)' })[p] || 'var(--cds-chart-muted)';
+
+dash.draw('ysplitstack', (el) => {
+  const d = dash.data('y_split');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const total = d3.sum(d.data, (r) => +r.installs);
+  el.replaceChildren(...d.data.map((r) => {
+    const s = BJ.mark(document.createElement('div'), 'y_split', 'pct_of_installs', 'part=' + r.part);
+    s.style.width = (100 * r.installs / total) + '%'; s.style.background = window.Y_PART_COLOR(r.part);
+    s.textContent = r.pct_of_installs >= 7 ? BJ.fmt(r.pct_of_installs, 'pct') : '';
+    s.title = r.part + ': ' + BJ.fmt(r.installs, 'int') + ' (' + BJ.fmt(r.pct_of_installs, 'pct') + ')';
+    return s;
+  }));
+});
+dash.draw('ysplitlegend', (el) => {
+  const d = dash.data('y_split');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  el.replaceChildren(...d.data.map((r) => {
+    const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = window.Y_PART_COLOR(r.part);
+    const t = document.createElement('span'); t.textContent = r.part + ' ';
+    const b = BJ.mark(document.createElement('b'), 'y_split', 'installs', 'part=' + r.part); b.textContent = BJ.fmt(r.installs, 'int');
+    const p = BJ.mark(document.createElement('span'), 'y_split', 'pct_of_installs', 'part=' + r.part); p.className = 'muted'; p.textContent = ' ' + BJ.fmt(r.pct_of_installs, 'pct');
+    s.append(i, t, b, p); return s;
+  }));
+});
+
+dash.draw('ylatebars', (el) => {
+  const d = dash.data('y_late');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const days = Array.from(new Set(d.data.map((r) => +r.days_late))).sort((a, b) => a - b);
+  const groups = [['Late, never rescheduled', 'var(--color-warn)'], ['Rescheduled, installed late', 'color-mix(in srgb, var(--bj-early) 45%, var(--color-warn))']];
+  const max = d3.max(days, (k) => d3.sum(d.data.filter((r) => +r.days_late === k), (r) => +r.installs)) || 1;
+  el.replaceChildren(...days.map((k) => {
+    const row = document.createElement('div'); row.className = 'bj-hbar';
+    const l = document.createElement('div'); l.className = 'lbl'; l.textContent = k + (k === 1 ? ' day late' : ' days late');
+    const bars = document.createElement('div'); bars.className = 'bars';
+    groups.forEach(([g, c]) => {
+      const r = d.data.find((x) => +x.days_late === k && x.group === g);
+      if (!r) return;
+      const b = document.createElement('div'); b.className = 'b';
+      const i = document.createElement('i'); i.style.width = (70 * r.installs / max) + '%'; i.style.background = c;
+      const n = BJ.mark(document.createElement('span'), 'y_late', 'installs', 'group=' + BJ.enc(g) + '&days_late=' + k); n.textContent = BJ.fmt(r.installs, 'int');
+      const tot = d3.sum(d.data, (q) => +q.installs);
+      const t = document.createElement('span'); t.className = 'muted'; t.textContent = ' · ' + (100 * r.installs / tot).toFixed(1) + '% of late · ' + (g === 'Late, never rescheduled' ? 'never rescheduled' : 'rescheduled, installed late');
+      b.append(i, n, t); bars.append(b);
+    });
+    row.append(l, bars); return row;
+  }));
+});
+
+dash.draw('yfunnel', {
+  mount() { return { open: new Set([3]) }; },
+  update(el, state) {
+    const F = dash.data('y_funnel'), L = dash.data('y_leaks');
+    if (F.status !== 'ok' || L.status !== 'ok') { BJ.failed(el, [F, L].some((x) => x.status === 'error') ? 'error' : 'loading'); return; }
+    const steps = F.data, leaks = L.data, total = +steps[0].tasks, last = steps.length - 1;
+    const tip = BJ.tipFor(el);
+    const kids = [];
+    const row = (s) => {
+      const r = document.createElement('div'); r.className = 'bj-row' + (+s.step_no === steps.length ? ' is-end' : '') + (s.step === 'Technician assigned' ? ' is-key' : '');
+      const st = document.createElement('div'); st.className = 'bj-step';
+      const dot = document.createElement('div'); dot.className = 'bj-dot'; dot.textContent = s.step_no;
+      const nm = document.createElement('div'); nm.className = 'bj-sname'; nm.textContent = s.step;
+      st.append(dot, nm);
+      const tr = document.createElement('div'); tr.className = 'bj-track';
+      const bar = document.createElement('div'); bar.className = 'bj-bar';
+      bar.style.width = Math.max(0.4, 100 * s.tasks / total) + '%';
+      bar.style.setProperty('--bj-c', +s.step_no === steps.length ? 'var(--color-ok)' : (s.step === 'Technician assigned' ? dash.colors[0] : 'var(--cds-chart-muted)'));
+      const bl = document.createElement('div'); bl.className = 'bj-barlabel';
+      const lab = BJ.mark(document.createElement('span'), 'y_funnel', 'tasks', 'step_no=' + s.step_no); lab.textContent = BJ.fmt(s.tasks, 'int'); bl.append(lab);
+      tr.append(bar, bl);
+      bar.addEventListener('pointermove', (e) => tip.show(e, [s.step, BJ.fmt(s.tasks, 'int') + ' tasks', BJ.fmt(s.pct_of_due, 'pct') + ' of tasks due']));
+      bar.addEventListener('pointerleave', () => tip.hide());
+      const stats = document.createElement('div'); stats.className = 'bj-stats';
+      stats.append(BJ.numEl('div', 'y_funnel', 'pct_of_due', 'step_no=' + s.step_no, s.pct_of_due, 'pct', ' of due', 'big'));
+      if (s.pct_of_prev !== null) stats.append(BJ.numEl('div', 'y_funnel', 'pct_of_prev', 'step_no=' + s.step_no, s.pct_of_prev, 'pct', ' of the previous step', 'muted'));
+      r.append(st, tr, stats);
+      return r;
+    };
+    const leak = (fromStep) => {
+      const rows = leaks.filter((x) => +x.from_step === fromStep);
+      const lost = d3.sum(rows, (x) => +x.tasks);
+      if (!lost) return [];
+      const below = steps[fromStep - 1], above = steps[fromStep];
+      const wrap = document.createElement('div'); wrap.className = 'bj-leak';
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'bj-leak-btn';
+      const open = state.open.has(fromStep);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.textContent = (open ? '▾ ' : '▸ ') + '−' + BJ.fmt(lost, 'int') + ' between ' + below.step.toLowerCase() + ' and ' + above.step.toLowerCase();
+      btn.addEventListener('click', () => { state.open.has(fromStep) ? state.open.delete(fromStep) : state.open.add(fromStep); dash.draw('yfunnel'); });
+      wrap.append(btn);
+      const out = [wrap];
+      if (open) {
+        const w = document.createElement('div'); w.className = 'bj-why-wrap';
+        const box = document.createElement('div'); box.className = 'bj-why';
+        const h = document.createElement('div'); h.className = 'cap muted'; h.textContent = 'Where these ' + BJ.fmt(lost, 'int') + ' tasks were at the end of the day'; box.append(h);
+        const max = d3.max(rows, (x) => +x.tasks) || 1;
+        rows.slice().sort((a, b) => b.tasks - a.tasks).forEach((x) => {
+          const r = document.createElement('div'); r.className = 'bj-why-row';
+          const l = document.createElement('div'); l.className = 'r'; const t1 = document.createElement('span'); t1.textContent = x.reason; const t2 = document.createElement('small'); t2.textContent = x.outcome; l.append(t1, t2);
+          const m = document.createElement('div'); m.className = 'm'; m.style.width = (100 * x.tasks / max) + '%';
+          m.style.background = /Still open|Rescheduled/.test(x.outcome) ? 'var(--color-warn)' : (/cancel/i.test(x.outcome) ? 'var(--cds-chart-muted)' : 'var(--color-bad)');
+          const n = BJ.mark(document.createElement('div'), 'y_leaks', 'tasks', 'from_step=' + fromStep + '&outcome=' + BJ.enc(x.outcome) + '&reason=' + BJ.enc(x.reason)); n.className = 'n'; n.textContent = BJ.fmt(x.tasks, 'int');
+          r.append(l, m, n); box.append(r);
+        });
+        w.append(box); out.push(w);
+      }
+      return out;
+    };
+    const dir = (window.BJDIR || {})[(el.closest('.bj-page') || {}).id] || 'up';
+    if (dir === 'up') { for (let i = last; i >= 0; i--) { kids.push(row(steps[i])); if (i > 0) kids.push(...leak(i)); } }
+    else { for (let i = 0; i <= last; i++) { if (i > 0) kids.push(...leak(i)); kids.push(row(steps[i])); } }
+    el.replaceChildren(...kids);
+  }
+});
+</script>
+
+<script>
+dash.loader('trend', { description: 'Daily, weekly and monthly install split and due-day funnel', fn: ({ answer }) => { const s = answer.datasets.trend; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('y_compare', { description: 'Yesterday against earlier days', fn: ({ answer }) => { const s = answer.datasets.y_compare; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+</script>
+
+<script>
+// Period and scale toggles for the trend charts.
+window.YT = window.YT || { grain: 'day', scale: 'pct' };
+document.querySelectorAll('.bj-sw0').forEach((e) => { e.style.background = dash.colors[0]; });
+document.querySelectorAll('#y-grain .bj-tbtn').forEach((b) => b.addEventListener('click', () => {
+  window.YT.grain = b.getAttribute('data-grain');
+  document.querySelectorAll('#y-grain .bj-tbtn').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  dash.draw('ytrendsplit'); dash.draw('ytrendfunnel'); dash.draw('ytrendtable');
+}));
+document.querySelectorAll('#y-scale .bj-tbtn').forEach((b) => b.addEventListener('click', () => {
+  window.YT.scale = b.getAttribute('data-scale');
+  document.querySelectorAll('#y-scale .bj-tbtn').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  dash.draw('ytrendsplit');
+}));
+</script>
+
+<script>
+window.YT_ROWS = function () {
+  const d = dash.data('trend');
+  if (d.status !== 'ok') return null;
+  let rows = d.data.filter((r) => r.grain === window.YT.grain);
+  if (window.YT.grain === 'day') rows = rows.slice(-35);
+  return rows;
+};
+window.YT_SHORT = function (r) {
+  const dt = new Date(r.start + 'T00:00:00Z');
+  if (r.grain === 'day') return d3.utcFormat('%-d %b')(dt);
+  if (r.grain === 'week') return d3.utcFormat('%-d %b')(dt) + (String(r.partial) === 'true' ? '*' : '');
+  return d3.utcFormat('%b')(dt) + (String(r.partial) === 'true' ? '*' : '');
+};
+const YT_PARTS = [['x_on_day', 'On time · on the slot day', 'var(--color-ok)'], ['x_early', 'On time · before the slot day', 'color-mix(in srgb, var(--color-ok) 55%, transparent)'], ['y_on_time', 'Rescheduled, installed early or on time', 'var(--bj-early)'], ['y_late', 'Rescheduled, installed late', 'color-mix(in srgb, var(--bj-early) 45%, var(--color-warn))'], ['z_late', 'Late · never rescheduled', 'var(--color-warn)']];
+window.YT_PARTS = YT_PARTS;
+
+dash.draw('ytrendsplit', (el) => {
+  const rows = window.YT_ROWS();
+  if (!rows) { BJ.failed(el, dash.data('trend').status); return; }
+  const pct = window.YT.scale === 'pct';
+  const W = el.clientWidth || 600, H = 260, m = { t: 14, r: 8, b: 34, l: 44 };
+  const x = d3.scaleBand().domain(rows.map((r) => r.period)).range([m.l, W - m.r]).padding(rows.length > 20 ? 0.12 : 0.25);
+  const ymax = pct ? 100 : d3.max(rows, (r) => +r.installs);
+  const y = d3.scaleLinear().domain([0, ymax]).nice().range([H - m.b, m.t]);
+  const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Install split by period');
+  svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat((v) => pct ? v + '%' : d3.format(',')(v))).call((g) => { g.select('.domain').remove(); g.selectAll('line').style('stroke', 'var(--cds-chart-grid)'); });
+  const maxLabels = Math.max(2, Math.floor((W - m.l - m.r) / 52));
+  const every = Math.ceil(rows.length / maxLabels);
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickValues(rows.filter((r, i) => (rows.length - 1 - i) % every === 0).map((r) => r.period)).tickFormat((p) => window.YT_SHORT(rows.find((r) => r.period === p)))).call((g) => g.select('.domain').style('stroke', 'var(--cds-chart-axis)'));
+  const tip = BJ.tipFor(el);
+  rows.forEach((r) => {
+    let acc = 0;
+    const tot = +r.installs || 1;
+    window.YT_PARTS.forEach(([k, , c]) => {
+      const v = pct ? 100 * r[k] / tot : +r[k];
+      svg.append('rect').attr('x', x(r.period)).attr('width', x.bandwidth()).attr('y', y(acc + v)).attr('height', Math.max(0, y(acc) - y(acc + v))).style('fill', c);
+      acc += v;
+    });
+    if (String(r.resched_tracked) !== 'true') svg.append('rect').attr('x', x(r.period)).attr('width', x.bandwidth()).attr('y', m.t).attr('height', 3).style('fill', 'var(--cds-chart-muted)');
+    svg.append('rect').attr('x', x(r.period)).attr('width', x.bandwidth()).attr('y', m.t).attr('height', H - m.t - m.b).style('fill', 'transparent')
+      .on('pointermove', (e) => tip.show(e, [r.label, BJ.fmt(r.installs, 'int') + ' installs', 'On time, on the slot day ' + BJ.fmt(r.x_on_day, 'int') + ' (' + BJ.fmt(r.x_on_day_pct, 'pct') + ')', 'On time, before the slot day ' + BJ.fmt(r.x_early, 'int') + ' (' + BJ.fmt(r.x_early_pct, 'pct') + ')', 'Rescheduled, installed early or on time ' + BJ.fmt(r.y_on_time, 'int') + ' (' + BJ.fmt(r.y_on_time_pct, 'pct') + ')', 'Rescheduled, installed late ' + BJ.fmt(r.y_late, 'int') + ' (' + BJ.fmt(r.y_late_pct, 'pct') + ')', 'Late, never rescheduled ' + BJ.fmt(r.z_late, 'int') + ' (' + BJ.fmt(r.z_pct, 'pct') + ')', String(r.resched_tracked) === 'true' ? '' : 'Reschedules not recorded yet'].filter(Boolean)))
+      .on('pointerleave', () => tip.hide());
+  });
+  if (rows.length <= 18) {
+    rows.forEach((r) => {
+      const v = pct ? r.on_time_pct : r.installs;
+      svg.append('text').attr('x', x(r.period) + x.bandwidth() / 2).attr('y', pct ? y(100) - 3 : y(r.installs) - 4).attr('text-anchor', 'middle').style('fill', 'var(--color-fg)').style('font-weight', 600)
+        .text(pct ? BJ.fmt(v, 'pct') : BJ.fmt(v, 'int'));
+    });
+  }
+  el.replaceChildren(svg.node());
+});
+
+dash.draw('ytrendfunnel', (el) => {
+  const rows = window.YT_ROWS();
+  if (!rows) { BJ.failed(el, dash.data('trend').status); return; }
+  const W = el.clientWidth || 600, H = 240, m = { t: 14, r: 48, b: 34, l: 40 };
+  const x = d3.scalePoint().domain(rows.map((r) => r.period)).range([m.l + 6, W - m.r]);
+  const y = d3.scaleLinear().domain([0, Math.max(60, d3.max(rows, (r) => +r.assigned_to_installed_pct || 0))]).nice().range([H - m.b, m.t]);
+  const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Due-day conversion by period');
+  svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat((v) => v + '%')).call((g) => { g.select('.domain').remove(); g.selectAll('line').style('stroke', 'var(--cds-chart-grid)'); });
+  const maxLabels = Math.max(2, Math.floor((W - m.l - m.r) / 52));
+  const every = Math.ceil(rows.length / maxLabels);
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickValues(rows.filter((r, i) => (rows.length - 1 - i) % every === 0).map((r) => r.period)).tickFormat((p) => window.YT_SHORT(rows.find((r) => r.period === p)))).call((g) => g.select('.domain').style('stroke', 'var(--cds-chart-axis)'));
+  const series = [['assigned_to_installed_pct', dash.colors[0]], ['due_to_installed_pct', 'var(--color-ok)'], ['due_to_assigned_pct', 'var(--cds-chart-muted)']];
+  series.forEach(([k, c]) => {
+    const pts = rows.filter((r) => r[k] !== null && r[k] !== undefined);
+    svg.append('path').datum(pts).attr('d', d3.line().x((r) => x(r.period)).y((r) => y(r[k]))).style('fill', 'none').style('stroke', c).style('stroke-width', 2);
+    svg.append('g').selectAll('circle').data(pts).join('circle').attr('cx', (r) => x(r.period)).attr('cy', (r) => y(r[k])).attr('r', rows.length > 20 ? 2 : 3).style('fill', c);
+    const lastR = pts[pts.length - 1];
+    if (lastR) svg.append('text').attr('x', x(lastR.period) + 6).attr('y', y(lastR[k]) + 4).style('fill', c).style('font-weight', 600).text(BJ.fmt(lastR[k], 'pct'));
+  });
+  const tip = BJ.tipFor(el);
+  const step = rows.length > 1 ? (x(rows[1].period) - x(rows[0].period)) : 40;
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.period) - step / 2).attr('width', step).attr('y', m.t).attr('height', H - m.t - m.b).style('fill', 'transparent')
+    .on('pointermove', (e, r) => tip.show(e, [r.label, BJ.fmt(r.due, 'int') + ' due · ' + BJ.fmt(r.assigned, 'int') + ' with a technician', BJ.fmt(r.arrived, 'int') + ' reached customer home · ' + BJ.fmt(r.installed_on_day, 'int') + ' installed on the day', 'Technician assigned → installed ' + BJ.fmt(r.assigned_to_installed_pct, 'pct'), 'Due → installed ' + BJ.fmt(r.due_to_installed_pct, 'pct'), 'Due → technician assigned ' + BJ.fmt(r.due_to_assigned_pct, 'pct')]))
+    .on('pointerleave', () => tip.hide());
+  el.replaceChildren(svg.node());
+});
+
+dash.draw('ytrendtable', (el) => {
+  const rows = window.YT_ROWS();
+  if (!rows) { el.replaceChildren(); return; }
+  el.replaceChildren(...rows.slice().reverse().map((r) => {
+    const tr = document.createElement('tr');
+    const cells = [r.label + (String(r.partial) === 'true' && r.grain !== 'day' ? ' · partial' : ''), BJ.fmt(r.act_offered, 'int'), BJ.fmt(r.act_accepted, 'int'), BJ.fmt(r.act_assigned, 'int'), BJ.fmt(r.act_arrived, 'int'), BJ.fmt(r.installs, 'int'), BJ.fmt(r.act_installed_per_assigned_pct, 'pct'), BJ.fmt(r.x_pct, 'pct'), String(r.resched_tracked) === 'true' ? BJ.fmt(r.y_on_time_pct, 'pct') : 'n/a', String(r.resched_tracked) === 'true' ? BJ.fmt(r.y_late_pct, 'pct') : 'n/a', BJ.fmt(r.z_pct, 'pct'), BJ.fmt(r.late_pct, 'pct'), BJ.fmt(r.due, 'int'), BJ.fmt(r.assigned, 'int'), BJ.fmt(r.installed_on_day, 'int'), BJ.fmt(r.assigned_to_installed_pct, 'pct'), BJ.fmt(r.due_to_installed_pct, 'pct')];
+    cells.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i) td.className = 'num'; tr.append(td); });
+    return tr;
+  }));
+});
+
+dash.draw('ycompare', (el) => {
+  const d = dash.data('y_compare');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const fmtv = (v, kind) => kind === 'pct' ? BJ.fmt(v, 'pct') : (Number.isInteger(+v) ? BJ.fmt(v, 'int') : (+v).toFixed(1));
+  el.replaceChildren(...d.data.map((r) => {
+    const tr = document.createElement('tr');
+    const names = { x_pct: 'On time, never rescheduled', y_pct: 'Rescheduled (any outcome)', z_pct: 'Late, never rescheduled' };
+    const th = document.createElement('td'); th.textContent = names[r.field] || r.metric; tr.append(th);
+    const y = document.createElement('td'); y.className = 'num'; y.style.fontWeight = '600'; y.textContent = fmtv(r.yesterday, r.kind); tr.append(y);
+    ['previous_day', 'same_day_last_week', 'avg_prev_7_days', 'avg_prev_28_days'].forEach((k) => {
+      const td = document.createElement('td'); td.className = 'num';
+      const base = document.createElement('div'); base.textContent = fmtv(r[k], r.kind);
+      const dv = r['vs_' + k];
+      const delta = document.createElement('div'); delta.className = 'cap';
+      if (dv !== null && dv !== undefined) {
+        const good = String(r.higher_is_better) === 'true' ? dv > 0 : dv < 0;
+        delta.textContent = (dv > 0 ? '▲ +' : (dv < 0 ? '▼ ' : '')) + (r.kind === 'pct' ? (+dv).toFixed(1) + ' pts' : fmtv(dv, 'int'));
+        delta.style.color = dv === 0 ? 'var(--color-fg-muted)' : (good ? 'var(--color-ok)' : 'var(--color-bad)');
+      }
+      td.append(base, delta); tr.append(td);
+    });
+    tr.setAttribute('data-key', r.field);
+    return tr;
+  }));
+});
+</script>
+
+<script>
+dash.loader('y_flags', { description: 'Daily tracker: yesterday checked against the previous days', fn: ({ answer }) => { const s = answer.datasets.y_flags; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+</script>
+
+<script>
+window.YF_COLOR = (st) => ({ 'Off': 'var(--color-bad)', 'Watch': 'var(--color-warn)', 'Unusual': 'var(--color-warn)', 'Better than usual': 'var(--color-ok)' })[st] || 'var(--cds-chart-muted)';
+window.YF_VAL = (v, unit) => unit === 'pct' ? BJ.fmt(v, 'pct') : BJ.fmt(Math.round(+v), 'int');
+
+dash.draw('yflaghead', (el) => {
+  const d = dash.data('y_flags');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const off = d.data.filter((r) => r.status === 'Off').length, watch = d.data.filter((r) => r.status === 'Watch' || r.status === 'Unusual').length, better = d.data.filter((r) => r.status === 'Better than usual').length;
+  const state = off ? 'Off' : (watch ? 'Watch' : 'Normal');
+  el.style.setProperty('--bj-c', off ? 'var(--color-bad)' : (watch ? 'var(--color-warn)' : 'var(--color-ok)'));
+  const icon = document.createElement('span'); icon.className = 'ic'; icon.textContent = off ? '!' : (watch ? '!' : '✓');
+  const txt = document.createElement('div');
+  const h = document.createElement('div'); h.className = 'hl';
+  h.textContent = off ? (off + (off === 1 ? ' thing looks off yesterday' : ' things look off yesterday')) : (watch ? (watch + (watch === 1 ? ' thing to watch from yesterday' : ' things to watch from yesterday')) : 'Nothing looks off yesterday');
+  const sub = document.createElement('div'); sub.className = 'cap muted';
+  sub.textContent = d.data.length + ' checks against the previous days' + (off ? ' · ' + off + ' off' : '') + (watch ? ' · ' + watch + ' to watch' : '') + (better ? ' · ' + better + ' better than usual' : '') + ' · ' + (d.data.length - off - watch - better) + ' normal';
+  txt.append(h, sub);
+  el.setAttribute('data-state', state);
+  el.replaceChildren(icon, txt);
+});
+
+dash.draw('yflagcards', (el) => {
+  const d = dash.data('y_flags');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const rows = d.data.filter((r) => r.status !== 'Normal');
+  el.replaceChildren(...rows.map((r) => {
+    const c = document.createElement('div'); c.className = 'bj-flagcard'; c.style.setProperty('--bj-c', window.YF_COLOR(r.status));
+    const pill = document.createElement('span'); pill.className = 'pill'; pill.textContent = r.status;
+    const m = document.createElement('div'); m.className = 'm'; m.textContent = r.metric;
+    const v = document.createElement('div'); v.className = 'v';
+    const vy = BJ.mark(document.createElement('span'), 'y_flags', 'yesterday', 'field=' + r.field); vy.textContent = window.YF_VAL(r.yesterday, r.unit);
+    const vu = document.createElement('span'); vu.className = 'muted'; vu.textContent = ' vs usual ';
+    const vm = BJ.mark(document.createElement('span'), 'y_flags', 'usual', 'field=' + r.field); vm.className = 'muted'; vm.textContent = window.YF_VAL(r.usual, r.unit);
+    v.append(vy, vu, vm);
+    const s = document.createElement('div'); s.className = 'cap muted';
+    const ch = +r.change;
+    s.textContent = (ch > 0 ? '+' : '') + (r.unit === 'pct' ? ch.toFixed(1) + ' pts' : Math.round(ch)) + ' against the ' + r.baseline_days + '-day average · usual range ' + window.YF_VAL(r.usual_low, r.unit) + '–' + window.YF_VAL(r.usual_high, r.unit) + (r.same_day_last_week !== null && r.same_day_last_week !== undefined ? ' · same day last week ' + window.YF_VAL(r.same_day_last_week, r.unit) : '');
+    const mean = document.createElement('div'); mean.className = 'cap'; mean.textContent = 'What it measures: ' + r.meaning + ' (' + r.direction + ').';
+    c.append(pill, m, v, s, mean);
+    return c;
+  }));
+});
+
+window.YC_TOP = ['pr_on_time_pct', 'installs', 'assigned_to_installed_pct', 'late_pct', 'due_to_accepted_pct'];
+window.YC_BUILD = function (el, which) {
+  const d = dash.data('y_flags');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const tip = BJ.tipFor(el);
+  const top = window.YC_TOP;
+  const list = which === 'top' ? top.map((f) => d.data.find((r) => r.field === f)).filter(Boolean) : d.data.filter((r) => !top.includes(r.field));
+  el.replaceChildren(...list.map((r) => {
+    const row = document.createElement('div'); row.className = 'bj-check';
+    const l = document.createElement('div'); l.className = 'lbl';
+    const pill = document.createElement('span'); pill.className = 'pill sm'; pill.style.setProperty('--bj-c', window.YF_COLOR(r.status)); pill.textContent = r.status;
+    const nm = document.createElement('span'); nm.textContent = r.metric;
+    l.append(pill, nm);
+    const lo = Math.min(+r.usual_low, +r.yesterday, +r.usual), hi = Math.max(+r.usual_high, +r.yesterday, +r.usual);
+    const pad = (hi - lo) * 0.15 || 1;
+    const sc = (v) => 100 * (v - (lo - pad)) / ((hi + pad) - (lo - pad));
+    const track = document.createElement('div'); track.className = 'trk';
+    const band = document.createElement('i'); band.className = 'band'; band.style.left = sc(r.usual_low) + '%'; band.style.width = Math.max(1, sc(r.usual_high) - sc(r.usual_low)) + '%';
+    const avg = document.createElement('i'); avg.className = 'avg'; avg.style.left = sc(r.usual) + '%';
+    const dot = document.createElement('i'); dot.className = 'dot'; dot.style.left = sc(r.yesterday) + '%'; dot.style.background = r.status === 'Normal' ? 'var(--color-fg)' : window.YF_COLOR(r.status);
+    track.append(band, avg, dot);
+    track.addEventListener('pointermove', (e) => tip.show(e, [r.metric, 'Yesterday ' + window.YF_VAL(r.yesterday, r.unit), 'Average ' + window.YF_VAL(r.usual, r.unit) + ' over ' + r.baseline_days + ' days', 'Usual range ' + window.YF_VAL(r.usual_low, r.unit) + '–' + window.YF_VAL(r.usual_high, r.unit), r.direction]));
+    track.addEventListener('pointerleave', () => tip.hide());
+    const v = document.createElement('div'); v.className = 'val';
+    const vy = BJ.mark(document.createElement('b'), 'y_flags', 'yesterday', 'field=' + r.field); vy.textContent = window.YF_VAL(r.yesterday, r.unit);
+    const vu = document.createElement('span'); vu.className = 'muted cap'; vu.textContent = ' usual ' + window.YF_VAL(r.usual, r.unit);
+    v.append(vy, vu);
+    row.append(l, track, v);
+    return row;
+  }));
+};
+dash.draw('ychecks', (el) => window.YC_BUILD(el, 'top'));
+dash.draw('ychecksmore', (el) => window.YC_BUILD(el, 'rest'));
+dash.draw('ychecksmorelabel', (el) => {
+  const d = dash.data('y_flags');
+  if (d.status !== 'ok') { el.textContent = 'Other checks'; return; }
+  const rest = d.data.filter((r) => !window.YC_TOP.includes(r.field));
+  const flagged = rest.filter((r) => r.status !== 'Normal').length;
+  el.textContent = 'Other ' + rest.length + ' checks' + (flagged ? ' · ' + flagged + ' not normal' : ' · all normal');
+});
+</script>
+
+<script>
+dash.loader('y_activity', { description: "Daily tracker: yesterday's activity funnel", fn: ({ answer }) => { const s = answer.datasets.y_activity; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('y_lag', { description: "Daily tracker: when each step happened for yesterday's installs", fn: ({ answer }) => { const s = answer.datasets.y_lag; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+</script>
+
+<script>
+window.YT.actmode = 'count';
+document.querySelectorAll('.bj-sw0').forEach((e) => { e.style.background = dash.colors[0]; });
+document.querySelectorAll('#y-actmode .bj-tbtn').forEach((b) => b.addEventListener('click', () => {
+  window.YT.actmode = b.getAttribute('data-mode');
+  document.querySelectorAll('#y-actmode .bj-tbtn').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  dash.draw('ytrendact'); dash.draw('ytrendactlegend');
+}));
+document.querySelectorAll('#y-grain .bj-tbtn').forEach((b) => b.addEventListener('click', () => { dash.draw('ytrendact'); }));
+</script>
+
+<script>
+dash.draw('yactfunnel', (el) => {
+  const d = dash.data('y_activity');
+  if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
+  const steps = d.data, max = d3.max(steps, (s) => +s.tasks) || 1;
+  const tip = BJ.tipFor(el);
+  const kids = [];
+  const dir = (window.BJDIR || {})[(el.closest('.bj-page') || {}).id] || 'up';
+  const idx = dir === 'up' ? d3.range(steps.length - 1, -1, -1) : d3.range(0, steps.length);
+  for (const i of idx) {
+    const s = steps[i];
+    const r = document.createElement('div'); r.className = 'bj-row' + (s.key === 'installed' ? ' is-end' : '');
+    const st = document.createElement('div'); st.className = 'bj-step';
+    const dot = document.createElement('div'); dot.className = 'bj-dot'; dot.textContent = s.step_no;
+    const nm = document.createElement('div'); nm.className = 'bj-sname'; nm.textContent = s.step;
+    st.append(dot, nm);
+    const tr = document.createElement('div'); tr.className = 'bj-track';
+    const bar = document.createElement('div'); bar.className = 'bj-bar';
+    bar.style.width = Math.max(0.4, 100 * s.tasks / max) + '%';
+    bar.style.setProperty('--bj-c', s.key === 'installed' ? 'var(--color-ok)' : (s.key === 'assigned' ? dash.colors[0] : 'var(--cds-chart-muted)'));
+    const bl = document.createElement('div'); bl.className = 'bj-barlabel';
+    const lab = BJ.mark(document.createElement('span'), 'y_activity', 'tasks', 'key=' + s.key); lab.textContent = BJ.fmt(s.tasks, 'int'); bl.append(lab);
+    tr.append(bar, bl);
+    bar.addEventListener('pointermove', (e) => tip.show(e, [s.step + ' yesterday', BJ.fmt(s.tasks, 'int') + ' tasks', BJ.fmt(s.pct_of_offered, 'pct') + ' of the day\'s FPNs']));
+    bar.addEventListener('pointerleave', () => tip.hide());
+    const stats = document.createElement('div'); stats.className = 'bj-stats';
+    if (s.pct_of_below !== null) stats.append(BJ.numEl('div', 'y_activity', 'pct_of_below', 'key=' + s.key, s.pct_of_below, 'pct', ' of the previous step', 'big'));
+    else { const t = document.createElement('div'); t.className = 'muted'; t.textContent = 'New FPNs yesterday'; stats.append(t); }
+    stats.append(BJ.numEl('div', 'y_activity', 'pct_of_offered', 'key=' + s.key, s.pct_of_offered, 'pct', " of the day's FPNs", 'muted'));
+    r.append(st, tr, stats);
+    kids.push(r);
+  }
+  el.replaceChildren(...kids);
+});
+
+dash.draw('ylag', (el) => {
+  const d = dash.data('y_lag');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const order = ['happy_code', 'arrived', 'assigned', 'accepted', 'offered'];
+  const col = { 1: 'var(--color-ok)', 2: dash.colors[0], 3: 'var(--color-warn)', 4: 'var(--color-bad)', 5: 'var(--cds-chart-muted)' };
+  const tip = BJ.tipFor(el);
+  el.replaceChildren(...order.filter((k) => d.data.some((r) => r.key === k)).map((k) => {
+    const rows = d.data.filter((r) => r.key === k).sort((a, b) => a.lag_order - b.lag_order);
+    const tot = d3.sum(rows, (r) => +r.installs);
+    const row = document.createElement('div'); row.className = 'bj-hbar';
+    const l = document.createElement('div'); l.className = 'lbl'; l.textContent = rows[0].step;
+    const bars = document.createElement('div'); bars.className = 'bars';
+    const b = document.createElement('div'); b.className = 'b';
+    const wrap = document.createElement('div'); wrap.className = 'bj-lagbar';
+    rows.forEach((r) => {
+      const seg = document.createElement('i'); seg.style.width = (100 * r.installs / tot) + '%'; seg.style.background = col[r.lag_order];
+      seg.textContent = r.installs / tot >= 0.09 ? BJ.fmt(r.pct_of_installs, 'pct') : '';
+      wrap.append(seg);
+    });
+    wrap.addEventListener('pointermove', (e) => tip.show(e, [rows[0].step, ...rows.map((r) => r.lag + ': ' + BJ.fmt(r.installs, 'int') + ' (' + BJ.fmt(r.pct_of_installs, 'pct') + ')')]));
+    wrap.addEventListener('pointerleave', () => tip.hide());
+    const same = rows.find((r) => r.lag_order === 1);
+    const n = document.createElement('span'); n.className = 'muted';
+    if (same) { const sp = BJ.mark(document.createElement('b'), 'y_lag', 'installs', 'key=' + k + '&lag=' + same.lag); sp.textContent = BJ.fmt(same.installs, 'int'); n.append(sp, document.createTextNode(' same day')); }
+    b.append(wrap, n); bars.append(b); row.append(l, bars); return row;
+  }));
+});
+
+window.YT_ACT = [['act_offered', 'FPN sent', 'var(--cds-chart-muted)'], ['act_accepted', 'Accepted by CSP', 'var(--color-warn)'], ['act_assigned', 'Technician assigned', 'C0'], ['act_arrived', 'Technician reached customer home', 'C1'], ['act_installed', 'Installed', 'var(--color-ok)']];
+window.YT_ACTR = [['act_installed_per_assigned_pct', 'Installs ÷ technicians assigned', 'C0'], ['act_arrived_per_assigned_pct', 'Customer homes reached ÷ technicians assigned', 'C1'], ['act_accepted_per_offered_pct', 'Accepts ÷ FPNs', 'var(--color-warn)'], ['act_installed_per_offered_pct', 'Installs ÷ FPNs', 'var(--color-ok)']];
+window.YT_C = (c) => c === 'C0' ? dash.colors[0] : (c === 'C1' ? (dash.colors[1] || dash.colors[0]) : c);
+
+dash.draw('ytrendactlegend', (el) => {
+  const set = window.YT.actmode === 'ratio' ? window.YT_ACTR : window.YT_ACT;
+  el.replaceChildren(...set.map(([, lab, c]) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = window.YT_C(c); s.append(i, document.createTextNode(lab)); return s; }));
+});
+
+dash.draw('ytrendact', (el) => {
+  const rows = window.YT_ROWS();
+  if (!rows) { BJ.failed(el, dash.data('trend').status); return; }
+  const ratio = window.YT.actmode === 'ratio';
+  const set = ratio ? window.YT_ACTR : window.YT_ACT;
+  const W = el.clientWidth || 600, H = 260, m = { t: 14, r: 56, b: 34, l: 48 };
+  const x = d3.scalePoint().domain(rows.map((r) => r.period)).range([m.l + 6, W - m.r]);
+  const ymax = d3.max(rows, (r) => d3.max(set, ([k]) => +r[k] || 0)) || 1;
+  const y = d3.scaleLinear().domain([0, ymax]).nice().range([H - m.b, m.t]);
+  const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Activity funnel by period');
+  svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat((v) => ratio ? v + '%' : d3.format(',')(v))).call((g) => { g.select('.domain').remove(); g.selectAll('line').style('stroke', 'var(--cds-chart-grid)'); });
+  const maxLabels = Math.max(2, Math.floor((W - m.l - m.r) / 52));
+  const every = Math.ceil(rows.length / maxLabels);
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickValues(rows.filter((r, i) => (rows.length - 1 - i) % every === 0).map((r) => r.period)).tickFormat((p) => window.YT_SHORT(rows.find((r) => r.period === p)))).call((g) => g.select('.domain').style('stroke', 'var(--cds-chart-axis)'));
+  const ends = [];
+  set.forEach(([k, , c]) => {
+    const col = window.YT_C(c);
+    const pts = rows.filter((r) => r[k] !== null && r[k] !== undefined);
+    svg.append('path').datum(pts).attr('d', d3.line().x((r) => x(r.period)).y((r) => y(+r[k]))).style('fill', 'none').style('stroke', col).style('stroke-width', 2);
+    svg.append('g').selectAll('circle').data(pts).join('circle').attr('cx', (r) => x(r.period)).attr('cy', (r) => y(+r[k])).attr('r', rows.length > 20 ? 2 : 3).style('fill', col);
+    const lr = pts[pts.length - 1];
+    if (lr) ends.push({ y: y(+lr[k]), x: x(lr.period), t: ratio ? BJ.fmt(lr[k], 'pct') : BJ.fmt(lr[k], 'int'), c: col });
+  });
+  ends.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 12) ends[i].y = ends[i - 1].y + 12;
+  ends.forEach((e) => svg.append('text').attr('x', e.x + 6).attr('y', e.y + 4).style('fill', e.c).style('font-weight', 600).text(e.t));
+  const tip = BJ.tipFor(el);
+  const step = rows.length > 1 ? (x(rows[1].period) - x(rows[0].period)) : 40;
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.period) - step / 2).attr('width', step).attr('y', m.t).attr('height', H - m.t - m.b).style('fill', 'transparent')
+    .on('pointermove', (e, r) => tip.show(e, [r.label, 'FPN sent ' + BJ.fmt(r.act_offered, 'int') + ' · accepted ' + BJ.fmt(r.act_accepted, 'int'), 'Technician assigned ' + BJ.fmt(r.act_assigned, 'int') + ' · reached customer home ' + BJ.fmt(r.act_arrived, 'int'), 'Installed ' + BJ.fmt(r.act_installed, 'int'), 'Installs ÷ technicians assigned ' + BJ.fmt(r.act_installed_per_assigned_pct, 'pct'), 'Accepts ÷ FPNs ' + BJ.fmt(r.act_accepted_per_offered_pct, 'pct')]))
+    .on('pointerleave', () => tip.hide());
+  el.replaceChildren(svg.node());
+});
+</script>
+
+<script>
+dash.loader('y_promise', { description: 'Daily tracker: bookings supposed to be installed yesterday', fn: ({ answer }) => { const s = answer.datasets.y_promise; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+</script>
+
+<script>
+window.YP_GROUPS = [['On time', 'var(--color-ok)'], ['Late', 'var(--color-warn)'], ['Delayed, not installed yet', 'C0'], ['Not going ahead', 'var(--cds-chart-muted)']];
+window.YP_C = (c) => c === 'C0' ? dash.colors[0] : c;
+
+dash.draw('ypromisestack', (el) => {
+  const d = dash.data('y_promise');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const tot = d3.sum(d.data, (r) => +r.bookings) || 1;
+  el.replaceChildren(...window.YP_GROUPS.map(([g, c]) => {
+    const n = d3.sum(d.data.filter((r) => r.group === g), (r) => +r.bookings);
+    const s = document.createElement('div'); s.style.width = (100 * n / tot) + '%'; s.style.background = window.YP_C(c);
+    s.textContent = n / tot >= 0.07 ? (100 * n / tot).toFixed(1) + '%' : '';
+    s.title = g + ': ' + BJ.fmt(n, 'int') + ' bookings';
+    return s;
+  }));
+});
+
+dash.draw('ypromisegroups', (el) => {
+  const d = dash.data('y_promise');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const tot = d3.sum(d.data, (r) => +r.bookings) || 1;
+  el.replaceChildren(...window.YP_GROUPS.map(([g, c]) => {
+    const rows = d.data.filter((r) => r.group === g);
+    const n = d3.sum(rows, (r) => +r.bookings);
+    const card = document.createElement('div'); card.className = 'bj-pgroup'; card.style.setProperty('--bj-c', window.YP_C(c));
+    const h = document.createElement('div'); h.className = 'gh';
+    const nm = document.createElement('span'); nm.textContent = g;
+    const v = document.createElement('b'); v.textContent = BJ.fmt(n, 'int');
+    const p = document.createElement('span'); p.className = 'muted'; p.textContent = (100 * n / tot).toFixed(1) + '%';
+    h.append(nm, v, p); card.append(h);
+    rows.forEach((r) => {
+      const li = document.createElement('div'); li.className = 'li';
+      const a = document.createElement('span'); a.textContent = r.outcome;
+      const b = BJ.mark(document.createElement('span'), 'y_promise', 'bookings', 'outcome=' + BJ.enc(r.outcome)); b.className = 'num'; b.textContent = BJ.fmt(r.bookings, 'int');
+      const q = BJ.mark(document.createElement('span'), 'y_promise', 'pct', 'outcome=' + BJ.enc(r.outcome)); q.className = 'muted num'; q.textContent = BJ.fmt(r.pct, 'pct');
+      li.append(a, b, q); card.append(li);
+    });
+    return card;
+  }));
+});
+
+dash.draw('ytrendpromise', (el) => {
+  const rows = window.YT_ROWS ? window.YT_ROWS() : null;
+  if (!rows) { BJ.failed(el, dash.data('trend').status); return; }
+  const W = el.clientWidth || 600, H = 250, m = { t: 14, r: 8, b: 34, l: 44 };
+  const x = d3.scaleBand().domain(rows.map((r) => r.period)).range([m.l, W - m.r]).padding(rows.length > 20 ? 0.12 : 0.25);
+  const y = d3.scaleLinear().domain([0, 100]).range([H - m.b, m.t]);
+  const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Booking outcomes by slot day');
+  svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r)).tickFormat((v) => v + '%')).call((g) => { g.select('.domain').remove(); g.selectAll('line').style('stroke', 'var(--cds-chart-grid)'); });
+  const maxLabels = Math.max(2, Math.floor((W - m.l - m.r) / 52));
+  const every = Math.ceil(rows.length / maxLabels);
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickValues(rows.filter((r, i) => (rows.length - 1 - i) % every === 0).map((r) => r.period)).tickFormat((p) => window.YT_SHORT(rows.find((r) => r.period === p)))).call((g) => g.select('.domain').style('stroke', 'var(--cds-chart-axis)'));
+  const keys = [['pr_on_time', 'On time', 'var(--color-ok)'], ['pr_late', 'Late', 'var(--color-warn)'], ['pr_delayed', 'Delayed, not installed yet', dash.colors[0]], ['pr_not_going_ahead', 'Not going ahead', 'var(--cds-chart-muted)']];
+  const tip = BJ.tipFor(el);
+  rows.forEach((r) => {
+    const tot = +r.pr_supposed || 1; let acc = 0;
+    keys.forEach(([k, , c]) => { const v = 100 * (+r[k] || 0) / tot; svg.append('rect').attr('x', x(r.period)).attr('width', x.bandwidth()).attr('y', y(acc + v)).attr('height', Math.max(0, y(acc) - y(acc + v))).style('fill', c); acc += v; });
+    if (rows.length <= 18) svg.append('text').attr('x', x(r.period) + x.bandwidth() / 2).attr('y', y(100) - 3).attr('text-anchor', 'middle').style('fill', 'var(--color-fg)').style('font-weight', 600).text(BJ.fmt(r.pr_on_time_pct, 'pct'));
+    svg.append('rect').attr('x', x(r.period)).attr('width', x.bandwidth()).attr('y', m.t).attr('height', H - m.t - m.b).style('fill', 'transparent')
+      .on('pointermove', (e) => tip.show(e, [r.label, BJ.fmt(r.pr_supposed, 'int') + ' bookings due', ...keys.map(([k, lab]) => lab + ' ' + BJ.fmt(r[k], 'int') + ' (' + BJ.fmt(r[k + '_pct'], 'pct') + ')'), 'No CSP accepted in time ' + BJ.fmt(r.pr_no_csp, 'int')]))
+      .on('pointerleave', () => tip.hide());
+  });
+  el.replaceChildren(svg.node());
+});
+document.querySelectorAll('#y-grain .bj-tbtn').forEach((b) => b.addEventListener('click', () => { dash.draw('ytrendpromise'); }));
+document.querySelectorAll('.bj-sw0').forEach((e) => { e.style.background = dash.colors[0]; });
+</script>
+
+<script>
+// Funnel direction: each tab can read from install back to FPN, or from FPN forward to install.
+(function () {
+  window.BJDIR = window.BJDIR || {};
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('bj-dir') || '{}') || {}; } catch (e) { saved = {}; }
+  const apply = (pageId) => {
+    const dir = window.BJDIR[pageId] || 'up';
+    const page = document.getElementById(pageId);
+    if (!page) return;
+    page.querySelectorAll('[data-dir-only]').forEach((n) => { n.hidden = n.getAttribute('data-dir-only') !== dir; });
+    page.querySelectorAll('.bj-dir .bj-tbtn').forEach((b) => b.setAttribute('aria-pressed', b.getAttribute('data-dir') === dir ? 'true' : 'false'));
+  };
+  document.querySelectorAll('.bj-dir').forEach((box) => {
+    const pageId = box.getAttribute('data-dirpage');
+    window.BJDIR[pageId] = saved[pageId] === 'down' ? 'down' : 'up';
+    apply(pageId);
+    box.querySelectorAll('.bj-tbtn').forEach((b) => b.addEventListener('click', () => {
+      window.BJDIR[pageId] = b.getAttribute('data-dir');
+      try { saved[pageId] = window.BJDIR[pageId]; localStorage.setItem('bj-dir', JSON.stringify(saved)); } catch (e) { /* storage blocked */ }
+      apply(pageId);
+      ['journey', 'minifunnel', 'yfunnel', 'yactfunnel'].forEach((n) => dash.draw(n));
+    }));
+  });
+})();
+</script>
+
+<script>
+dash.loader('c_summary', { description: 'CSP reschedule behaviour: headline figures', fn: ({ answer }) => { const s = answer.datasets.c_summary; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('c_segments', { description: 'CSP reschedule behaviour: four groups', fn: ({ answer }) => { const s = answer.datasets.c_segments; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('c_csps', { description: 'CSP reschedule behaviour: one row per CSP', fn: ({ answer }) => { const s = answer.datasets.c_csps; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+</script>
+
+<script>
+window.C_SEGC = (n) => ({ 1: 'var(--color-bad)', 2: 'var(--color-warn)', 3: 'var(--color-ok)', 4: 'var(--cds-chart-muted)' })[+n] || 'var(--cds-chart-muted)';
+(function () {
+  const redraw = () => { dash.draw('ctable'); dash.draw('ccount'); dash.draw('csegcards'); };
+  const sel = document.getElementById('c-seg'); if (sel) sel.addEventListener('change', redraw);
+  const inp = document.getElementById('c-search'); if (inp) inp.addEventListener('input', redraw);
+})();
+
+dash.draw('csegcards', (el) => {
+  const d = dash.data('c_segments');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const sel = document.getElementById('c-seg');
+  el.replaceChildren(...d.data.map((r) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'bj-segcard'; b.style.setProperty('--bj-c', window.C_SEGC(r.segment_no));
+    b.setAttribute('aria-pressed', sel && sel.value === String(r.segment_no) ? 'true' : 'false');
+    const t = document.createElement('div'); t.className = 't'; t.textContent = r.segment;
+    const v = document.createElement('div'); v.className = 'v';
+    const c = BJ.mark(document.createElement('span'), 'c_segments', 'csps', 'segment_no=' + r.segment_no); c.textContent = BJ.fmt(r.csps, 'int');
+    v.append(c, document.createTextNode(' CSPs'));
+    const l1 = document.createElement('div'); l1.className = 'cap';
+    const n1 = BJ.mark(document.createElement('b'), 'c_segments', 'late_no_resched', 'segment_no=' + r.segment_no); n1.textContent = BJ.fmt(r.late_no_resched, 'int');
+    l1.append(n1, document.createTextNode(' late installs never rescheduled'));
+    if (+r.late_no_resched > 0) { const p = BJ.mark(document.createElement('span'), 'c_segments', 'share_of_late_no_resched', 'segment_no=' + r.segment_no); p.className = 'muted'; p.textContent = ' (' + BJ.fmt(r.share_of_late_no_resched, 'pct') + ' of all)'; l1.append(p); }
+    const l2 = document.createElement('div'); l2.className = 'cap muted';
+    l2.textContent = BJ.fmt(r.installs, 'int') + ' installs · ' + BJ.fmt(r.open_overdue_no_resched, 'int') + ' open overdue, never rescheduled';
+    b.append(t, v, l1, l2);
+    b.addEventListener('click', () => { if (sel) { sel.value = sel.value === String(r.segment_no) ? '' : String(r.segment_no); } dash.draw('ctable'); dash.draw('ccount'); dash.draw('csegcards'); const L = document.getElementById('c-list'); if (L) L.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
+    return b;
+  }));
+});
+
+dash.draw('cseglegend', (el) => {
+  const d = dash.data('c_segments');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  el.replaceChildren(...d.data.map((r) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = window.C_SEGC(r.segment_no); s.append(i, document.createTextNode(r.segment)); return s; }));
+});
+
+window.C_ROWS = function () {
+  const d = dash.data('c_csps');
+  if (d.status !== 'ok') return null;
+  const sel = document.getElementById('c-seg'); const inp = document.getElementById('c-search');
+  const sv = sel ? sel.value : ''; const q = inp ? inp.value.trim().toLowerCase() : '';
+  return d.data.filter((r) => (!sv || String(r.segment_no) === sv) && (!q || String(r.csp_name || '').toLowerCase().includes(q) || String(r.csp_id).toLowerCase().includes(q)))
+    .slice().sort((a, b) => (b.late_no_resched - a.late_no_resched) || (b.open_overdue_no_resched - a.open_overdue_no_resched) || (b.installs - a.installs));
+};
+
+dash.draw('ccount', (el) => {
+  const rows = window.C_ROWS();
+  el.textContent = rows ? BJ.fmt(rows.length, 'int') + ' CSPs shown' : '';
+});
+
+dash.draw('ctable', (el) => {
+  const rows = window.C_ROWS();
+  if (!rows) { el.replaceChildren(); return; }
+  el.replaceChildren(...rows.map((r) => {
+    const tr = document.createElement('tr'); tr.setAttribute('data-key', r.csp_id);
+    const c0 = document.createElement('td'); const nm = document.createElement('div'); nm.textContent = r.csp_name || '—'; const id = document.createElement('div'); id.className = 'cap muted'; id.textContent = r.csp_id; c0.append(nm, id);
+    const c1 = document.createElement('td'); const pill = document.createElement('span'); pill.className = 'pill'; pill.style.setProperty('--bj-c', window.C_SEGC(r.segment_no)); pill.textContent = r.segment; c1.append(pill);
+    tr.append(c0, c1);
+    const num = (v, kind) => { const td = document.createElement('td'); td.className = 'num'; td.textContent = v === null || v === undefined ? '—' : (kind === 'pct' ? BJ.fmt(v, 'pct') : (kind === 'dec' ? (+v).toFixed(1) : (kind === 'date' ? BJ.fmt(v, 'date') : (kind === 'text' ? v : BJ.fmt(v, 'int'))))); return td; };
+    const late = num(r.late_no_resched); if (+r.late_no_resched > 0) late.style.color = 'var(--color-bad)'; late.style.fontWeight = '600';
+    const od = num(r.open_overdue_no_resched); if (+r.open_overdue_no_resched > 0) od.style.color = 'var(--color-bad)';
+    tr.append(num(r.installs), late, num(r.late_no_resched_pct, 'pct'), num(r.avg_days_late_no_resched, 'dec'), num(r.ontime_resched), num(r.late_resched), num(r.resched_events_30d), num(r.last_resched_day, 'date'), od, num(r.app_version, 'text'));
+    return tr;
+  }));
+});
+
+dash.draw('cscatter', (el) => {
+  const d = dash.data('c_csps');
+  if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
+  const rows = d.data;
+  const W = el.clientWidth || 600, H = 320, m = { t: 14, r: 14, b: 40, l: 44 };
+  const xmax = d3.max(rows, (r) => +r.resched_events_30d) || 1, ymax = d3.max(rows, (r) => +r.late_no_resched) || 1;
+  const x = d3.scaleSymlog().constant(1).domain([0, xmax]).range([m.l, W - m.r]);
+  const y = d3.scaleLinear().domain([0, ymax]).nice().range([H - m.b, m.t]);
+  const rr = d3.scaleSqrt().domain([0, d3.max(rows, (r) => +r.installs) || 1]).range([2, 12]);
+  const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'CSPs by reschedules used and late installs without a reschedule');
+  svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(W - m.l - m.r))).call((g) => { g.select('.domain').remove(); g.selectAll('line').style('stroke', 'var(--cds-chart-grid)'); });
+  const xt = [0, 1, 3, 10, 30, 100].filter((v) => v <= xmax);
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickValues(xt).tickSize(0).tickPadding(8)).call((g) => g.select('.domain').style('stroke', 'var(--cds-chart-axis)'));
+  svg.append('text').attr('x', W - m.r).attr('y', H - 6).attr('text-anchor', 'end').text('Reschedules used in the last 30 days →');
+  svg.append('text').attr('x', m.l).attr('y', m.t - 2).text('↑ Late installs never rescheduled');
+  const tip = BJ.tipFor(el);
+  const jit = (id) => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) % 997; return (h / 997 - 0.5) * 10; };
+  svg.append('g').selectAll('circle').data(rows.slice().sort((a, b) => b.installs - a.installs)).join('circle')
+    .attr('cx', (r) => x(+r.resched_events_30d) + (+r.resched_events_30d === 0 ? Math.abs(jit(r.csp_id)) : 0)).attr('cy', (r) => y(+r.late_no_resched))
+    .attr('r', (r) => rr(+r.installs)).style('fill', (r) => window.C_SEGC(r.segment_no)).style('fill-opacity', 0.55).style('stroke', (r) => window.C_SEGC(r.segment_no))
+    .on('pointermove', (e, r) => tip.show(e, [(r.csp_name || r.csp_id) + ' · ' + r.csp_id, r.segment, BJ.fmt(r.installs, 'int') + ' installs · ' + BJ.fmt(r.late_no_resched, 'int') + ' late, never rescheduled', BJ.fmt(r.resched_events_30d, 'int') + ' reschedules in 30 days' + (r.last_resched_day ? ' · last ' + BJ.fmt(r.last_resched_day, 'date') : ' · never'), 'Open overdue, never rescheduled: ' + BJ.fmt(r.open_overdue_no_resched, 'int')]))
+    .on('pointerleave', () => tip.hide());
+  el.replaceChildren(svg.node());
+});
+</script>
+
+</div>
+</body>
+</html>
