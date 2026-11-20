@@ -1,4 +1,4 @@
-"""Build site/index.html (GitHub Pages) from index.html, the one source page also used by the claude.ai artifact."""
+"""Build docs/index.html (GitHub Pages) from index.html, the one source page also used by the claude.ai artifact."""
 import json, re
 st=json.load(open('state.json'))
 files={ds:'data/'+fname for fname,ent in st['files'].items() for ds in ent['datasets']}
@@ -42,5 +42,5 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 <body>
 <div id="dash-root">
 '''
-open('site/index.html','w').write(head+page+'\n</div>\n</body>\n</html>\n')
-print('site/index.html', len(head+page), 'bytes;', len(files), 'datasets')
+open('docs/index.html','w').write(head+page+'\n</div>\n</body>\n</html>\n')
+print('docs/index.html', len(head+page), 'bytes;', len(files), 'datasets')

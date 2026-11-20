@@ -1,5 +1,11 @@
 # CSP Booking-to-Install Journey — refresh pipeline
 
+**Live page (auto-refreshed daily by GitHub Actions ~09:11 IST):** https://vikaswiom.github.io/wiom-b2i-journey-dashboard/
+
+- `.github/workflows/refresh.yml` runs `refresh_all.py` with the `METABASE_API_KEY` repo secret, then `build_site.py`, and commits `docs/index.html` + `docs/data/*.json`. Run it any time from the Actions tab (Run workflow).
+- `index.html` is the one source page. `build_site.py` wraps it with `site_shim.js` (a small stand-in for the claude.ai dashboard runtime) into `docs/index.html`.
+- The claude.ai copy below is the older home of the page and is only refreshed when Claude republishes it.
+
 Dashboard: https://claude.ai/artifact/WUWh5LShPxE5zb36fcvZmW (Data artifact; page = store doc `files/index.html`, numbers = 4 JSON assets).
 
 ## Daily refresh (run by Claude, ~09:15 IST, session cron job 97efb8ea, expires after 7 days)

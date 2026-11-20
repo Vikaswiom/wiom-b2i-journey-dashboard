@@ -24,8 +24,8 @@ jobs:
       - name: Publish data files
         run: |
           python3 build_site.py
-          mkdir -p site/data
-          cp b2i_snapshot.json b2i_deep_snapshot.json b2i_yesterday_snapshot.json b2i_csp_snapshot.json site/data/
+          mkdir -p docs/data
+          cp b2i_snapshot.json b2i_deep_snapshot.json b2i_yesterday_snapshot.json b2i_csp_snapshot.json docs/data/
           git config user.name "b2i-refresh-bot"; git config user.email "actions@users.noreply.github.com"
-          git add site/index.html site/data/*.json
+          git add docs/index.html docs/data/*.json
           git diff --cached --quiet && echo "no change" || (git commit -m "Daily data refresh $(date +'%Y-%m-%d %H:%M IST')" && git push)
