@@ -1,0 +1,9 @@
+WITH iec AS (SELECT execution_candidate_id ec, current_state, slot_date, csp_id, created_at FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_EXECUTION_CANDIDATES WHERE _FIVETRAN_ACTIVE QUALIFY ROW_NUMBER() OVER (PARTITION BY execution_candidate_id ORDER BY _fivetran_synced DESC)=1),
+open AS (SELECT * FROM iec WHERE current_state IN ('TECHNICIAN_ASSIGNED','ARRIVED_AT_SITE','INSTALLATION_IN_PROGRESS_PRE_FEE','FEE_COLLECTION_PENDING','INSTALLATION_IN_PROGRESS_POST_FEE','AWAITING_CUSTOMER_OTP')),
+ent AS (SELECT o.ec, MAX(t.occurred_at) t_enter FROM open o JOIN PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG t ON t.execution_candidate_id=o.ec AND t.to_state=o.current_state AND COALESCE(t.from_state,'')<>t.to_state AND NOT t._FIVETRAN_DELETED GROUP BY 1)
+SELECT CASE o.current_state WHEN 'TECHNICIAN_ASSIGNED' THEN '1 Technician assigned, not at home' WHEN 'ARRIVED_AT_SITE' THEN '2 Technician reached customer home' WHEN 'INSTALLATION_IN_PROGRESS_PRE_FEE' THEN '3 Selfie / Aadhaar' WHEN 'FEE_COLLECTION_PENDING' THEN '4 Waiting for fee' WHEN 'INSTALLATION_IN_PROGRESS_POST_FEE' THEN '5 Device setup' WHEN 'AWAITING_CUSTOMER_OTP' THEN '6 Waiting for happy code' ELSE '7 Waiting for rating' END stage,
+  CASE WHEN m < 120 THEN '1 Under 2 h' WHEN m < 720 THEN '2 2–12 h' WHEN m < 1440 THEN '3 12–24 h' WHEN m < 2880 THEN '4 1–2 days' WHEN m < 4320 THEN '5 2–3 days' ELSE '6 3+ days' END time_in_stage,
+  CASE WHEN o.slot_date > CURRENT_DATE() THEN '1 Slot day ahead' WHEN o.slot_date = CURRENT_DATE() THEN '2 Slot day is today' WHEN o.slot_date >= CURRENT_DATE()-2 THEN '3 1–2 days past slot' ELSE '4 3+ days past slot' END slot_status,
+  COUNT(*) n, COUNT(DISTINCT o.csp_id) csps
+FROM (SELECT o.*, DATEDIFF(minute, e.t_enter, CURRENT_TIMESTAMP()) m FROM open o LEFT JOIN ent e ON e.ec=o.ec) o
+GROUP BY 1,2,3 ORDER BY 1,2,3

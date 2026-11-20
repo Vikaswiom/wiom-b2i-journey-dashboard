@@ -1,0 +1,9 @@
+*.out
+raw.json
+page_doc.json
+writes.json
+refresh.log
+index_before_install_def.html
+__pycache__/
+.DS_Store
+/b2i_*.json

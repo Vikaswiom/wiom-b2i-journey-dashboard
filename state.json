@@ -1,0 +1,95 @@
+{
+ "artifact_url": "https://claude.ai/artifact/WUWh5LShPxE5zb36fcvZmW",
+ "files": {
+  "b2i_snapshot.json": {
+   "asset_id": "b20a9fad38e68eea9158c6cb550d8af4",
+   "datasets": [
+    "summary",
+    "steps",
+    "offer",
+    "fpn_reach",
+    "exits",
+    "fpn_response",
+    "bookings",
+    "csp_groups",
+    "hourly",
+    "daily"
+   ]
+  },
+  "b2i_deep_snapshot.json": {
+   "asset_id": "e018d1d7b37464a1fe4d74e0fbad9ebc",
+   "datasets": [
+    "d_summary",
+    "d_steps",
+    "d_timing",
+    "d_days",
+    "d_late",
+    "d_assign_to_install",
+    "d_stuck",
+    "d_reasons",
+    "d_live"
+   ]
+  },
+  "b2i_yesterday_snapshot.json": {
+   "asset_id": "75afd5a805a8bc4746c97d8825946a5a",
+   "datasets": [
+    "y_summary",
+    "y_split",
+    "y_late",
+    "y_funnel",
+    "y_leaks",
+    "trend",
+    "y_compare",
+    "y_flags",
+    "y_activity",
+    "y_lag",
+    "y_promise"
+   ]
+  },
+  "b2i_csp_snapshot.json": {
+   "asset_id": "895203d9220b6ef5d3b1a046fb7b1cc8",
+   "datasets": [
+    "c_summary",
+    "c_segments",
+    "c_csps"
+   ]
+  }
+ },
+ "dataset_versions": {
+  "bookings": 4,
+  "c_csps": 3,
+  "c_segments": 3,
+  "c_summary": 3,
+  "csp_groups": 4,
+  "d_assign_to_install": 4,
+  "d_days": 4,
+  "d_late": 4,
+  "d_live": 4,
+  "d_reasons": 4,
+  "d_steps": 4,
+  "d_stuck": 4,
+  "d_summary": 4,
+  "d_timing": 4,
+  "daily": 4,
+  "exits": 4,
+  "fpn_reach": 4,
+  "fpn_response": 4,
+  "hourly": 4,
+  "offer": 4,
+  "steps": 4,
+  "summary": 4,
+  "trend": 8,
+  "y_activity": 6,
+  "y_compare": 8,
+  "y_flags": 7,
+  "y_funnel": 9,
+  "y_lag": 6,
+  "y_late": 9,
+  "y_leaks": 9,
+  "y_promise": 5,
+  "y_split": 9,
+  "y_summary": 9
+ },
+ "page_version": 19,
+ "last_publish": "2026-11-20T12:14+05:30"
+}
