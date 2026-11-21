@@ -1,30 +1,30 @@
 {
-"generated_at": "2026-11-20T13:02+05:30",
+"generated_at": "2026-11-21T08:13+05:30",
 "cohort": "Install tasks created 17 to 5 days before generation (IST), outcomes observed to generation time",
 "datasets": {
 "summary": {
 "rows": [
 {
-"tasks": 13104,
-"installed": 2595,
-"install_pct": 19.8,
-"accept_pct": 39.3,
-"noaction_pct": 47.3,
-"decline_pct": 12.3,
-"median_e2e_hours": 20.1,
-"p90_e2e_hours": 69.5,
-"noaction_median_hours": 16.3,
-"fpn_rendered_pct": 89.3,
-"cohort_from": "2026-11-03",
-"cohort_to": "2026-11-15",
-"bookings": 7057,
-"bookings_installed": 2595,
-"booking_install_pct": 36.8,
-"tasks_per_booking": 1.86,
-"bookings_reassigned": 3548,
-"bookings_reassigned_pct": 50.3,
+"tasks": 13006,
+"installed": 2531,
+"install_pct": 19.5,
+"accept_pct": 39.1,
+"noaction_pct": 47.4,
+"decline_pct": 12.4,
+"median_e2e_hours": 20.4,
+"p90_e2e_hours": 69.6,
+"noaction_median_hours": 16.4,
+"fpn_rendered_pct": 89.4,
+"cohort_from": "2026-11-04",
+"cohort_to": "2026-11-16",
+"bookings": 6966,
+"bookings_installed": 2531,
+"booking_install_pct": 36.3,
+"tasks_per_booking": 1.87,
+"bookings_reassigned": 3522,
+"bookings_reassigned_pct": 50.6,
 "csps": 665,
-"csps_with_noaction": 485
+"csps_with_noaction": 483
 }
 ],
 "sql": "WITH tl AS (\n  SELECT execution_candidate_id ec, from_state f, to_state t, reason_code rc, actor_type a, occurred_at ts\n  FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG WHERE NOT _FIVETRAN_DELETED\n),\ncohort AS (\n  SELECT ec, MIN(ts) created_at FROM tl WHERE t='ASSIGNED' AND f IS NULL GROUP BY 1\n  HAVING TO_DATE(DATEADD(minute,330,MIN(ts))) BETWEEN DATEADD(day,-17, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE) AND DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)\n),\nct AS (\n  SELECT PARSE_JSON(properties):execution_id::STRING ec, event_name e, PARSE_JSON(properties):action::STRING act, TRY_TO_TIMESTAMP(timestamp) ts\n  FROM PROD_DB.CLEVERTAP_CSP_API.EVENTS_DATA\n  WHERE event_name IN ('fpn_delivered','fpn_action_taken','install_candidate_opened','install_task_created')\n    AND TRY_TO_TIMESTAMP(timestamp) >= '2026-11-02'\n),\nctf AS (\n  SELECT ec, MAX(IFF(e='install_task_created',1,0)) pushed, MAX(IFF(e='fpn_delivered',1,0)) fpn_seen,\n    MAX(IFF(e='fpn_action_taken' AND act='primary_cta',1,0)) fpn_cta, MAX(IFF(e='fpn_action_taken' AND act<>'primary_cta',1,0)) fpn_dismiss,\n    MAX(IFF(e='install_candidate_opened',1,0)) opened\n  FROM ct GROUP BY 1\n),\nf AS (\n  SELECT c.ec, c.created_at,\n   MIN(IFF(t='AWAITING_CSP_ACCEPTANCE',ts,NULL)) t_offer,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t IN ('AWAITING_TECHNICIAN_ASSIGNMENT','AWAITING_SLOT_PROPOSAL'),ts,NULL)) t_acc,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='DECLINED',ts,NULL)) t_dec,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND rc='TIMEOUT_P41',ts,NULL)) t_noact,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='CANCELLED_BY_CUSTOMER',ts,NULL)) t_pre_cxcan,\n   MIN(IFF(t='TECHNICIAN_ASSIGNED',ts,NULL)) t_asg,\n   MIN(IFF(t='ARRIVED_AT_SITE',ts,NULL)) t_arr,\n   MIN(IFF(t='FEE_COLLECTION_PENDING',ts,NULL)) t_kyc,\n   MIN(IFF(f='FEE_COLLECTION_PENDING' AND t='INSTALLATION_IN_PROGRESS_POST_FEE',ts,NULL)) t_fee,\n   MIN(IFF(t='AWAITING_CUSTOMER_OTP',ts,NULL)) t_setup,\n   MIN(IFF(t='RATING_PENDING',ts,NULL)) t_otp,\n   MIN(IFF(t IN ('RATING_PENDING','CONNECTION_ACTIVE'),ts,NULL)) t_act,\n   MAX_BY(t, ts) last_state, MAX_BY(f, ts) last_from, MAX_BY(rc, ts) last_rc\n  FROM cohort c JOIN tl ON tl.ec=c.ec GROUP BY 1,2\n),\nx AS (SELECT f.*, COALESCE(ctf.pushed,0) pushed, COALESCE(ctf.fpn_seen,0) fpn_seen, COALESCE(ctf.fpn_cta,0) fpn_cta, COALESCE(ctf.fpn_dismiss,0) fpn_dismiss, COALESCE(ctf.opened,0) opened FROM f LEFT JOIN ctf ON ctf.ec=f.ec)\nSELECT COUNT(*) tasks, SUM(IFF(t_offer IS NOT NULL,1,0)) offered, SUM(pushed) pushed, SUM(fpn_seen) fpn_seen, SUM(fpn_cta) fpn_cta, SUM(IFF(fpn_dismiss=1 AND fpn_cta=0,1,0)) fpn_dismiss_only, SUM(opened) opened,\n SUM(IFF(t_acc IS NOT NULL,1,0)) accepted, SUM(IFF(t_dec IS NOT NULL,1,0)) declined, SUM(IFF(t_noact IS NOT NULL,1,0)) no_action, SUM(IFF(t_pre_cxcan IS NOT NULL,1,0)) cx_cancel_pre,\n SUM(IFF(t_offer IS NOT NULL AND t_acc IS NULL AND t_dec IS NULL AND t_noact IS NULL AND t_pre_cxcan IS NULL,1,0)) pending_offer,\n SUM(IFF(t_asg IS NOT NULL,1,0)) assigned, SUM(IFF(t_arr IS NOT NULL,1,0)) arrived, SUM(IFF(t_kyc IS NOT NULL,1,0)) kyc, SUM(IFF(t_fee IS NOT NULL,1,0)) fee, SUM(IFF(t_setup IS NOT NULL,1,0)) setup, SUM(IFF(t_otp IS NOT NULL,1,0)) happy_code, SUM(IFF(t_act IS NOT NULL,1,0)) active,\n MEDIAN(DATEDIFF(minute,t_offer,t_acc)) m_accept, MEDIAN(DATEDIFF(minute,t_offer,t_dec)) m_decline, MEDIAN(DATEDIFF(minute,t_offer,t_noact)) m_noact, MEDIAN(DATEDIFF(minute,t_acc,t_asg)) m_assign, MEDIAN(DATEDIFF(minute,t_asg,t_arr)) m_arrive, MEDIAN(DATEDIFF(minute,t_arr,t_otp)) m_onsite, MEDIAN(DATEDIFF(minute,t_offer,t_act)) m_e2e,\n APPROX_PERCENTILE(DATEDIFF(minute,t_offer,t_acc),0.9) p90_accept, APPROX_PERCENTILE(DATEDIFF(minute,t_acc,t_asg),0.9) p90_assign, APPROX_PERCENTILE(DATEDIFF(minute,t_asg,t_arr),0.9) p90_arrive, APPROX_PERCENTILE(DATEDIFF(minute,t_offer,t_act),0.9) p90_e2e\nFROM x\n"
@@ -38,7 +38,7 @@
 "actor": "System",
 "backend_event": "TAS: ASSIGNED \u2192 AWAITING_CSP_ACCEPTANCE",
 "app_event": "CT: install_task_created \u2192 fpn_delivered",
-"tasks": 13104,
+"tasks": 13006,
 "pct_of_offered": 100.0,
 "pct_of_prev": null,
 "lost_after_prev": null,
@@ -52,12 +52,12 @@
 "actor": "CSP",
 "backend_event": "AWAITING_CSP_ACCEPTANCE \u2192 AWAITING_TECHNICIAN_ASSIGNMENT",
 "app_event": "install_accepted",
-"tasks": 5147,
-"pct_of_offered": 39.3,
-"pct_of_prev": 39.3,
-"lost_after_prev": 7957,
-"median_min_from_prev": 33.0,
-"p90_min_from_prev": 761
+"tasks": 5080,
+"pct_of_offered": 39.1,
+"pct_of_prev": 39.1,
+"lost_after_prev": 7926,
+"median_min_from_prev": 31.0,
+"p90_min_from_prev": 757
 },
 {
 "step_no": 3,
@@ -66,12 +66,12 @@
 "actor": "CSP",
 "backend_event": "\u2192 TECHNICIAN_ASSIGNED",
 "app_event": "install_task_assigned",
-"tasks": 3816,
-"pct_of_offered": 29.1,
-"pct_of_prev": 74.1,
-"lost_after_prev": 1331,
+"tasks": 3742,
+"pct_of_offered": 28.8,
+"pct_of_prev": 73.7,
+"lost_after_prev": 1338,
 "median_min_from_prev": 1.0,
-"p90_min_from_prev": 1402
+"p90_min_from_prev": 1397
 },
 {
 "step_no": 4,
@@ -80,12 +80,12 @@
 "actor": "Technician",
 "backend_event": "\u2192 ARRIVED_AT_SITE",
 "app_event": "\u2014",
-"tasks": 2676,
-"pct_of_offered": 20.4,
-"pct_of_prev": 70.1,
-"lost_after_prev": 1140,
-"median_min_from_prev": 123.5,
-"p90_min_from_prev": 2872
+"tasks": 2613,
+"pct_of_offered": 20.1,
+"pct_of_prev": 69.8,
+"lost_after_prev": 1129,
+"median_min_from_prev": 128.0,
+"p90_min_from_prev": 2869
 },
 {
 "step_no": 5,
@@ -94,10 +94,10 @@
 "actor": "Technician",
 "backend_event": "ARRIVED \u2192 PRE_FEE \u2192 FEE_COLLECTION_PENDING",
 "app_event": "\u2014",
-"tasks": 2624,
-"pct_of_offered": 20.0,
+"tasks": 2564,
+"pct_of_offered": 19.7,
 "pct_of_prev": 98.1,
-"lost_after_prev": 52,
+"lost_after_prev": 49,
 "median_min_from_prev": null,
 "p90_min_from_prev": null
 },
@@ -108,10 +108,10 @@
 "actor": "Customer",
 "backend_event": "FEE_COLLECTION_PENDING \u2192 POST_FEE",
 "app_event": "\u2014",
-"tasks": 2602,
-"pct_of_offered": 19.9,
-"pct_of_prev": 99.2,
-"lost_after_prev": 22,
+"tasks": 2538,
+"pct_of_offered": 19.5,
+"pct_of_prev": 99.0,
+"lost_after_prev": 26,
 "median_min_from_prev": null,
 "p90_min_from_prev": null
 },
@@ -122,10 +122,10 @@
 "actor": "Technician",
 "backend_event": "POST_FEE \u2192 AWAITING_CUSTOMER_OTP",
 "app_event": "\u2014",
-"tasks": 2595,
-"pct_of_offered": 19.8,
-"pct_of_prev": 99.7,
-"lost_after_prev": 7,
+"tasks": 2532,
+"pct_of_offered": 19.5,
+"pct_of_prev": 99.8,
+"lost_after_prev": 6,
 "median_min_from_prev": null,
 "p90_min_from_prev": null
 },
@@ -136,10 +136,10 @@
 "actor": "Technician",
 "backend_event": "AWAITING_CUSTOMER_OTP \u2192 RATING_PENDING",
 "app_event": "\u2014",
-"tasks": 2595,
-"pct_of_offered": 19.8,
+"tasks": 2531,
+"pct_of_offered": 19.5,
 "pct_of_prev": 100.0,
-"lost_after_prev": 0,
+"lost_after_prev": 1,
 "median_min_from_prev": 30.0,
 "p90_min_from_prev": null
 }
@@ -150,31 +150,31 @@
 "rows": [
 {
 "outcome": "Accepted",
-"tasks": 5147,
-"median_min": 33.0,
-"pct": 39.3
+"tasks": 5080,
+"median_min": 31.0,
+"pct": 39.1
 },
 {
 "outcome": "No response",
-"tasks": 6199,
-"median_min": 979.0,
-"pct": 47.3
+"tasks": 6164,
+"median_min": 982.0,
+"pct": 47.4
 },
 {
 "outcome": "Declined",
-"tasks": 1608,
-"median_min": 47.5,
-"pct": 12.3
+"tasks": 1614,
+"median_min": 48.5,
+"pct": 12.4
 },
 {
 "outcome": "Customer cancelled",
-"tasks": 145,
+"tasks": 142,
 "median_min": null,
 "pct": 1.1
 },
 {
 "outcome": "Other / open",
-"tasks": 5,
+"tasks": 6,
 "median_min": null,
 "pct": 0.0
 }
@@ -184,16 +184,16 @@
 "fpn_reach": {
 "rows": [
 {
-"tasks_offered": 13104,
-"fpn_pushed": 13100,
-"fpn_rendered": 11698,
-"fpn_tapped": 5126,
-"fpn_dismissed": 388,
-"task_opened": 10229,
+"tasks_offered": 13006,
+"fpn_pushed": 13003,
+"fpn_rendered": 11627,
+"fpn_tapped": 5160,
+"fpn_dismissed": 378,
+"task_opened": 10164,
 "fpn_pushed_pct": 100.0,
-"fpn_rendered_pct": 89.3,
-"fpn_tapped_pct": 39.1,
-"fpn_dismissed_pct": 3.0,
+"fpn_rendered_pct": 89.4,
+"fpn_tapped_pct": 39.7,
+"fpn_dismissed_pct": 2.9,
 "task_opened_pct": 78.1
 }
 ],
@@ -206,42 +206,42 @@
 "stage": "After FPN",
 "outcome": "System cancelled",
 "reason": "No response before deadline",
-"tasks": 6199
+"tasks": 6164
 },
 {
 "stage_no": 1,
 "stage": "After FPN",
 "outcome": "CSP declined",
 "reason": "No coverage at address",
-"tasks": 927
+"tasks": 941
 },
 {
 "stage_no": 1,
 "stage": "After FPN",
 "outcome": "CSP declined",
 "reason": "Other (free text)",
-"tasks": 522
+"tasks": 519
 },
 {
 "stage_no": 1,
 "stage": "After FPN",
 "outcome": "CSP declined",
 "reason": "No Netbox in hand",
-"tasks": 151
+"tasks": 145
 },
 {
 "stage_no": 1,
 "stage": "After FPN",
 "outcome": "Customer cancelled",
 "reason": "Customer cancelled in app",
-"tasks": 145
+"tasks": 142
 },
 {
 "stage_no": 1,
 "stage": "After FPN",
 "outcome": "CSP declined",
-"reason": "Customer unreachable",
-"tasks": 4
+"reason": "Customer cancelled (per CSP)",
+"tasks": 5
 },
 {
 "stage_no": 1,
@@ -254,7 +254,7 @@
 "stage_no": 1,
 "stage": "After FPN",
 "outcome": "CSP declined",
-"reason": "Customer cancelled (per CSP)",
+"reason": "Customer unreachable",
 "tasks": 4
 },
 {
@@ -265,11 +265,18 @@
 "tasks": 1
 },
 {
+"stage_no": 1,
+"stage": "After FPN",
+"outcome": "System cancelled",
+"reason": "Timed out, task not moved",
+"tasks": 1
+},
+{
 "stage_no": 2,
 "stage": "After accept",
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
-"tasks": 421
+"tasks": 422
 },
 {
 "stage_no": 2,
@@ -283,70 +290,63 @@
 "stage": "After accept",
 "outcome": "System cancelled",
 "reason": "Timed out, task not moved",
-"tasks": 276
+"tasks": 283
 },
 {
 "stage_no": 2,
 "stage": "After accept",
 "outcome": "Customer cancelled",
 "reason": "Customer cancelled in app",
-"tasks": 169
+"tasks": 166
 },
 {
 "stage_no": 2,
 "stage": "After accept",
 "outcome": "CSP reported failure",
 "reason": "Customer unreachable",
-"tasks": 124
+"tasks": 123
 },
 {
 "stage_no": 2,
 "stage": "After accept",
 "outcome": "CSP reported failure",
 "reason": "No Netbox in hand",
-"tasks": 24
+"tasks": 29
 },
 {
 "stage_no": 2,
 "stage": "After accept",
 "outcome": "Still open",
 "reason": "Still open",
-"tasks": 15
+"tasks": 16
 },
 {
 "stage_no": 2,
 "stage": "After accept",
 "outcome": "System cancelled",
 "reason": "Cancelled by ops",
-"tasks": 7
-},
-{
-"stage_no": 2,
-"stage": "After accept",
-"outcome": "System cancelled",
-"reason": "CSP suspended",
-"tasks": 2
+"tasks": 6
 },
 {
 "stage_no": 3,
 "stage": "After tech assigned",
 "outcome": "System cancelled",
 "reason": "Timed out, task not moved",
-"tasks": 298
+"tasks": 284
 },
 {
 "stage_no": 3,
 "stage": "After tech assigned",
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
-"tasks": 253
+"tasks": 247
 },
 {
 "stage_no": 3,
 "stage": "After tech assigned",
 "outcome": "CSP reported failure",
 "reason": "Customer cancelled (per CSP)",
-"tasks": 240
+"tasks": 245
 },
 {
 "stage_no": 3,
@@ -360,63 +360,56 @@
 "stage": "After tech assigned",
 "outcome": "CSP reported failure",
 "reason": "Customer unreachable",
-"tasks": 93
+"tasks": 92
 },
 {
 "stage_no": 3,
 "stage": "After tech assigned",
 "outcome": "Still open",
 "reason": "Still open",
-"tasks": 27
+"tasks": 32
 },
 {
 "stage_no": 3,
 "stage": "After tech assigned",
 "outcome": "System cancelled",
 "reason": "Cancelled by ops",
-"tasks": 21
+"tasks": 23
 },
 {
 "stage_no": 3,
 "stage": "After tech assigned",
 "outcome": "CSP reported failure",
 "reason": "No Netbox in hand",
-"tasks": 14
-},
-{
-"stage_no": 3,
-"stage": "After tech assigned",
-"outcome": "System cancelled",
-"reason": "CSP suspended",
-"tasks": 1
+"tasks": 13
 },
 {
 "stage_no": 4,
 "stage": "After reaching customer home",
 "outcome": "System cancelled",
 "reason": "Timed out, task not moved",
-"tasks": 37
+"tasks": 36
 },
 {
 "stage_no": 4,
 "stage": "After reaching customer home",
 "outcome": "CSP reported failure",
 "reason": "Customer cancelled (per CSP)",
-"tasks": 15
+"tasks": 14
 },
 {
 "stage_no": 4,
 "stage": "After reaching customer home",
 "outcome": "Customer cancelled",
 "reason": "Customer cancelled in app",
-"tasks": 12
+"tasks": 13
 },
 {
 "stage_no": 4,
 "stage": "After reaching customer home",
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
-"tasks": 9
+"tasks": 11
 },
 {
 "stage_no": 4,
@@ -453,47 +446,47 @@
 "rows": [
 {
 "fpn_response": "Tapped the FPN",
-"tasks": 5126,
-"accepted": 3239,
-"declined": 757,
-"no_response": 1094,
-"installed": 1603,
-"accept_pct": 63.2,
-"no_response_pct": 21.3,
-"install_pct": 31.3
+"tasks": 5160,
+"accepted": 3227,
+"declined": 766,
+"no_response": 1130,
+"installed": 1591,
+"accept_pct": 62.5,
+"no_response_pct": 21.9,
+"install_pct": 30.8
 },
 {
 "fpn_response": "Dismissed the FPN",
-"tasks": 388,
-"accepted": 210,
-"declined": 32,
-"no_response": 141,
-"installed": 106,
-"accept_pct": 54.1,
-"no_response_pct": 36.3,
-"install_pct": 27.3
+"tasks": 378,
+"accepted": 199,
+"declined": 35,
+"no_response": 139,
+"installed": 97,
+"accept_pct": 52.6,
+"no_response_pct": 36.8,
+"install_pct": 25.7
 },
 {
 "fpn_response": "Saw FPN, no tap",
-"tasks": 6185,
-"accepted": 1420,
-"declined": 704,
-"no_response": 3983,
-"installed": 774,
-"accept_pct": 23.0,
-"no_response_pct": 64.4,
-"install_pct": 12.5
+"tasks": 6090,
+"accepted": 1381,
+"declined": 708,
+"no_response": 3927,
+"installed": 732,
+"accept_pct": 22.7,
+"no_response_pct": 64.5,
+"install_pct": 12.0
 },
 {
 "fpn_response": "FPN never shown",
-"tasks": 1405,
-"accepted": 278,
-"declined": 115,
-"no_response": 981,
-"installed": 112,
+"tasks": 1378,
+"accepted": 273,
+"declined": 105,
+"no_response": 968,
+"installed": 111,
 "accept_pct": 19.8,
-"no_response_pct": 69.8,
-"install_pct": 8.0
+"no_response_pct": 70.2,
+"install_pct": 8.1
 }
 ],
 "sql": "WITH tl AS (\n  SELECT execution_candidate_id ec, from_state f, to_state t, reason_code rc, actor_type a, occurred_at ts\n  FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG WHERE NOT _FIVETRAN_DELETED\n),\ncohort AS (\n  SELECT ec, MIN(ts) created_at FROM tl WHERE t='ASSIGNED' AND f IS NULL GROUP BY 1\n  HAVING TO_DATE(DATEADD(minute,330,MIN(ts))) BETWEEN DATEADD(day,-17, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE) AND DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)\n),\nct AS (\n  SELECT PARSE_JSON(properties):execution_id::STRING ec, event_name e, PARSE_JSON(properties):action::STRING act, TRY_TO_TIMESTAMP(timestamp) ts\n  FROM PROD_DB.CLEVERTAP_CSP_API.EVENTS_DATA\n  WHERE event_name IN ('fpn_delivered','fpn_action_taken','install_candidate_opened','install_task_created')\n    AND TRY_TO_TIMESTAMP(timestamp) >= '2026-11-02'\n),\nctf AS (\n  SELECT ec, MAX(IFF(e='install_task_created',1,0)) pushed, MAX(IFF(e='fpn_delivered',1,0)) fpn_seen,\n    MAX(IFF(e='fpn_action_taken' AND act='primary_cta',1,0)) fpn_cta, MAX(IFF(e='fpn_action_taken' AND act<>'primary_cta',1,0)) fpn_dismiss,\n    MAX(IFF(e='install_candidate_opened',1,0)) opened\n  FROM ct GROUP BY 1\n),\nf AS (\n  SELECT c.ec, c.created_at,\n   MIN(IFF(t='AWAITING_CSP_ACCEPTANCE',ts,NULL)) t_offer,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t IN ('AWAITING_TECHNICIAN_ASSIGNMENT','AWAITING_SLOT_PROPOSAL'),ts,NULL)) t_acc,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='DECLINED',ts,NULL)) t_dec,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND rc='TIMEOUT_P41',ts,NULL)) t_noact,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='CANCELLED_BY_CUSTOMER',ts,NULL)) t_pre_cxcan,\n   MIN(IFF(t='TECHNICIAN_ASSIGNED',ts,NULL)) t_asg,\n   MIN(IFF(t='ARRIVED_AT_SITE',ts,NULL)) t_arr,\n   MIN(IFF(t='FEE_COLLECTION_PENDING',ts,NULL)) t_kyc,\n   MIN(IFF(f='FEE_COLLECTION_PENDING' AND t='INSTALLATION_IN_PROGRESS_POST_FEE',ts,NULL)) t_fee,\n   MIN(IFF(t='AWAITING_CUSTOMER_OTP',ts,NULL)) t_setup,\n   MIN(IFF(t='RATING_PENDING',ts,NULL)) t_otp,\n   MIN(IFF(t IN ('RATING_PENDING','CONNECTION_ACTIVE'),ts,NULL)) t_act,\n   MAX_BY(t, ts) last_state, MAX_BY(f, ts) last_from, MAX_BY(rc, ts) last_rc\n  FROM cohort c JOIN tl ON tl.ec=c.ec GROUP BY 1,2\n),\nx AS (SELECT f.*, COALESCE(ctf.pushed,0) pushed, COALESCE(ctf.fpn_seen,0) fpn_seen, COALESCE(ctf.fpn_cta,0) fpn_cta, COALESCE(ctf.fpn_dismiss,0) fpn_dismiss, COALESCE(ctf.opened,0) opened FROM f LEFT JOIN ctf ON ctf.ec=f.ec)\nSELECT CASE WHEN fpn_cta=1 THEN 'a FPN tapped' WHEN fpn_dismiss=1 THEN 'b FPN dismissed' WHEN fpn_seen=1 THEN 'c FPN seen, no tap' ELSE 'd FPN not rendered' END grp,\n COUNT(*) n, SUM(IFF(t_acc IS NOT NULL,1,0)) acc, SUM(IFF(t_dec IS NOT NULL,1,0)) dec, SUM(IFF(t_noact IS NOT NULL,1,0)) noact, SUM(IFF(t_act IS NOT NULL,1,0)) act, SUM(opened) opened\nFROM x GROUP BY 1 ORDER BY 1\n"
@@ -502,33 +495,33 @@
 "rows": [
 {
 "csps_tried": "1",
-"bookings": 3509,
-"installed": 1915,
-"install_pct": 54.6
+"bookings": 3444,
+"installed": 1855,
+"install_pct": 53.9
 },
 {
 "csps_tried": "2",
-"bookings": 2157,
-"installed": 472,
-"install_pct": 21.9
+"bookings": 2127,
+"installed": 467,
+"install_pct": 22.0
 },
 {
 "csps_tried": "3",
-"bookings": 660,
-"installed": 116,
-"install_pct": 17.6
+"bookings": 658,
+"installed": 112,
+"install_pct": 17.0
 },
 {
 "csps_tried": "4",
 "bookings": 516,
-"installed": 62,
-"install_pct": 12.0
+"installed": 60,
+"install_pct": 11.6
 },
 {
 "csps_tried": "5+",
-"bookings": 215,
-"installed": 30,
-"install_pct": 14.0
+"bookings": 221,
+"installed": 37,
+"install_pct": 16.7
 }
 ],
 "sql": "WITH tl AS (\n  SELECT execution_candidate_id ec, from_state f, to_state t, reason_code rc, actor_type a, occurred_at ts\n  FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG WHERE NOT _FIVETRAN_DELETED\n),\ncohort AS (\n  SELECT ec, MIN(ts) created_at FROM tl WHERE t='ASSIGNED' AND f IS NULL GROUP BY 1\n  HAVING TO_DATE(DATEADD(minute,330,MIN(ts))) BETWEEN DATEADD(day,-17, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE) AND DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)\n),\nct AS (\n  SELECT PARSE_JSON(properties):execution_id::STRING ec, event_name e, PARSE_JSON(properties):action::STRING act, TRY_TO_TIMESTAMP(timestamp) ts\n  FROM PROD_DB.CLEVERTAP_CSP_API.EVENTS_DATA\n  WHERE event_name IN ('fpn_delivered','fpn_action_taken','install_candidate_opened','install_task_created')\n    AND TRY_TO_TIMESTAMP(timestamp) >= '2026-11-02'\n),\nctf AS (\n  SELECT ec, MAX(IFF(e='install_task_created',1,0)) pushed, MAX(IFF(e='fpn_delivered',1,0)) fpn_seen,\n    MAX(IFF(e='fpn_action_taken' AND act='primary_cta',1,0)) fpn_cta, MAX(IFF(e='fpn_action_taken' AND act<>'primary_cta',1,0)) fpn_dismiss,\n    MAX(IFF(e='install_candidate_opened',1,0)) opened\n  FROM ct GROUP BY 1\n),\nf AS (\n  SELECT c.ec, c.created_at,\n   MIN(IFF(t='AWAITING_CSP_ACCEPTANCE',ts,NULL)) t_offer,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t IN ('AWAITING_TECHNICIAN_ASSIGNMENT','AWAITING_SLOT_PROPOSAL'),ts,NULL)) t_acc,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='DECLINED',ts,NULL)) t_dec,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND rc='TIMEOUT_P41',ts,NULL)) t_noact,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='CANCELLED_BY_CUSTOMER',ts,NULL)) t_pre_cxcan,\n   MIN(IFF(t='TECHNICIAN_ASSIGNED',ts,NULL)) t_asg,\n   MIN(IFF(t='ARRIVED_AT_SITE',ts,NULL)) t_arr,\n   MIN(IFF(t='FEE_COLLECTION_PENDING',ts,NULL)) t_kyc,\n   MIN(IFF(f='FEE_COLLECTION_PENDING' AND t='INSTALLATION_IN_PROGRESS_POST_FEE',ts,NULL)) t_fee,\n   MIN(IFF(t='AWAITING_CUSTOMER_OTP',ts,NULL)) t_setup,\n   MIN(IFF(t='RATING_PENDING',ts,NULL)) t_otp,\n   MIN(IFF(t IN ('RATING_PENDING','CONNECTION_ACTIVE'),ts,NULL)) t_act,\n   MAX_BY(t, ts) last_state, MAX_BY(f, ts) last_from, MAX_BY(rc, ts) last_rc\n  FROM cohort c JOIN tl ON tl.ec=c.ec GROUP BY 1,2\n),\nx AS (SELECT f.*, COALESCE(ctf.pushed,0) pushed, COALESCE(ctf.fpn_seen,0) fpn_seen, COALESCE(ctf.fpn_cta,0) fpn_cta, COALESCE(ctf.fpn_dismiss,0) fpn_dismiss, COALESCE(ctf.opened,0) opened FROM f LEFT JOIN ctf ON ctf.ec=f.ec)\n, iec AS (SELECT execution_candidate_id ec, connection_id, csp_id, p41_deadline_at, created_at FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_EXECUTION_CANDIDATES WHERE _FIVETRAN_ACTIVE QUALIFY ROW_NUMBER() OVER (PARTITION BY execution_candidate_id ORDER BY _fivetran_synced DESC)=1),\ny AS (SELECT x.*, iec.connection_id, iec.csp_id, iec.p41_deadline_at FROM x JOIN iec ON iec.ec=x.ec),\nconn AS (SELECT connection_id, COUNT(*) n_tasks, MAX(IFF(t_act IS NOT NULL,1,0)) inst, MAX(IFF(t_acc IS NOT NULL,1,0)) any_acc, MIN(created_at) first_at, MIN(t_act) act_at FROM y GROUP BY 1)\nSELECT 'conn' k, COUNT(*) a, SUM(inst) b, SUM(any_acc) c, AVG(n_tasks) d, SUM(IFF(n_tasks=1,1,0)) e, SUM(IFF(n_tasks=2,1,0)) f, SUM(IFF(n_tasks>=3,1,0)) g, MEDIAN(DATEDIFF(minute,first_at,act_at)) h FROM conn\nUNION ALL\nSELECT 'inst_by_ntasks', n_tasks, SUM(inst), COUNT(*), NULL,NULL,NULL,NULL,NULL FROM conn WHERE n_tasks<=4 GROUP BY n_tasks\nUNION ALL\nSELECT 'csp', COUNT(DISTINCT csp_id), COUNT(DISTINCT IFF(t_noact IS NOT NULL, csp_id, NULL)), MEDIAN(DATEDIFF(minute,t_offer,p41_deadline_at)), NULL,NULL,NULL,NULL,NULL FROM y\n"
@@ -537,46 +530,46 @@
 "rows": [
 {
 "csp_group": "Accept 70%+ of FPNs",
-"csps": 197,
-"tasks": 3067,
-"accepted": 2669,
-"no_response": 192,
-"installed": 1359,
-"share_of_tasks": 23.4,
-"share_of_no_response": 3.1,
-"install_pct": 44.3
+"csps": 198,
+"tasks": 2969,
+"accepted": 2608,
+"no_response": 180,
+"installed": 1347,
+"share_of_tasks": 22.8,
+"share_of_no_response": 2.9,
+"install_pct": 45.4
 },
 {
 "csp_group": "Accept 40\u201370%",
-"csps": 140,
-"tasks": 2600,
-"accepted": 1395,
-"no_response": 773,
-"installed": 723,
-"share_of_tasks": 19.8,
-"share_of_no_response": 12.5,
-"install_pct": 27.8
+"csps": 131,
+"tasks": 2604,
+"accepted": 1410,
+"no_response": 759,
+"installed": 685,
+"share_of_tasks": 20.0,
+"share_of_no_response": 12.3,
+"install_pct": 26.3
 },
 {
 "csp_group": "Accept under 40%",
-"csps": 188,
-"tasks": 6144,
-"accepted": 1083,
-"no_response": 4143,
-"installed": 513,
-"share_of_tasks": 46.9,
-"share_of_no_response": 66.8,
-"install_pct": 8.3
+"csps": 192,
+"tasks": 6139,
+"accepted": 1062,
+"no_response": 4102,
+"installed": 499,
+"share_of_tasks": 47.2,
+"share_of_no_response": 66.5,
+"install_pct": 8.1
 },
 {
 "csp_group": "Never accepted",
-"csps": 140,
-"tasks": 1293,
+"csps": 144,
+"tasks": 1294,
 "accepted": 0,
-"no_response": 1091,
+"no_response": 1123,
 "installed": 0,
 "share_of_tasks": 9.9,
-"share_of_no_response": 17.6,
+"share_of_no_response": 18.2,
 "install_pct": 0.0
 }
 ],
@@ -586,194 +579,194 @@
 "rows": [
 {
 "hour": 0,
-"tasks": 426,
-"accepted": 180,
-"no_response": 190,
-"accept_pct": 42.3,
-"no_response_pct": 44.6
+"tasks": 430,
+"accepted": 184,
+"no_response": 183,
+"accept_pct": 42.8,
+"no_response_pct": 42.6
 },
 {
 "hour": 1,
-"tasks": 303,
-"accepted": 145,
-"no_response": 138,
-"accept_pct": 47.9,
-"no_response_pct": 45.5
+"tasks": 316,
+"accepted": 150,
+"no_response": 144,
+"accept_pct": 47.5,
+"no_response_pct": 45.6
 },
 {
 "hour": 2,
-"tasks": 64,
-"accepted": 32,
-"no_response": 28,
-"accept_pct": 50.0,
-"no_response_pct": 43.8
+"tasks": 61,
+"accepted": 27,
+"no_response": 29,
+"accept_pct": 44.3,
+"no_response_pct": 47.5
 },
 {
 "hour": 3,
-"tasks": 25,
-"accepted": 11,
-"no_response": 10,
-"accept_pct": 44.0,
-"no_response_pct": 40.0
+"tasks": 27,
+"accepted": 12,
+"no_response": 12,
+"accept_pct": 44.4,
+"no_response_pct": 44.4
 },
 {
 "hour": 4,
-"tasks": 31,
-"accepted": 14,
-"no_response": 8,
-"accept_pct": 45.2,
-"no_response_pct": 25.8
+"tasks": 33,
+"accepted": 15,
+"no_response": 9,
+"accept_pct": 45.5,
+"no_response_pct": 27.3
 },
 {
 "hour": 5,
 "tasks": 31,
-"accepted": 16,
-"no_response": 13,
-"accept_pct": 51.6,
-"no_response_pct": 41.9
+"accepted": 15,
+"no_response": 14,
+"accept_pct": 48.4,
+"no_response_pct": 45.2
 },
 {
 "hour": 6,
-"tasks": 40,
-"accepted": 18,
-"no_response": 17,
-"accept_pct": 45.0,
-"no_response_pct": 42.5
+"tasks": 39,
+"accepted": 17,
+"no_response": 18,
+"accept_pct": 43.6,
+"no_response_pct": 46.2
 },
 {
 "hour": 7,
-"tasks": 133,
-"accepted": 60,
-"no_response": 53,
-"accept_pct": 45.1,
-"no_response_pct": 39.8
+"tasks": 131,
+"accepted": 58,
+"no_response": 52,
+"accept_pct": 44.3,
+"no_response_pct": 39.7
 },
 {
 "hour": 8,
-"tasks": 238,
-"accepted": 117,
-"no_response": 91,
-"accept_pct": 49.2,
-"no_response_pct": 38.2
+"tasks": 232,
+"accepted": 115,
+"no_response": 90,
+"accept_pct": 49.6,
+"no_response_pct": 38.8
 },
 {
 "hour": 9,
-"tasks": 788,
-"accepted": 285,
-"no_response": 398,
-"accept_pct": 36.2,
-"no_response_pct": 50.5
+"tasks": 776,
+"accepted": 279,
+"no_response": 395,
+"accept_pct": 36.0,
+"no_response_pct": 50.9
 },
 {
 "hour": 10,
-"tasks": 842,
-"accepted": 339,
-"no_response": 379,
-"accept_pct": 40.3,
-"no_response_pct": 45.0
+"tasks": 829,
+"accepted": 336,
+"no_response": 375,
+"accept_pct": 40.5,
+"no_response_pct": 45.2
 },
 {
 "hour": 11,
-"tasks": 917,
-"accepted": 384,
-"no_response": 396,
-"accept_pct": 41.9,
-"no_response_pct": 43.2
+"tasks": 927,
+"accepted": 374,
+"no_response": 412,
+"accept_pct": 40.3,
+"no_response_pct": 44.4
 },
 {
 "hour": 12,
-"tasks": 924,
-"accepted": 385,
-"no_response": 402,
-"accept_pct": 41.7,
-"no_response_pct": 43.5
+"tasks": 931,
+"accepted": 400,
+"no_response": 393,
+"accept_pct": 43.0,
+"no_response_pct": 42.2
 },
 {
 "hour": 13,
-"tasks": 884,
-"accepted": 355,
-"no_response": 412,
-"accept_pct": 40.2,
-"no_response_pct": 46.6
+"tasks": 875,
+"accepted": 356,
+"no_response": 401,
+"accept_pct": 40.7,
+"no_response_pct": 45.8
 },
 {
 "hour": 14,
-"tasks": 838,
+"tasks": 826,
 "accepted": 339,
-"no_response": 399,
-"accept_pct": 40.5,
-"no_response_pct": 47.6
+"no_response": 385,
+"accept_pct": 41.0,
+"no_response_pct": 46.6
 },
 {
 "hour": 15,
-"tasks": 1364,
-"accepted": 481,
-"no_response": 695,
-"accept_pct": 35.3,
-"no_response_pct": 51.0
+"tasks": 1341,
+"accepted": 465,
+"no_response": 687,
+"accept_pct": 34.7,
+"no_response_pct": 51.2
 },
 {
 "hour": 16,
-"tasks": 1185,
-"accepted": 326,
-"no_response": 699,
-"accept_pct": 27.5,
-"no_response_pct": 59.0
+"tasks": 1178,
+"accepted": 311,
+"no_response": 711,
+"accept_pct": 26.4,
+"no_response_pct": 60.4
 },
 {
 "hour": 17,
-"tasks": 744,
-"accepted": 293,
-"no_response": 346,
-"accept_pct": 39.4,
-"no_response_pct": 46.5
+"tasks": 759,
+"accepted": 311,
+"no_response": 345,
+"accept_pct": 41.0,
+"no_response_pct": 45.5
 },
 {
 "hour": 18,
-"tasks": 736,
-"accepted": 277,
-"no_response": 356,
-"accept_pct": 37.6,
-"no_response_pct": 48.4
+"tasks": 733,
+"accepted": 266,
+"no_response": 364,
+"accept_pct": 36.3,
+"no_response_pct": 49.7
 },
 {
 "hour": 19,
-"tasks": 726,
-"accepted": 286,
-"no_response": 348,
-"accept_pct": 39.4,
-"no_response_pct": 47.9
+"tasks": 705,
+"accepted": 279,
+"no_response": 332,
+"accept_pct": 39.6,
+"no_response_pct": 47.1
 },
 {
 "hour": 20,
-"tasks": 739,
-"accepted": 289,
-"no_response": 360,
-"accept_pct": 39.1,
-"no_response_pct": 48.7
+"tasks": 729,
+"accepted": 281,
+"no_response": 358,
+"accept_pct": 38.5,
+"no_response_pct": 49.1
 },
 {
 "hour": 21,
-"tasks": 507,
-"accepted": 218,
-"no_response": 224,
-"accept_pct": 43.0,
+"tasks": 498,
+"accepted": 211,
+"no_response": 220,
+"accept_pct": 42.4,
 "no_response_pct": 44.2
 },
 {
 "hour": 22,
-"tasks": 338,
-"accepted": 183,
-"no_response": 115,
-"accept_pct": 54.1,
-"no_response_pct": 34.0
+"tasks": 318,
+"accepted": 166,
+"no_response": 113,
+"accept_pct": 52.2,
+"no_response_pct": 35.5
 },
 {
 "hour": 23,
 "tasks": 281,
-"accepted": 114,
+"accepted": 113,
 "no_response": 122,
-"accept_pct": 40.6,
+"accept_pct": 40.2,
 "no_response_pct": 43.4
 }
 ],
@@ -781,20 +774,6 @@
 },
 "daily": {
 "rows": [
-{
-"date": "2026-11-03",
-"tasks": 1054,
-"fpn_rendered": 932,
-"accepted": 441,
-"declined": 126,
-"no_response": 473,
-"assigned": 346,
-"arrived": 251,
-"installed": 246,
-"accept_pct": 41.8,
-"no_response_pct": 44.9,
-"install_pct": 23.3
-},
 {
 "date": "2026-11-04",
 "tasks": 867,
@@ -956,12 +935,26 @@
 "accepted": 431,
 "declined": 110,
 "no_response": 498,
-"assigned": 322,
-"arrived": 232,
-"installed": 225,
+"assigned": 323,
+"arrived": 233,
+"installed": 226,
 "accept_pct": 40.9,
 "no_response_pct": 47.2,
-"install_pct": 21.3
+"install_pct": 21.4
+},
+{
+"date": "2026-11-16",
+"tasks": 956,
+"fpn_rendered": 861,
+"accepted": 374,
+"declined": 132,
+"no_response": 438,
+"assigned": 271,
+"arrived": 187,
+"installed": 181,
+"accept_pct": 39.1,
+"no_response_pct": 45.8,
+"install_pct": 18.9
 }
 ],
 "sql": "WITH tl AS (\n  SELECT execution_candidate_id ec, from_state f, to_state t, reason_code rc, actor_type a, occurred_at ts\n  FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG WHERE NOT _FIVETRAN_DELETED\n),\ncohort AS (\n  SELECT ec, MIN(ts) created_at FROM tl WHERE t='ASSIGNED' AND f IS NULL GROUP BY 1\n  HAVING TO_DATE(DATEADD(minute,330,MIN(ts))) BETWEEN DATEADD(day,-17, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE) AND DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)\n),\nct AS (\n  SELECT PARSE_JSON(properties):execution_id::STRING ec, event_name e, PARSE_JSON(properties):action::STRING act, TRY_TO_TIMESTAMP(timestamp) ts\n  FROM PROD_DB.CLEVERTAP_CSP_API.EVENTS_DATA\n  WHERE event_name IN ('fpn_delivered','fpn_action_taken','install_candidate_opened','install_task_created')\n    AND TRY_TO_TIMESTAMP(timestamp) >= '2026-11-02'\n),\nctf AS (\n  SELECT ec, MAX(IFF(e='install_task_created',1,0)) pushed, MAX(IFF(e='fpn_delivered',1,0)) fpn_seen,\n    MAX(IFF(e='fpn_action_taken' AND act='primary_cta',1,0)) fpn_cta, MAX(IFF(e='fpn_action_taken' AND act<>'primary_cta',1,0)) fpn_dismiss,\n    MAX(IFF(e='install_candidate_opened',1,0)) opened\n  FROM ct GROUP BY 1\n),\nf AS (\n  SELECT c.ec, c.created_at,\n   MIN(IFF(t='AWAITING_CSP_ACCEPTANCE',ts,NULL)) t_offer,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t IN ('AWAITING_TECHNICIAN_ASSIGNMENT','AWAITING_SLOT_PROPOSAL'),ts,NULL)) t_acc,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='DECLINED',ts,NULL)) t_dec,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND rc='TIMEOUT_P41',ts,NULL)) t_noact,\n   MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='CANCELLED_BY_CUSTOMER',ts,NULL)) t_pre_cxcan,\n   MIN(IFF(t='TECHNICIAN_ASSIGNED',ts,NULL)) t_asg,\n   MIN(IFF(t='ARRIVED_AT_SITE',ts,NULL)) t_arr,\n   MIN(IFF(t='FEE_COLLECTION_PENDING',ts,NULL)) t_kyc,\n   MIN(IFF(f='FEE_COLLECTION_PENDING' AND t='INSTALLATION_IN_PROGRESS_POST_FEE',ts,NULL)) t_fee,\n   MIN(IFF(t='AWAITING_CUSTOMER_OTP',ts,NULL)) t_setup,\n   MIN(IFF(t='RATING_PENDING',ts,NULL)) t_otp,\n   MIN(IFF(t IN ('RATING_PENDING','CONNECTION_ACTIVE'),ts,NULL)) t_act,\n   MAX_BY(t, ts) last_state, MAX_BY(f, ts) last_from, MAX_BY(rc, ts) last_rc\n  FROM cohort c JOIN tl ON tl.ec=c.ec GROUP BY 1,2\n),\nx AS (SELECT f.*, COALESCE(ctf.pushed,0) pushed, COALESCE(ctf.fpn_seen,0) fpn_seen, COALESCE(ctf.fpn_cta,0) fpn_cta, COALESCE(ctf.fpn_dismiss,0) fpn_dismiss, COALESCE(ctf.opened,0) opened FROM f LEFT JOIN ctf ON ctf.ec=f.ec)\nSELECT TO_DATE(DATEADD(minute,330,created_at)) d, COUNT(*) n, SUM(fpn_seen) seen, SUM(IFF(t_acc IS NOT NULL,1,0)) acc, SUM(IFF(t_dec IS NOT NULL,1,0)) dec, SUM(IFF(t_noact IS NOT NULL,1,0)) noact, SUM(IFF(t_asg IS NOT NULL,1,0)) asg, SUM(IFF(t_arr IS NOT NULL,1,0)) arr, SUM(IFF(t_act IS NOT NULL,1,0)) act\nFROM x GROUP BY 1 ORDER BY 1\n"
