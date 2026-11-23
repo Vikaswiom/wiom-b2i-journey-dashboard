@@ -2,7 +2,7 @@
  "artifact_url": "https://claude.ai/artifact/WUWh5LShPxE5zb36fcvZmW",
  "files": {
   "b2i_snapshot.json": {
-   "asset_id": "2d7b0f2609979fdee2dff8c795b01e60",
+   "asset_id": "352980320f2914b9ed6926fc2971ac3e",
    "datasets": [
     "summary",
     "steps",
@@ -58,7 +58,7 @@
    ]
   },
   "b2i_oct_snapshot.json": {
-   "asset_id": null,
+   "asset_id": "97a7bd28b2a267aee7d564ca8393b51e",
    "datasets": [
     "o_summary",
     "o_steps",
@@ -76,11 +76,11 @@
   }
  },
  "dataset_versions": {
-  "bookings": 6,
+  "bookings": 7,
   "c_csps": 5,
   "c_segments": 5,
   "c_summary": 5,
-  "csp_groups": 6,
+  "csp_groups": 7,
   "d_assign_to_install": 6,
   "d_days": 6,
   "d_late": 6,
@@ -90,14 +90,14 @@
   "d_stuck": 6,
   "d_summary": 6,
   "d_timing": 6,
-  "daily": 6,
-  "exits": 6,
-  "fpn_reach": 6,
-  "fpn_response": 6,
-  "hourly": 6,
-  "offer": 6,
-  "steps": 6,
-  "summary": 6,
+  "daily": 7,
+  "exits": 7,
+  "fpn_reach": 7,
+  "fpn_response": 7,
+  "hourly": 7,
+  "offer": 7,
+  "steps": 7,
+  "summary": 7,
   "trend": 10,
   "y_activity": 8,
   "y_compare": 10,
@@ -109,12 +109,23 @@
   "y_promise": 7,
   "y_split": 11,
   "y_summary": 11,
-  "exit_notes": 1,
+  "exit_notes": 2,
   "d_notes": 1,
-  "y_notes": 1
+  "y_notes": 1,
+  "o_summary": 1,
+  "o_steps": 1,
+  "o_offer": 1,
+  "o_fpn_reach": 1,
+  "o_exits": 1,
+  "o_fpn_response": 1,
+  "o_bookings": 1,
+  "o_csp_groups": 1,
+  "o_hourly": 1,
+  "o_daily": 1,
+  "o_exit_notes": 1
  },
- "page_version": 20,
- "last_publish": "2026-11-23T16:02+05:30",
+ "page_version": 21,
+ "last_publish": "2026-11-23T17:05+05:30",
  "new_dataset_meta": {
   "exit_notes": {
    "title": "What CSPs typed: overview drop-offs",
