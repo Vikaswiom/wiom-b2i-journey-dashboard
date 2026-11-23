@@ -4,7 +4,7 @@ WITH tl AS (
 ),
 cohort AS (
   SELECT ec, MIN(ts) created_at FROM tl WHERE t='ASSIGNED' AND f IS NULL GROUP BY 1
-  HAVING TO_DATE(DATEADD(minute,330,MIN(ts))) BETWEEN DATEADD(day,-17, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE) AND DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)
+  HAVING TO_DATE(DATEADD(minute,330,MIN(ts))) BETWEEN DATE_TRUNC('month', DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)) AND DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)
 ),
 ct AS (
   SELECT PARSE_JSON(properties):execution_id::STRING ec, event_name e, PARSE_JSON(properties):action::STRING act, TRY_TO_TIMESTAMP(timestamp) ts

@@ -19,4 +19,4 @@ for name in ['funnel','exits','fpn','daily','conn','cspband','hour']:
     sql=open(f'{name}.sql').read()
     sec[name]={'sql':sql,'rows':run(sql)}
     print(name,len(sec[name]['rows']),file=sys.stderr)
-json.dump({'generated_at':datetime.datetime.now().astimezone().isoformat(timespec='minutes'),'cohort':'Install tasks created 17 to 5 days before generation (IST), outcomes observed to generation time','sections':sec},open('raw.json','w'),indent=1,default=str)
+json.dump({'generated_at':datetime.datetime.now().astimezone().isoformat(timespec='minutes'),'cohort':'Install tasks created from the 1st of the month (of the date 5 days back) to 5 days before generation (IST), outcomes observed to generation time','sections':sec},open('raw.json','w'),indent=1,default=str)

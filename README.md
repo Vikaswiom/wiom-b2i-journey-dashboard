@@ -19,6 +19,6 @@ Dashboard: https://claude.ai/artifact/WUWh5LShPxE5zb36fcvZmW (Data artifact; pag
 The page file itself (`index.html` here = store `files/index.html`) only changes when the design changes; edit, wrap as `{"text": ...}`, and `update` it with its `if_version`.
 
 ## Windows (all IST, relative to the run day)
-- Overview + Deep dive: tasks created 17 → 5 days ago (13 days).
+- Overview + Deep dive: tasks created from the 1st of the month (of the date 5 days back) to 5 days ago (month to date). Queries are flow-aware (1–2 Nov mix old customer-schedule flow + new CSP-acceptance flow).
 - Daily tracker: yesterday; trends since 1 Aug 2026; flags vs previous 28 days.
 - CSP reschedule behaviour: installs in the 30 days up to yesterday.

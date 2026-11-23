@@ -71,11 +71,11 @@ summary=dict(assigned=A,installed=f['installed'],install_pct=r1(100*f['installed
   live_open=sum(l['tasks'] for l in live),live_past_slot=sum(l['tasks'] for l in live if l['slot_order']>=3),
   live_waiting_arrival=sum(l['tasks'] for l in live if l['stage_order']==1),live_rating_pending=sum(l['tasks'] for l in live if l['stage_order']==7),
   late_1day=next((d['installs'] for d in days if d['days_vs_slot']==1),0),snapshot=gen,
-  cohort_from=str(_today-datetime.timedelta(days=17)),cohort_to=str(_today-datetime.timedelta(days=5)))
+  cohort_from=str((_today-datetime.timedelta(days=5)).replace(day=1)),cohort_to=str(_today-datetime.timedelta(days=5)))
 data=dict(d_summary=[summary],d_steps=steps,d_timing=timing,d_days=days,d_late=late,d_assign_to_install=asg,d_stuck=stuck,d_reasons=reasons,d_live=live,d_notes=notes.build(note_rows,['outcome','stage','reason']) or [dict(outcome='',stage='',reason='',theme='',tasks=0,examples='',notes_total=0,reason_total=0)])
 sqlmap=dict(d_summary='d_funnel',d_steps='d_funnel',d_timing='d_timing',d_days='d_timing',d_late='d_timing',d_assign_to_install='d_timing',d_stuck='d_notinst',d_reasons='d_notinst',d_live='d_live',d_notes='d_notinst')
 base=open('deep_base.sql').read()
-out=dict(generated_at=gen,cohort='Install tasks created 17 to 5 days before generation (IST) that reached TECHNICIAN_ASSIGNED; live section = all open tasks now',
+out=dict(generated_at=gen,cohort='Install tasks created from the 1st of the month (of the date 5 days back) to 5 days before generation (IST) that reached TECHNICIAN_ASSIGNED; live section = all open tasks now',
   datasets={k:dict(rows=v,sql=R[sqlmap[k]]['sql']) for k,v in data.items()},shape_code=open('deep.py').read())
 json.dump(out,open('b2i_deep_snapshot.json','w'),default=str)
 print(json.dumps(summary,indent=0)); print(timing); print(late); print(asg); print([s for s in steps])

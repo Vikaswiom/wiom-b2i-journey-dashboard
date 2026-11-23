@@ -1,6 +1,6 @@
 import json, datetime, notes
 _today=(datetime.datetime.utcnow()+datetime.timedelta(minutes=330)).date()
-_cf=str(_today-datetime.timedelta(days=17)); _ct=str(_today-datetime.timedelta(days=5))
+_ctd=_today-datetime.timedelta(days=5); _cf=str(_ctd.replace(day=1)); _ct=str(_ctd)  # month to date, ending 5 days back
 raw=json.load(open('raw.json')); S=raw['sections']; f=S['funnel']['rows'][0]
 r1=lambda x: round(x,1)
 T=f['tasks']
@@ -25,12 +25,19 @@ offer=[dict(outcome='Accepted',tasks=f['accepted'],median_min=f['m_accept']),dic
        dict(outcome='Declined',tasks=f['declined'],median_min=f['m_decline']),dict(outcome='Customer cancelled',tasks=f['cx_cancel_pre'],median_min=None),
        dict(outcome='Other / open',tasks=T-f['accepted']-f['no_action']-f['declined']-f['cx_cancel_pre'],median_min=None)]
 for o in offer:o['pct']=r1(100*o['tasks']/T)
+# Old customer-schedule flow (only 1–2 Nov in November): the CSP's decision is assigning a technician, so step 2 becomes "CSP took the task".
+OF=f.get('old_flow_tasks') or 0
+if OF:
+    for r in steps:
+        if r['step_no']==1: r['backend_event']='→ ASSIGNED (task created for the CSP)'
+        if r['step_no']==2: r.update(step='CSP took the task', detail='Accepted the FPN (new flow) or assigned a technician (old flow)',
+            backend_event='New: AWAITING_CSP_ACCEPTANCE → AWAITING_TECHNICIAN_ASSIGNMENT · Old: → TECHNICIAN_ASSIGNED', app_event='install_accepted (new flow)')
 fpn=dict(tasks_offered=T,fpn_pushed=f['pushed'],fpn_rendered=f['fpn_seen'],fpn_tapped=f['fpn_cta'],fpn_dismissed=f['fpn_dismiss_only'],task_opened=f['opened'])
 for k in list(fpn): 
     if k!='tasks_offered': fpn[k+'_pct']=r1(100*fpn[k]/T)
 summary=dict(tasks=T,installed=f['active'],install_pct=r1(100*f['active']/T),accept_pct=r1(100*f['accepted']/T),noaction_pct=r1(100*f['no_action']/T),
   decline_pct=r1(100*f['declined']/T),median_e2e_hours=r1(f['m_e2e']/60),p90_e2e_hours=r1(f['p90_e2e']/60),noaction_median_hours=r1(f['m_noact']/60),
-  fpn_rendered_pct=r1(100*f['fpn_seen']/T),cohort_from=_cf,cohort_to=_ct)
+  fpn_rendered_pct=r1(100*f['fpn_seen']/T),cohort_from=_cf,cohort_to=_ct,old_flow_tasks=OF,new_flow_tasks=T-OF,old_flow_pct=r1(100*OF/T))
 conn={r['k']:r for r in S['conn']['rows'] if r['k']!='inst_by_ntasks'}
 c=conn['conn']; summary.update(bookings=c['a'],bookings_installed=c['b'],booking_install_pct=r1(100*c['b']/c['a']),tasks_per_booking=round(c['d'],2),
   bookings_reassigned=c['a']-c['e'],bookings_reassigned_pct=r1(100*(c['a']-c['e'])/c['a']),csps=conn['csp']['a'],csps_with_noaction=conn['csp']['b'])
