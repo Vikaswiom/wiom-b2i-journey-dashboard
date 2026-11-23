@@ -1,5 +1,5 @@
 {
-"generated_at": "2026-11-23T15:59+05:30",
+"generated_at": "2026-11-23T16:02+05:30",
 "cohort": "Install tasks created 17 to 5 days before generation (IST), outcomes observed to generation time",
 "datasets": {
 "summary": {
@@ -85,7 +85,7 @@
 "pct_of_prev": 70.7,
 "lost_after_prev": 1100,
 "median_min_from_prev": 126.0,
-"p90_min_from_prev": 2897
+"p90_min_from_prev": 2896
 },
 {
 "step_no": 5,
@@ -970,7 +970,7 @@
 "reason": "Other (free text)",
 "theme": "Unclear or too vague",
 "tasks": 82,
-"examples": "........... | nit available | aaj koi hai nahi | ............",
+"examples": "........... | nit available | abcd ok by | ............",
 "notes_total": 524,
 "reason_total": 524
 },
@@ -980,7 +980,7 @@
 "reason": "Other (free text)",
 "theme": "Customer unreachable (call not picked, phone off)",
 "tasks": 43,
-"examples": "customer call pick nhi kr rha | customer call nhi utha rha | customer call not pick | customer call nahin utha raha",
+"examples": "customer call not pick | cx call nahi pick kar raha | customer call pick nhi kr rha | customer call nhi utha rha",
 "notes_total": 524,
 "reason_total": 524
 },
@@ -1000,7 +1000,7 @@
 "reason": "Other (free text)",
 "theme": "Customer not at home or asked for later",
 "tasks": 36,
-"examples": "not available | not available labour | helper not available | labour not available",
+"examples": "not available | not available labour | helper not available | cx says come next sunday",
 "notes_total": 524,
 "reason_total": 524
 },
@@ -1020,7 +1020,7 @@
 "reason": "Other (free text)",
 "theme": "CSP side: no team, technician or device",
 "tasks": 25,
-"examples": "staff not available | lco issue.. | team nahi hai | technician not available",
+"examples": "staff not available | lco issue.. | team nahi hai | team nahi hai aaj",
 "notes_total": 524,
 "reason_total": 524
 },
@@ -1030,7 +1030,7 @@
 "reason": "Other (free text)",
 "theme": "Wrong or fake booking details",
 "tasks": 6,
-"examples": "customer fraud hai | customer wrong location not feasible | wrong booking | wrong address krichayan nagar nhi h",
+"examples": "customer fraud hai | wrong address | wrong address krichayan nagar nhi h | wrong booking",
 "notes_total": 524,
 "reason_total": 524
 },
@@ -1040,7 +1040,7 @@
 "reason": "Other (free text)",
 "theme": "No coverage at the address (no line, wire, fiber, signal; out of area)",
 "tasks": 227,
-"examples": "not feasible | out of area | power not available | es location pr line nahi hai",
+"examples": "not feasible | out of area | es location pr line nahi hai | power not available",
 "notes_total": 440,
 "reason_total": 440
 },
@@ -1050,7 +1050,7 @@
 "reason": "Other (free text)",
 "theme": "Customer unreachable (call not picked, phone off)",
 "tasks": 85,
-"examples": "no response from customer side | call not picked | cx call pick nhi kr rhe hain | customer not call pick up call utha rahe hai to voice nahi aa rahi",
+"examples": "no response from customer side | cx call pick nhi kr rhe hain | call not picked | call not received",
 "notes_total": 440,
 "reason_total": 440
 },
@@ -1070,7 +1070,7 @@
 "reason": "Other (free text)",
 "theme": "Customer not at home or asked for later",
 "tasks": 31,
-"examples": "customer not at home | not at home | not available | ye abhi delhi se bahar hai",
+"examples": "customer not at home | not at home | not available | kal lagwana hai customer ko connection",
 "notes_total": 440,
 "reason_total": 440
 },
@@ -1080,7 +1080,7 @@
 "reason": "Other (free text)",
 "theme": "Unclear or too vague",
 "tasks": 26,
-"examples": "address not confirmed | customer could not connect | customer not confirmed installation day | not desable",
+"examples": "cx not respodding | abhi vahan connection nahin lag sakta | customer not confirmed installation day | customer aay nahi",
 "notes_total": 440,
 "reason_total": 440
 },
@@ -1090,7 +1090,7 @@
 "reason": "Other (free text)",
 "theme": "Wrong or fake booking details",
 "tasks": 15,
-"examples": "location galt hai | xyzaaaaaahjb | customer put wrong location | wrong address not feasible",
+"examples": "wrong location | customer n location galt dali ha | customer wrong address booking | zasdfggggrrrfg",
 "notes_total": 440,
 "reason_total": 440
 },
@@ -1100,7 +1100,7 @@
 "reason": "Other (free text)",
 "theme": "CSP side: no team, technician or device",
 "tasks": 10,
-"examples": "team not available | lco issue.. | staff too short | i don't have staff",
+"examples": "team not available | i don't have staff | customer defaulter.old router not given | staff too short",
 "notes_total": 440,
 "reason_total": 440
 },
@@ -1110,7 +1110,7 @@
 "reason": "Other (free text)",
 "theme": "Already has another connection or booked twice",
 "tasks": 9,
-"examples": "airtel lag wa leya | already installed wiom | customer ne lagwa liya",
+"examples": "already installed wiom | customer ne lagwa liya | airtel lag wa leya",
 "notes_total": 440,
 "reason_total": 440
 },
@@ -1140,7 +1140,7 @@
 "reason": "Other (free text)",
 "theme": "Customer unreachable (call not picked, phone off)",
 "tasks": 46,
-"examples": "customer not answering | not pick call | number switch off | not respond",
+"examples": "customer not answering | number switch off | not pick call | not respond",
 "notes_total": 247,
 "reason_total": 247
 },
@@ -1150,7 +1150,7 @@
 "reason": "Other (free text)",
 "theme": "Unclear or too vague",
 "tasks": 28,
-"examples": "customer cunfom nahi kar rha hai | nahin lagwana | .........a | customer not coordinating",
+"examples": "customer ka mob no off hai | lagane wla koi nhi h | customer baar baar taal rhe h | laga hua hai inke wiom",
 "notes_total": 247,
 "reason_total": 247
 },
@@ -1160,7 +1160,7 @@
 "reason": "Other (free text)",
 "theme": "Customer not interested, cancelled or won't pay",
 "tasks": 17,
-"examples": "cancel by customer | cx mana kar raha hai | wire nahi ja pay ge | money problem next month lagwayega",
+"examples": "cancel by customer | cx mana kar raha hai | time ni hai cencel kar do | costumer not agree recharge",
 "notes_total": 247,
 "reason_total": 247
 },
@@ -1170,7 +1170,7 @@
 "reason": "Other (free text)",
 "theme": "Customer not at home or asked for later",
 "tasks": 12,
-"examples": "customer not available | time short | not available",
+"examples": "customer not available | not available | time short",
 "notes_total": 247,
 "reason_total": 247
 },
@@ -1180,7 +1180,7 @@
 "reason": "Other (free text)",
 "theme": "Wrong or fake booking details",
 "tasks": 11,
-"examples": "fake details | wrong address | address galat h not fusible | address galat update hai",
+"examples": "fake details | address galat h not fusible | address galat update hai | galti se assign ho gaya hai",
 "notes_total": 247,
 "reason_total": 247
 },
@@ -1218,19 +1218,9 @@
 "stage_no": 4,
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
-"theme": "No coverage at the address (no line, wire, fiber, signal; out of area)",
-"tasks": 3,
-"examples": "wire not installed in this area | vahan per hamari line nahin hai | optical power jyada hai",
-"notes_total": 10,
-"reason_total": 10
-},
-{
-"stage_no": 4,
-"outcome": "CSP reported failure",
-"reason": "Other (free text)",
 "theme": "Customer unreachable (call not picked, phone off)",
 "tasks": 3,
-"examples": "customer call not pic | customer not answer",
+"examples": "customer not answer | customer call not pic",
 "notes_total": 10,
 "reason_total": 10
 },
@@ -1238,19 +1228,9 @@
 "stage_no": 4,
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
-"theme": "Unclear or too vague",
-"tasks": 1,
-"examples": "hamare vahan per bhai nahin hai",
-"notes_total": 10,
-"reason_total": 10
-},
-{
-"stage_no": 4,
-"outcome": "CSP reported failure",
-"reason": "Other (free text)",
-"theme": "Customer not at home or asked for later",
-"tasks": 1,
-"examples": "customer has scheduled to next monday",
+"theme": "No coverage at the address (no line, wire, fiber, signal; out of area)",
+"tasks": 3,
+"examples": "wire not installed in this area | optical power jyada hai | vahan per hamari line nahin hai",
 "notes_total": 10,
 "reason_total": 10
 },
@@ -1268,9 +1248,29 @@
 "stage_no": 4,
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
+"theme": "Unclear or too vague",
+"tasks": 1,
+"examples": "hamare vahan per bhai nahin hai",
+"notes_total": 10,
+"reason_total": 10
+},
+{
+"stage_no": 4,
+"outcome": "CSP reported failure",
+"reason": "Other (free text)",
 "theme": "Customer not interested, cancelled or won't pay",
 "tasks": 1,
 "examples": "",
+"notes_total": 10,
+"reason_total": 10
+},
+{
+"stage_no": 4,
+"outcome": "CSP reported failure",
+"reason": "Other (free text)",
+"theme": "Customer not at home or asked for later",
+"tasks": 1,
+"examples": "customer has scheduled to next monday",
 "notes_total": 10,
 "reason_total": 10
 }
