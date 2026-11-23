@@ -11,8 +11,14 @@ if sys.argv[1]=='prepare':
     writes=[]
     for k,fname in key.items():
         for ds in st['files'][fname]['datasets']:
-            writes.append({'op':'update','collection':'datasets','doc_id':ds,'if_version':st['dataset_versions'][ds],
-                           'data':{'source':{'url':'/_blob/'+new[k]},'updated':{'at':now}}})
+            if ds in st['dataset_versions']:
+                writes.append({'op':'update','collection':'datasets','doc_id':ds,'if_version':st['dataset_versions'][ds],
+                               'data':{'source':{'url':'/_blob/'+new[k]},'updated':{'at':now}}})
+            else:  # a dataset added since the last publish: create it
+                meta=st.get('new_dataset_meta',{}).get(ds,{'title':ds,'description':''})
+                writes.append({'op':'set','collection':'datasets','doc_id':ds,
+                               'data':{'title':meta['title'],'description':meta['description'],'source':{'kind':'file','url':'/_blob/'+new[k],'name':fname,'format':'json'},
+                                       'updated':{'at':now,'by':'Claude (Metabase / Snowflake snapshot)'},'fixed':True}})
     st['pending']={key[k]:new[k] for k in key}
     json.dump(st,open('state.json','w'),indent=1)
     print(json.dumps(writes))
@@ -22,7 +28,7 @@ elif sys.argv[1]=='commit':
         ent=st['files'][fname]
         if ent['asset_id']!=nid: old.append(ent['asset_id'])
         ent['asset_id']=nid
-        for ds in ent['datasets']: st['dataset_versions'][ds]+=1
+        for ds in ent['datasets']: st['dataset_versions'][ds]=st['dataset_versions'].get(ds,0)+1
     st['last_publish']=datetime.datetime.now().astimezone().isoformat(timespec='minutes')
     json.dump(st,open('state.json','w'),indent=1)
     print(json.dumps({'delete_asset_ids':old}))

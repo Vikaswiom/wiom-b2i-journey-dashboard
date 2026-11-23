@@ -2,7 +2,7 @@
  "artifact_url": "https://claude.ai/artifact/WUWh5LShPxE5zb36fcvZmW",
  "files": {
   "b2i_snapshot.json": {
-   "asset_id": "59e7a2a7912b1d39fbab437d6cbf2618",
+   "asset_id": "2d7b0f2609979fdee2dff8c795b01e60",
    "datasets": [
     "summary",
     "steps",
@@ -18,7 +18,7 @@
    ]
   },
   "b2i_deep_snapshot.json": {
-   "asset_id": "ea69afe0a5c5198588fbf58deec836f1",
+   "asset_id": "994214a63e729d4778a677359b0779e3",
    "datasets": [
     "d_summary",
     "d_steps",
@@ -33,7 +33,7 @@
    ]
   },
   "b2i_yesterday_snapshot.json": {
-   "asset_id": "6652ebc95f33b2885fe9952cdb183666",
+   "asset_id": "487d5dc2dd6762a71edd7ee9d767bebc",
    "datasets": [
     "y_summary",
     "y_split",
@@ -50,7 +50,7 @@
    ]
   },
   "b2i_csp_snapshot.json": {
-   "asset_id": "4897865f53a447ce8226826c604b9b9a",
+   "asset_id": "170c42b9bdef025478c80074260210ff",
    "datasets": [
     "c_summary",
     "c_segments",
@@ -59,40 +59,57 @@
   }
  },
  "dataset_versions": {
-  "bookings": 5,
-  "c_csps": 4,
-  "c_segments": 4,
-  "c_summary": 4,
-  "csp_groups": 5,
-  "d_assign_to_install": 5,
-  "d_days": 5,
-  "d_late": 5,
-  "d_live": 5,
-  "d_reasons": 5,
-  "d_steps": 5,
-  "d_stuck": 5,
-  "d_summary": 5,
-  "d_timing": 5,
-  "daily": 5,
-  "exits": 5,
-  "fpn_reach": 5,
-  "fpn_response": 5,
-  "hourly": 5,
-  "offer": 5,
-  "steps": 5,
-  "summary": 5,
-  "trend": 9,
-  "y_activity": 7,
-  "y_compare": 9,
-  "y_flags": 8,
-  "y_funnel": 10,
-  "y_lag": 7,
-  "y_late": 10,
-  "y_leaks": 10,
-  "y_promise": 6,
-  "y_split": 10,
-  "y_summary": 10
+  "bookings": 6,
+  "c_csps": 5,
+  "c_segments": 5,
+  "c_summary": 5,
+  "csp_groups": 6,
+  "d_assign_to_install": 6,
+  "d_days": 6,
+  "d_late": 6,
+  "d_live": 6,
+  "d_reasons": 6,
+  "d_steps": 6,
+  "d_stuck": 6,
+  "d_summary": 6,
+  "d_timing": 6,
+  "daily": 6,
+  "exits": 6,
+  "fpn_reach": 6,
+  "fpn_response": 6,
+  "hourly": 6,
+  "offer": 6,
+  "steps": 6,
+  "summary": 6,
+  "trend": 10,
+  "y_activity": 8,
+  "y_compare": 10,
+  "y_flags": 9,
+  "y_funnel": 11,
+  "y_lag": 8,
+  "y_late": 11,
+  "y_leaks": 11,
+  "y_promise": 7,
+  "y_split": 11,
+  "y_summary": 11,
+  "exit_notes": 1,
+  "d_notes": 1,
+  "y_notes": 1
  },
- "page_version": 19,
- "last_publish": "2026-11-23T15:43+05:30"
+ "page_version": 20,
+ "last_publish": "2026-11-23T16:02+05:30",
+ "new_dataset_meta": {
+  "exit_notes": {
+   "title": "What CSPs typed: overview drop-offs",
+   "description": "Free-text notes CSPs typed when declining or reporting a failure, grouped into themes, per drop-off reason."
+  },
+  "d_notes": {
+   "title": "What CSPs typed: after technician assigned",
+   "description": "Free-text notes for tasks that got a technician but no install, grouped into themes."
+  },
+  "y_notes": {
+   "title": "What CSPs typed: due yesterday",
+   "description": "Free-text notes for tasks due yesterday that were not installed, grouped into themes."
+  }
+ }
 }
