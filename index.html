@@ -224,6 +224,7 @@
 <div class="bj">
   <nav class="bj-tabs" id="bj-tabs" role="tablist" aria-label="Pages">
     <button type="button" class="bj-tab" role="tab" id="tab-overview" aria-controls="overview" aria-selected="true">Overview: install back to FPN</button>
+    <button type="button" class="bj-tab" role="tab" id="tab-october" aria-controls="october" aria-selected="false" tabindex="-1">October</button>
     <button type="button" class="bj-tab" role="tab" id="tab-after-assign" aria-controls="after-assign" aria-selected="false" tabindex="-1">Deep dive: after technician assigned</button>
     <button type="button" class="bj-tab" role="tab" id="tab-daily-tracker" aria-controls="daily-tracker" aria-selected="false" tabindex="-1">Daily tracker</button>
     <button type="button" class="bj-tab" role="tab" id="tab-csp-reschedule" aria-controls="csp-reschedule" aria-selected="false" tabindex="-1">CSP reschedule behaviour</button>
@@ -352,6 +353,124 @@
       <li><b>Installed</b>: the technician submitted the customer's happy code (OTP) and it was verified (<code>AWAITING_CUSTOMER_OTP → RATING_PENDING</code>). That is when the customer's internet goes live. The customer rating that follows is not needed to count as installed.</li>
       <li>“Other (free text)” is the largest failure reason after acceptance. Those notes are not yet categorised.</li>
       <li>This is a fixed snapshot from Snowflake through Metabase. Each source in Sources holds the exact SQL.</li>
+    </ul>
+  </details>
+  </section>
+
+  <section class="bj-page" id="october" data-ds-prefix="o_" hidden>
+  <header class="bj-head" id="o-top" data-ou="0" data-od="0">
+    <div class="bj-eyebrow">Same view as the Overview, for October · install tasks created <span data-draw="num" data-source="o_summary" data-field="cohort_from" data-row="0" data-fmt="date">—</span> to <span data-draw="num" data-source="o_summary" data-field="cohort_to" data-row="0" data-fmt="date">—</span></div>
+    <h1>October 2026</h1>
+    <p class="bj-take" id="o-takeaway"><b data-draw="num" data-source="o_summary" data-field="installed" data-row="0" data-fmt="int" data-fetchpriority="high">—</b> installations came from <b data-draw="num" data-source="o_summary" data-field="tasks" data-row="0" data-fmt="int">—</b> Booking FPNs sent to CSPs, so <b data-draw="num" data-source="o_summary" data-field="install_pct" data-row="0" data-fmt="pct">—</b> of FPNs became an install. Tracing back from the install, the biggest leak is at the very start: <b data-draw="num" data-source="o_summary" data-field="noaction_pct" data-row="0" data-fmt="pct">—</b> of FPNs expired with no response from the CSP.</p>
+  </header>
+
+    <p class="bj-note" id="o-flows"><b>October had two flows.</b> <span data-draw="num" data-source="o_summary" data-field="old_flow_tasks" data-row="0" data-fmt="int">—</span> tasks (<span data-draw="num" data-source="o_summary" data-field="old_flow_pct" data-row="0" data-fmt="pct">—</span>) went through the older flow: the customer confirmed a slot first, and the CSP's decision was to assign a technician, decline, or let the deadline pass. The other <span data-draw="num" data-source="o_summary" data-field="new_flow_tasks" data-row="0" data-fmt="int">—</span>, from about 23 Oct, went through today's flow, where the CSP accepts or declines the Booking FPN. So in this tab “CSP took the task” means accepted the FPN (new flow) or assigned a technician (old flow), and a decline or no-response counts at whichever of those the CSP faced.</p>
+  <div class="bj-kpis" id="o-kpis" data-ou="1" data-od="1">
+    <div class="bj-kpi" id="o-kpi-installed"><span class="v" data-draw="num" data-source="o_summary" data-field="installed" data-row="0" data-fmt="int">—</span><span class="l">Installations</span></div>
+    <div class="bj-kpi" id="o-kpi-offered"><span class="v" data-draw="num" data-source="o_summary" data-field="tasks" data-row="0" data-fmt="int">—</span><span class="l">Booking FPNs sent to CSPs</span></div>
+    <div class="bj-kpi" id="o-kpi-accept"><span class="v" data-draw="num" data-source="o_summary" data-field="accept_pct" data-row="0" data-fmt="pct">—</span><span class="l">FPNs the CSP took (accepted, or assigned a technician)</span></div>
+    <div class="bj-kpi" id="o-kpi-task-install"><span class="v" data-draw="num" data-source="o_summary" data-field="install_pct" data-row="0" data-fmt="pct">—</span><span class="l">Tasks that became an install</span></div>
+    <div class="bj-kpi" id="o-kpi-booking-install"><span class="v" data-draw="num" data-source="o_summary" data-field="booking_install_pct" data-row="0" data-fmt="pct">—</span><span class="l">Bookings installed, after any reassignment</span></div>
+    <div class="bj-kpi" id="o-kpi-time"><span class="v" data-draw="num" data-source="o_summary" data-field="median_e2e_hours" data-row="0" data-fmt="h">—</span><span class="l">Median time from FPN to install</span></div>
+  </div>
+
+  <section class="bj-sec" id="o-journey" data-ou="2" data-od="2">
+    <header>
+      <h2 data-dir-only="up">The journey, traced back from install to FPN</h2>
+      <h2 data-dir-only="down" hidden>The journey, from Booking FPN to install</h2>
+      <p class="muted cap">Read from the top. Each bar is the number of tasks that reached the step; one task is one booking sent to one CSP as a Booking FPN. Press a red “lost” tag to see why tasks dropped between two steps.</p>
+    </header>
+    <div class="bj-dir" data-dirpage="october"><span class="lab">Read this funnel</span><span class="bj-toggle" role="group" aria-label="Funnel direction"><button type="button" class="bj-tbtn" data-dir="up" aria-pressed="true">Install → back to FPN</button><button type="button" class="bj-tbtn" data-dir="down" aria-pressed="false">FPN → forward to install</button></span><span class="cap muted">Flips the steps below. Install at the top, or the Booking FPN at the top.</span></div>
+      <div class="bj-journey" data-draw="journey" data-source="o_steps o_exits o_summary o_exit_notes">—</div>
+  </section>
+
+
+
+
+
+
+  <section class="bj-sec" id="o-reassign" data-ou="3" data-od="7">
+    <header>
+      <h2>Every reassignment costs installs</h2>
+      <p class="muted cap">Bookings by how many CSPs got the FPN, and the share that ended up installed.</p>
+    </header>
+    <div class="bj-card">
+      <div class="bj-chart" data-draw="reassign" data-source="o_bookings" role="img" aria-label="Install rate by number of CSPs the booking was sent to"></div>
+      <p class="bj-note"><span data-draw="num" data-source="o_summary" data-field="bookings_reassigned_pct" data-row="0" data-fmt="pct">—</span> of bookings went to more than one CSP. Later CSPs often get the harder bookings too, such as bad coverage or a customer who has gone cold, so part of this drop is the booking, not the CSP.</p>
+    </div>
+  </section>
+
+  <section class="bj-sec" id="o-who" data-ou="4" data-od="5">
+    <header>
+      <h2>Most unanswered FPNs sit with a small group of CSPs</h2>
+      <p class="muted cap">CSPs grouped by the share of their FPNs they accepted in this window.</p>
+    </header>
+    <div class="bj-card">
+      <div class="bj-hbars" data-draw="cspgroups" data-source="o_csp_groups"></div>
+      <div class="bj-legend"><span><i style="background: var(--cds-chart-muted)"></i>Share of all FPNs</span><span><i style="background: var(--color-bad)"></i>Share of all “no response”</span></div>
+    </div>
+  </section>
+
+  <section class="bj-sec" id="o-hours" data-ou="5" data-od="6">
+    <header>
+      <h2>When the FPN lands</h2>
+      <p class="muted cap">FPNs by hour of day (IST) they reached the CSP. Bars show volume; lines show what share were accepted or got no response.</p>
+    </header>
+    <div class="bj-card">
+      <div class="bj-chart" data-draw="hourly" data-source="o_hourly" role="img" aria-label="FPNs, accept rate and no-response rate by hour of day"></div>
+      <div class="bj-legend"><span><i style="background: var(--cds-chart-grid)"></i>FPNs</span><span><i style="background: var(--color-ok)"></i>Accepted %</span><span><i style="background: var(--color-bad)"></i>No response %</span></div>
+    </div>
+  </section>
+
+  <section class="bj-sec" id="o-decision" data-ou="6" data-od="3">
+    <header>
+      <h2>Back at the start: the Booking FPN and the CSP's decision</h2>
+      <p class="muted cap">What happened to every FPN, and how long it took. “No response” means the FPN hit its deadline and the system took it back.</p>
+    </header>
+    <div class="bj-card" id="o-offer-card">
+      <div class="bj-stack" data-draw="offerstack" data-source="o_offer"></div>
+      <div class="bj-legend" data-draw="offerlegend" data-source="o_offer"></div>
+    </div>
+    <div class="bj-card" id="o-fpn-reach">
+      <div><b>Did the Booking FPN reach the CSP?</b> <span class="muted cap">Share of FPNs sent, from the CSP app's own events</span></div>
+      <div class="bj-reach" data-draw="reach" data-source="o_fpn_reach"></div>
+    </div>
+    <div class="bj-card" id="o-fpn-response">
+      <div><b>Tapping the FPN goes with far more accepts</b> <span class="muted cap">Accepted, no response and installed, as a share of tasks in each group</span></div>
+      <div class="bj-hbars" data-draw="fpnresp" data-source="o_fpn_response"></div>
+      <div class="bj-legend" id="o-fpn-legend"><span><i style="background: var(--color-ok)"></i>Accepted</span><span><i style="background: var(--color-bad)"></i>No response</span><span><i style="background: var(--cds-chart-muted)"></i>Installed</span></div>
+      <p class="bj-note">This shows association, not cause: CSPs who tap are also the ones who were going to act anyway.</p>
+    </div>
+  </section>
+
+  <section class="bj-sec" id="o-daily" data-ou="7" data-od="8">
+    <header>
+      <h2>Day by day</h2>
+      <p class="muted cap">By the day the task was created. Later days have had less time to finish, so their install share can still rise a little.</p>
+    </header>
+    <div class="bj-card">
+      <div class="bj-chart" data-draw="daily" data-source="o_daily" role="img" aria-label="Accepted, no-response and installed share by task creation day"></div>
+      <div class="bj-legend"><span><i style="background: var(--color-ok)"></i>Accepted %</span><span><i style="background: var(--color-bad)"></i>No response %</span><span><i style="background: var(--color-fg)"></i>Installed %</span></div>
+    </div>
+  </section>
+
+  <details id="o-dictionary" data-ou="9" data-od="9">
+    <summary>Event dictionary: which backend and app event marks each step, from install back to FPN</summary>
+    <div class="bj-tablewrap">
+      <table data-source="o_steps" data-row-key="step_no">
+        <thead><tr><th data-field="step_no">#</th><th data-field="step">Step</th><th data-field="actor">Who acts</th><th data-field="backend_event">Backend state change (TAS)</th><th data-field="app_event">CSP app event (CleverTap)</th><th data-field="tasks">Tasks</th></tr></thead>
+        <tbody data-draw="dict"></tbody>
+      </table>
+    </div>
+  </details>
+
+  <details id="o-ov-definitions" data-ou="10" data-od="10">
+    <summary>How the October tab is worked out</summary>
+    <ul class="bj-defs">
+      <li><b>Cohort</b>: every install task created 1–31 Oct 2026 (IST), with outcomes counted up to the last update. This month is fixed; only late outcomes can still change.</li>
+      <li><b>Two flows</b>: until about 23 Oct the customer confirmed a slot first (<code>ASSIGNED → AWAITING_CUSTOMER_SCHEDULE → SLOT_CONFIRMED_BY_CUSTOMER → AWAITING_TECHNICIAN_ASSIGNMENT</code>), and the CSP's decision was at technician assignment. From then on, the CSP accepts or declines the Booking FPN first (<code>AWAITING_CSP_ACCEPTANCE</code>).</li>
+      <li><b>CSP took the task</b>: accepted the FPN (new flow) or assigned a technician (old flow). <b>No response</b>: the deadline passed at that same decision (<code>TIMEOUT_P41</code>).</li>
+      <li>Every other step and definition is the same as the Overview; see the Definitions tab.</li>
     </ul>
   </details>
   </section>
@@ -865,7 +984,8 @@ window.BJ = (function () {
   const numEl = (tag, source, field, where, value, kind, suffix, cls) => { const w = document.createElement(tag); if (cls) w.className = cls; const n = mark(document.createElement('span'), source, field, where); n.textContent = fmt(value, kind); w.append(n); if (suffix) w.append(document.createTextNode(suffix)); return w; };
   const outcomeColor = (o) => ({ 'Accepted': 'var(--color-ok)', 'No response': 'var(--color-bad)', 'Declined': 'var(--color-warn)', 'System cancelled': 'var(--color-bad)', 'CSP declined': 'var(--color-warn)', 'CSP reported failure': 'var(--color-warn)', 'Customer cancelled': 'var(--cds-chart-muted)' })[o] || 'var(--cds-chart-muted)';
   const failed = (el, st) => { const p = document.createElement('div'); p.className = 'bj-fail'; p.textContent = st === 'error' ? 'Failed to load' : '—'; el.replaceChildren(p); };
-  return { fmt, dur, mark, tipper, tipFor, enc, numEl, outcomeColor, failed };
+  const P = (el) => (el && el.closest && el.closest('[data-ds-prefix]') && el.closest('[data-ds-prefix]').getAttribute('data-ds-prefix')) || '';
+  return { fmt, dur, mark, tipper, tipFor, enc, numEl, outcomeColor, failed, P };
 })();
 
 // Single figures anywhere on the page.
@@ -880,7 +1000,7 @@ dash.draw('num', (el) => {
 dash.draw('journey', {
   mount(el) { return { open: new Set([1]) }; },
   update(el, state) {
-    const S = dash.data('steps'), E = dash.data('exits'), M = dash.data('summary');
+    const S = dash.data(BJ.P(el) + 'steps'), E = dash.data(BJ.P(el) + 'exits'), M = dash.data(BJ.P(el) + 'summary');
     if (S.status !== 'ok' || E.status !== 'ok' || M.status !== 'ok') { BJ.failed(el, [S, E, M].some(x => x.status === 'error') ? 'error' : 'loading'); return; }
     const steps = S.data, exits = E.data, total = +steps[0].tasks;
     const first = !el.dataset.drawn; el.dataset.drawn = '1';
@@ -904,15 +1024,15 @@ dash.draw('journey', {
       bar.style.width = Math.max(0.4, 100 * s.tasks / total) + '%';
       bar.style.setProperty('--bj-c', +s.step_no === steps.length ? 'var(--color-ok)' : actorColor[s.actor]);
       const bl = document.createElement('div'); bl.className = 'bj-barlabel';
-      const blab = BJ.mark(document.createElement('span'), 'steps', 'tasks', 'step_no=' + s.step_no); blab.textContent = BJ.fmt(s.tasks, 'int');
+      const blab = BJ.mark(document.createElement('span'), BJ.P(el) + 'steps', 'tasks', 'step_no=' + s.step_no); blab.textContent = BJ.fmt(s.tasks, 'int');
       bl.append(blab); tr.append(bar, bl);
       bar.addEventListener('pointermove', (e) => tip.show(e, [s.step, BJ.fmt(s.tasks, 'int') + ' tasks', BJ.fmt(s.pct_of_offered, 'pct') + ' of FPNs sent', s.pct_of_prev !== null ? BJ.fmt(s.pct_of_prev, 'pct') + ' of the previous step' : 'Where every task starts', s.backend_event]));
       bar.addEventListener('pointerleave', () => tip.hide());
 
       const stats = document.createElement('div'); stats.className = 'bj-stats';
-      const a = BJ.numEl('div', 'steps', 'pct_of_offered', 'step_no=' + s.step_no, s.pct_of_offered, 'pct', ' of FPNs sent', 'big');
+      const a = BJ.numEl('div', BJ.P(el) + 'steps', 'pct_of_offered', 'step_no=' + s.step_no, s.pct_of_offered, 'pct', ' of FPNs sent', 'big');
       stats.append(a);
-      if (s.pct_of_prev !== null) stats.append(BJ.numEl('div', 'steps', 'pct_of_prev', 'step_no=' + s.step_no, s.pct_of_prev, 'pct', ' of the previous step', 'muted'));
+      if (s.pct_of_prev !== null) stats.append(BJ.numEl('div', BJ.P(el) + 'steps', 'pct_of_prev', 'step_no=' + s.step_no, s.pct_of_prev, 'pct', ' of the previous step', 'muted'));
       if (s.median_min_from_prev !== null) { const c = document.createElement('div'); c.className = 'muted'; c.textContent = BJ.dur(s.median_min_from_prev) + ' after the previous step (median)' + (s.p90_min_from_prev !== null ? ' · p90 ' + BJ.dur(s.p90_min_from_prev) : ''); stats.append(c); }
       row.append(st, tr, stats);
       return row;
@@ -924,10 +1044,10 @@ dash.draw('journey', {
       const box = document.createElement('div'); box.className = 'bj-why'; box.id = 'why-' + stageNo;
       const h = document.createElement('div'); h.className = 'cap muted'; h.textContent = title; box.append(h);
       const max = d3.max(rows, x => +x.tasks) || 1;
-      const EN = dash.data('exit_notes'); const en = EN.status === 'ok' ? EN.data : [];
+      const EN = dash.data(BJ.P(el) + 'exit_notes'); const en = EN.status === 'ok' ? EN.data : [];
       rows.forEach(x => {
-        box.append(...BJ.reasonRow({ key: 'ov|' + stageNo + '|' + x.outcome + '|' + x.reason, reason: x.reason, sub: x.outcome + ' · ' + (100 * x.tasks / sum).toFixed(1) + '% of tasks lost here', tasks: +x.tasks, max: max, color: BJ.outcomeColor(x.outcome),
-          mark: ['exits', 'stage_no=' + stageNo + '&reason=' + BJ.enc(x.reason) + '&outcome=' + BJ.enc(x.outcome)],
+        box.append(...BJ.reasonRow({ key: BJ.P(el) + 'ov|' + stageNo + '|' + x.outcome + '|' + x.reason, reason: x.reason, sub: x.outcome + ' · ' + (100 * x.tasks / sum).toFixed(1) + '% of tasks lost here', tasks: +x.tasks, max: max, color: BJ.outcomeColor(x.outcome),
+          mark: [BJ.P(el) + 'exits', 'stage_no=' + stageNo + '&reason=' + BJ.enc(x.reason) + '&outcome=' + BJ.enc(x.outcome)],
           notes: en.filter((q) => +q.stage_no === stageNo && q.outcome === x.outcome && q.reason === x.reason), draw: 'journey' }));
       });
       return box;
@@ -984,11 +1104,11 @@ dash.draw('journey', {
 
 // Offer outcome stacked bar + legend.
 dash.draw('offerstack', (el) => {
-  const d = dash.data('offer');
+  const d = dash.data(BJ.P(el) + 'offer');
   if (d.status !== 'ok') { el.replaceChildren(); return; }
   const total = d3.sum(d.data, r => +r.tasks);
   el.replaceChildren(...d.data.map(r => {
-    const s = BJ.mark(document.createElement('div'), 'offer', 'pct', 'outcome=' + r.outcome);
+    const s = BJ.mark(document.createElement('div'), BJ.P(el) + 'offer', 'pct', 'outcome=' + r.outcome);
     s.style.width = (100 * r.tasks / total) + '%'; s.style.background = BJ.outcomeColor(r.outcome);
     s.textContent = r.pct >= 6 ? BJ.fmt(r.pct, 'pct') : '';
     s.title = r.outcome + ': ' + BJ.fmt(r.tasks, 'int') + ' tasks (' + BJ.fmt(r.pct, 'pct') + ')';
@@ -996,12 +1116,12 @@ dash.draw('offerstack', (el) => {
   }));
 });
 dash.draw('offerlegend', (el) => {
-  const d = dash.data('offer');
+  const d = dash.data(BJ.P(el) + 'offer');
   if (d.status !== 'ok') { el.replaceChildren(); return; }
   el.replaceChildren(...d.data.map(r => {
     const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = BJ.outcomeColor(r.outcome);
     const t = document.createElement('span'); t.textContent = r.outcome + ' ';
-    const b = BJ.mark(document.createElement('b'), 'offer', 'tasks', 'outcome=' + r.outcome); b.textContent = BJ.fmt(r.tasks, 'int');
+    const b = BJ.mark(document.createElement('b'), BJ.P(el) + 'offer', 'tasks', 'outcome=' + r.outcome); b.textContent = BJ.fmt(r.tasks, 'int');
     s.append(i, t, b);
     if (r.median_min !== null) { const m = document.createElement('span'); m.className = 'muted'; m.textContent = ' · median ' + BJ.dur(r.median_min); s.append(m); }
     return s;
@@ -1010,32 +1130,32 @@ dash.draw('offerlegend', (el) => {
 
 // FPN reach strip.
 dash.draw('reach', (el) => {
-  const d = dash.data('fpn_reach');
+  const d = dash.data(BJ.P(el) + 'fpn_reach');
   if (d.status !== 'ok') { el.replaceChildren(); return; }
   const r = d.data[0];
   const items = [['fpn_pushed', 'Push sent', 'var(--cds-chart-muted)'], ['fpn_rendered', 'Full-page popup shown', dash.colors[0]], ['fpn_tapped', 'CSP tapped the popup', 'var(--color-ok)'], ['fpn_dismissed', 'CSP dismissed it', 'var(--color-warn)'], ['task_opened', 'Task opened in app (any route)', dash.colors[1] || dash.colors[0]]];
   el.replaceChildren(...items.map(([k, lab, c]) => {
     const box = document.createElement('div');
-    const v = BJ.mark(document.createElement('div'), 'fpn_reach', k + '_pct', null); v.setAttribute('data-row', '0'); v.className = 'rv'; v.textContent = BJ.fmt(r[k + '_pct'], 'pct');
+    const v = BJ.mark(document.createElement('div'), BJ.P(el) + 'fpn_reach', k + '_pct', null); v.setAttribute('data-row', '0'); v.className = 'rv'; v.textContent = BJ.fmt(r[k + '_pct'], 'pct');
     const bar = document.createElement('div'); bar.className = 'rb'; const i = document.createElement('i'); i.style.width = r[k + '_pct'] + '%'; i.style.setProperty('--bj-c', c); bar.append(i);
-    const l = BJ.numEl('div', 'fpn_reach', k, null, r[k], 'int', '', 'cap muted'); l.firstChild.setAttribute('data-row', '0'); l.prepend(document.createTextNode(lab + ' · '));
+    const l = BJ.numEl('div', BJ.P(el) + 'fpn_reach', k, null, r[k], 'int', '', 'cap muted'); l.firstChild.setAttribute('data-row', '0'); l.prepend(document.createTextNode(lab + ' · '));
     box.append(v, bar, l); return box;
   }));
 });
 
 // Outcomes by FPN response.
 dash.draw('fpnresp', (el) => {
-  const d = dash.data('fpn_response');
+  const d = dash.data(BJ.P(el) + 'fpn_response');
   if (d.status !== 'ok') { el.replaceChildren(); return; }
   const series = [['accept_pct', 'var(--color-ok)'], ['no_response_pct', 'var(--color-bad)'], ['install_pct', 'var(--cds-chart-muted)']];
   el.replaceChildren(...d.data.map(r => {
     const row = document.createElement('div'); row.className = 'bj-hbar';
     const l = document.createElement('div'); l.className = 'lbl'; const t = document.createElement('span'); t.textContent = r.fpn_response;
-    const sm = BJ.numEl('small', 'fpn_response', 'tasks', 'fpn_response=' + BJ.enc(r.fpn_response), r.tasks, 'int', ' tasks'); l.append(t, sm);
+    const sm = BJ.numEl('small', BJ.P(el) + 'fpn_response', 'tasks', 'fpn_response=' + BJ.enc(r.fpn_response), r.tasks, 'int', ' tasks'); l.append(t, sm);
     const bars = document.createElement('div'); bars.className = 'bars';
     series.forEach(([k, c]) => {
       const b = document.createElement('div'); b.className = 'b'; const i = document.createElement('i'); i.style.width = (0.8 * r[k]) + '%'; i.style.background = c;
-      const s = BJ.mark(document.createElement('span'), 'fpn_response', k, 'fpn_response=' + BJ.enc(r.fpn_response)); s.textContent = BJ.fmt(r[k], 'pct');
+      const s = BJ.mark(document.createElement('span'), BJ.P(el) + 'fpn_response', k, 'fpn_response=' + BJ.enc(r.fpn_response)); s.textContent = BJ.fmt(r[k], 'pct');
       b.append(i, s); bars.append(b);
     });
     row.append(l, bars); return row;
@@ -1044,20 +1164,20 @@ dash.draw('fpnresp', (el) => {
 
 // CSP groups: share of offers vs share of no-response.
 dash.draw('cspgroups', (el) => {
-  const d = dash.data('csp_groups');
+  const d = dash.data(BJ.P(el) + 'csp_groups');
   if (d.status !== 'ok') { el.replaceChildren(); return; }
   el.replaceChildren(...d.data.map(r => {
     const row = document.createElement('div'); row.className = 'bj-hbar';
     const l = document.createElement('div'); l.className = 'lbl'; const t = document.createElement('span'); t.textContent = r.csp_group;
-    const sm = document.createElement('small'); const c1 = BJ.mark(document.createElement('span'), 'csp_groups', 'csps', 'csp_group=' + BJ.enc(r.csp_group)); c1.textContent = BJ.fmt(r.csps, 'int');
+    const sm = document.createElement('small'); const c1 = BJ.mark(document.createElement('span'), BJ.P(el) + 'csp_groups', 'csps', 'csp_group=' + BJ.enc(r.csp_group)); c1.textContent = BJ.fmt(r.csps, 'int');
     const c2 = document.createElement('span'); c2.textContent = ' CSPs · installs ';
-    const c3 = BJ.mark(document.createElement('span'), 'csp_groups', 'install_pct', 'csp_group=' + BJ.enc(r.csp_group)); c3.textContent = BJ.fmt(r.install_pct, 'pct');
+    const c3 = BJ.mark(document.createElement('span'), BJ.P(el) + 'csp_groups', 'install_pct', 'csp_group=' + BJ.enc(r.csp_group)); c3.textContent = BJ.fmt(r.install_pct, 'pct');
     const c4 = document.createElement('span'); c4.textContent = ' of tasks';
     sm.append(c1, c2, c3, c4); l.append(t, sm);
     const bars = document.createElement('div'); bars.className = 'bars';
     [['share_of_tasks', 'var(--cds-chart-muted)', ' of FPNs'], ['share_of_no_response', 'var(--color-bad)', ' of no-response']].forEach(([k, c, suf]) => {
       const b = document.createElement('div'); b.className = 'b'; const i = document.createElement('i'); i.style.width = (0.8 * r[k]) + '%'; i.style.background = c;
-      const s = BJ.mark(document.createElement('span'), 'csp_groups', k, 'csp_group=' + BJ.enc(r.csp_group)); s.textContent = BJ.fmt(r[k], 'pct');
+      const s = BJ.mark(document.createElement('span'), BJ.P(el) + 'csp_groups', k, 'csp_group=' + BJ.enc(r.csp_group)); s.textContent = BJ.fmt(r[k], 'pct');
       const s2 = document.createElement('span'); s2.className = 'muted'; s2.textContent = suf;
       b.append(i, s, s2); bars.append(b);
     });
@@ -1067,7 +1187,7 @@ dash.draw('cspgroups', (el) => {
 
 // Reassignment: install % by CSPs tried (SVG bars).
 dash.draw('reassign', (el) => {
-  const d = dash.data('bookings');
+  const d = dash.data(BJ.P(el) + 'bookings');
   if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
   const rows = d.data, W = el.clientWidth || 600, H = 230, m = { t: 24, r: 8, b: 44, l: 36 };
   const x = d3.scaleBand().domain(rows.map(r => r.csps_tried)).range([m.l, W - m.r]).padding(0.28);
@@ -1082,14 +1202,14 @@ dash.draw('reassign', (el) => {
     .on('pointermove', (e, r) => tip.show(e, [r.csps_tried === '1' ? 'Sent to 1 CSP' : 'Sent to ' + r.csps_tried + ' CSPs', BJ.fmt(r.bookings, 'int') + ' bookings', BJ.fmt(r.installed, 'int') + ' installed (' + BJ.fmt(r.install_pct, 'pct') + ')']))
     .on('pointerleave', () => tip.hide());
   g.append('text').attr('x', r => x(r.csps_tried) + x.bandwidth() / 2).attr('y', r => y(r.install_pct) - 6).attr('text-anchor', 'middle').style('fill', 'var(--color-fg)').style('font-weight', 600).text(r => BJ.fmt(r.install_pct, 'pct'))
-    .attr('data-source', 'bookings').attr('data-field', 'install_pct').attr('data-where', r => 'csps_tried=' + BJ.enc(r.csps_tried));
+    .attr('data-source', BJ.P(el) + 'bookings').attr('data-field', 'install_pct').attr('data-where', r => 'csps_tried=' + BJ.enc(r.csps_tried));
   g.append('text').attr('x', r => x(r.csps_tried) + x.bandwidth() / 2).attr('y', H - 10).attr('text-anchor', 'middle').text(r => BJ.fmt(r.bookings, 'int') + ' bookings');
   el.replaceChildren(svg.node());
 });
 
 // Hourly: volume bars + accept / no-response lines.
 dash.draw('hourly', (el) => {
-  const d = dash.data('hourly');
+  const d = dash.data(BJ.P(el) + 'hourly');
   if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
   const rows = d.data.map(r => ({ ...r, hour: +r.hour })), W = el.clientWidth || 600, H = 240, m = { t: 14, r: 40, b: 28, l: 36 };
   const x = d3.scaleBand().domain(d3.range(24)).range([m.l, W - m.r]).padding(0.15);
@@ -1115,7 +1235,7 @@ dash.draw('hourly', (el) => {
 
 // Daily cohort lines.
 dash.draw('daily', (el) => {
-  const d = dash.data('daily');
+  const d = dash.data(BJ.P(el) + 'daily');
   if (d.status !== 'ok') { BJ.failed(el, d.status); return; }
   const parse = s => new Date(s + 'T00:00:00Z');
   const rows = d.data.map(r => ({ ...r, dt: parse(r.date) })), W = el.clientWidth || 600, H = 240, m = { t: 16, r: 60, b: 28, l: 36 };
@@ -1130,7 +1250,7 @@ dash.draw('daily', (el) => {
     svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', r => x(r.dt)).attr('cy', r => y(r[k])).attr('r', 2.5).style('fill', c);
     const last = rows[rows.length - 1];
     svg.append('text').attr('x', x(last.dt) + 6).attr('y', y(last[k]) + 4).style('fill', c).style('font-weight', 600).text(BJ.fmt(last[k], 'pct'))
-      .attr('data-source', 'daily').attr('data-field', k).attr('data-where', 'date=' + last.date);
+      .attr('data-source', BJ.P(el) + 'daily').attr('data-field', k).attr('data-where', 'date=' + last.date);
   });
   const tip = BJ.tipFor(el);
   const bw = (W - m.l - m.r) / Math.max(1, rows.length - 1);
@@ -1142,7 +1262,7 @@ dash.draw('daily', (el) => {
 
 // Event dictionary table body.
 dash.draw('dict', (el) => {
-  const d = dash.data('steps');
+  const d = dash.data(BJ.P(el) + 'steps');
   if (d.status !== 'ok') { el.replaceChildren(); return; }
   el.replaceChildren(...d.data.slice().reverse().map(r => {
     const tr = document.createElement('tr');
@@ -2133,6 +2253,7 @@ window.BJ_REASON_HELP = {
   'Waiting for CSP to accept': 'The Booking FPN was with the CSP and they had not answered yet.',
   'FPN sent, waiting for CSP': 'The Booking FPN was sent and the CSP had not answered yet.',
   'Address unclear': 'The CSP could not work out the customer’s address.',
+  'Booking request expired': 'The booking request itself expired before anyone could act on it (REQUEST_EXPIRED).',
   'Selfie done, Aadhaar pending': 'The technician reached the home and took the selfie, but the Aadhaar step was not done.',
   'On site, KYC in progress': 'The technician was at the home doing the selfie and Aadhaar steps.',
   'On site, setup in progress': 'The technician was at the home setting up the device.',
@@ -2179,4 +2300,18 @@ BJ.reasonRow = function (o) {
   }
   return [r, det];
 };
+</script>
+
+<script>
+dash.loader('o_summary', { description: 'October: summary', fn: ({ answer }) => { const s = answer.datasets.o_summary; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_steps', { description: 'October: steps', fn: ({ answer }) => { const s = answer.datasets.o_steps; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_exits', { description: 'October: exits', fn: ({ answer }) => { const s = answer.datasets.o_exits; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_offer', { description: 'October: offer', fn: ({ answer }) => { const s = answer.datasets.o_offer; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_fpn_reach', { description: 'October: fpn_reach', fn: ({ answer }) => { const s = answer.datasets.o_fpn_reach; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_fpn_response', { description: 'October: fpn_response', fn: ({ answer }) => { const s = answer.datasets.o_fpn_response; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_csp_groups', { description: 'October: csp_groups', fn: ({ answer }) => { const s = answer.datasets.o_csp_groups; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_bookings', { description: 'October: bookings', fn: ({ answer }) => { const s = answer.datasets.o_bookings; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_hourly', { description: 'October: hourly', fn: ({ answer }) => { const s = answer.datasets.o_hourly; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_daily', { description: 'October: daily', fn: ({ answer }) => { const s = answer.datasets.o_daily; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('o_exit_notes', { description: 'October: exit_notes', fn: ({ answer }) => { const s = answer.datasets.o_exit_notes; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
 </script>

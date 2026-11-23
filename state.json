@@ -56,6 +56,23 @@
     "c_segments",
     "c_csps"
    ]
+  },
+  "b2i_oct_snapshot.json": {
+   "asset_id": null,
+   "datasets": [
+    "o_summary",
+    "o_steps",
+    "o_offer",
+    "o_fpn_reach",
+    "o_exits",
+    "o_fpn_response",
+    "o_bookings",
+    "o_csp_groups",
+    "o_hourly",
+    "o_daily",
+    "o_exit_notes"
+   ],
+   "static": true
   }
  },
  "dataset_versions": {
@@ -110,6 +127,50 @@
   "y_notes": {
    "title": "What CSPs typed: due yesterday",
    "description": "Free-text notes for tasks due yesterday that were not installed, grouped into themes."
+  },
+  "o_summary": {
+   "title": "October: summary",
+   "description": "Same as the Overview dataset \"summary\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_steps": {
+   "title": "October: steps",
+   "description": "Same as the Overview dataset \"steps\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_offer": {
+   "title": "October: offer",
+   "description": "Same as the Overview dataset \"offer\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_fpn_reach": {
+   "title": "October: fpn reach",
+   "description": "Same as the Overview dataset \"fpn_reach\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_exits": {
+   "title": "October: exits",
+   "description": "Same as the Overview dataset \"exits\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_fpn_response": {
+   "title": "October: fpn response",
+   "description": "Same as the Overview dataset \"fpn_response\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_bookings": {
+   "title": "October: bookings",
+   "description": "Same as the Overview dataset \"bookings\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_csp_groups": {
+   "title": "October: csp groups",
+   "description": "Same as the Overview dataset \"csp_groups\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_hourly": {
+   "title": "October: hourly",
+   "description": "Same as the Overview dataset \"hourly\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_daily": {
+   "title": "October: daily",
+   "description": "Same as the Overview dataset \"daily\", for install tasks created 1\u201331 Oct 2026."
+  },
+  "o_exit_notes": {
+   "title": "October: exit notes",
+   "description": "Same as the Overview dataset \"exit_notes\", for install tasks created 1\u201331 Oct 2026."
   }
  }
 }

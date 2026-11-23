@@ -3,13 +3,14 @@
   python3 make_batch.py commit     -> after the batch succeeded: bumps stored versions, records new asset ids, prints old asset ids to delete
 If the batch is refused for a version mismatch, list collection "datasets", copy the versions shown into state.json "dataset_versions", and prepare again."""
 import json, sys, datetime
-key={'overview':'b2i_snapshot.json','deep':'b2i_deep_snapshot.json','yesterday':'b2i_yesterday_snapshot.json','csp':'b2i_csp_snapshot.json'}
+key={'overview':'b2i_snapshot.json','deep':'b2i_deep_snapshot.json','yesterday':'b2i_yesterday_snapshot.json','csp':'b2i_csp_snapshot.json','october':'b2i_oct_snapshot.json'}
 st=json.load(open('state.json'))
 if sys.argv[1]=='prepare':
     new=dict(a.split('=') for a in sys.argv[2:])
     now=datetime.datetime.now().astimezone().isoformat(timespec='minutes')
     writes=[]
     for k,fname in key.items():
+        if k not in new: continue   # file not re-uploaded this time (e.g. the fixed October month)
         for ds in st['files'][fname]['datasets']:
             if ds in st['dataset_versions']:
                 writes.append({'op':'update','collection':'datasets','doc_id':ds,'if_version':st['dataset_versions'][ds],
@@ -19,14 +20,14 @@ if sys.argv[1]=='prepare':
                 writes.append({'op':'set','collection':'datasets','doc_id':ds,
                                'data':{'title':meta['title'],'description':meta['description'],'source':{'kind':'file','url':'/_blob/'+new[k],'name':fname,'format':'json'},
                                        'updated':{'at':now,'by':'Claude (Metabase / Snowflake snapshot)'},'fixed':True}})
-    st['pending']={key[k]:new[k] for k in key}
+    st['pending']={key[k]:new[k] for k in key if k in new}
     json.dump(st,open('state.json','w'),indent=1)
     print(json.dumps(writes))
 elif sys.argv[1]=='commit':
     pend=st.pop('pending'); old=[]
     for fname,nid in pend.items():
         ent=st['files'][fname]
-        if ent['asset_id']!=nid: old.append(ent['asset_id'])
+        if ent.get('asset_id') and ent['asset_id']!=nid: old.append(ent['asset_id'])
         ent['asset_id']=nid
         for ds in ent['datasets']: st['dataset_versions'][ds]=st['dataset_versions'].get(ds,0)+1
     st['last_publish']=datetime.datetime.now().astimezone().isoformat(timespec='minutes')

@@ -1,0 +1,47 @@
+WITH tl AS (
+  SELECT execution_candidate_id ec, from_state f, to_state t, reason_code rc, actor_type a, occurred_at ts
+  FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG WHERE NOT _FIVETRAN_DELETED
+),
+cohort AS (
+  SELECT ec, MIN(ts) created_at FROM tl WHERE t='ASSIGNED' AND f IS NULL GROUP BY 1
+  HAVING TO_DATE(DATEADD(minute,330,MIN(ts))) BETWEEN '2026-10-01' AND '2026-10-31'
+),
+ct AS (
+  SELECT PARSE_JSON(properties):execution_id::STRING ec, event_name e, PARSE_JSON(properties):action::STRING act, TRY_TO_TIMESTAMP(timestamp) ts
+  FROM PROD_DB.CLEVERTAP_CSP_API.EVENTS_DATA
+  WHERE event_name IN ('fpn_delivered','fpn_action_taken','install_candidate_opened','install_task_created')
+    AND TRY_TO_TIMESTAMP(timestamp) >= '2026-09-28' AND TRY_TO_TIMESTAMP(timestamp) < '2026-11-25'
+),
+ctf AS (
+  SELECT ec, MAX(IFF(e='install_task_created',1,0)) pushed, MAX(IFF(e='fpn_delivered',1,0)) fpn_seen,
+    MAX(IFF(e='fpn_action_taken' AND act='primary_cta',1,0)) fpn_cta, MAX(IFF(e='fpn_action_taken' AND act<>'primary_cta',1,0)) fpn_dismiss,
+    MAX(IFF(e='install_candidate_opened',1,0)) opened
+  FROM ct GROUP BY 1
+),
+f AS (
+  SELECT c.ec, c.created_at,
+   -- October mixes two flows. New (from ~23 Oct): CSP accepts the FPN. Old: customer confirms a slot, then the CSP's decision is assigning a technician.
+   IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1,1,0) old_flow,
+   MIN(IFF(t='ASSIGNED',ts,NULL)) t_offer,
+   COALESCE(MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t IN ('AWAITING_TECHNICIAN_ASSIGNMENT','AWAITING_SLOT_PROPOSAL'),ts,NULL)), IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1, MIN(IFF(t='TECHNICIAN_ASSIGNED',ts,NULL)), NULL)) t_acc,
+   COALESCE(MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='DECLINED',ts,NULL)), IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1, MIN(IFF(f='AWAITING_TECHNICIAN_ASSIGNMENT' AND t='DECLINED',ts,NULL)), NULL)) t_dec,
+   COALESCE(MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND rc='TIMEOUT_P41',ts,NULL)), IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1, MIN(IFF(f='AWAITING_TECHNICIAN_ASSIGNMENT' AND rc='TIMEOUT_P41',ts,NULL)), NULL)) t_noact,
+   COALESCE(MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='CANCELLED_BY_CUSTOMER',ts,NULL)), IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1, MIN(IFF(f IN ('AWAITING_TECHNICIAN_ASSIGNMENT','AWAITING_CUSTOMER_SCHEDULE','SLOT_CONFIRMED_BY_CUSTOMER','ASSIGNED') AND t='CANCELLED_BY_CUSTOMER',ts,NULL)), NULL)) t_pre_cxcan,
+   MIN(IFF(t='TECHNICIAN_ASSIGNED',ts,NULL)) t_asg,
+   MIN(IFF(t='ARRIVED_AT_SITE',ts,NULL)) t_arr,
+   MIN(IFF(t='FEE_COLLECTION_PENDING',ts,NULL)) t_kyc,
+   MIN(IFF(f='FEE_COLLECTION_PENDING' AND t='INSTALLATION_IN_PROGRESS_POST_FEE',ts,NULL)) t_fee,
+   MIN(IFF(t='AWAITING_CUSTOMER_OTP',ts,NULL)) t_setup,
+   MIN(IFF(t='RATING_PENDING',ts,NULL)) t_otp,
+   MIN(IFF(t IN ('RATING_PENDING','CONNECTION_ACTIVE'),ts,NULL)) t_act,
+   MAX_BY(t, ts) last_state, MAX_BY(f, ts) last_from, MAX_BY(rc, ts) last_rc
+  FROM cohort c JOIN tl ON tl.ec=c.ec GROUP BY 1,2
+),
+x AS (SELECT f.*, COALESCE(ctf.pushed,0) pushed, COALESCE(ctf.fpn_seen,0) fpn_seen, COALESCE(ctf.fpn_cta,0) fpn_cta, COALESCE(ctf.fpn_dismiss,0) fpn_dismiss, COALESCE(ctf.opened,0) opened FROM f LEFT JOIN ctf ON ctf.ec=f.ec)
+SELECT COUNT(*) tasks, SUM(old_flow) old_flow_tasks, SUM(IFF(t_offer IS NOT NULL,1,0)) offered, SUM(pushed) pushed, SUM(fpn_seen) fpn_seen, SUM(fpn_cta) fpn_cta, SUM(IFF(fpn_dismiss=1 AND fpn_cta=0,1,0)) fpn_dismiss_only, SUM(opened) opened,
+ SUM(IFF(t_acc IS NOT NULL,1,0)) accepted, SUM(IFF(t_dec IS NOT NULL,1,0)) declined, SUM(IFF(t_noact IS NOT NULL,1,0)) no_action, SUM(IFF(t_pre_cxcan IS NOT NULL,1,0)) cx_cancel_pre,
+ SUM(IFF(t_offer IS NOT NULL AND t_acc IS NULL AND t_dec IS NULL AND t_noact IS NULL AND t_pre_cxcan IS NULL,1,0)) pending_offer,
+ SUM(IFF(t_asg IS NOT NULL,1,0)) assigned, SUM(IFF(t_arr IS NOT NULL,1,0)) arrived, SUM(IFF(t_kyc IS NOT NULL,1,0)) kyc, SUM(IFF(t_fee IS NOT NULL,1,0)) fee, SUM(IFF(t_setup IS NOT NULL,1,0)) setup, SUM(IFF(t_otp IS NOT NULL,1,0)) happy_code, SUM(IFF(t_act IS NOT NULL,1,0)) active,
+ MEDIAN(DATEDIFF(minute,t_offer,t_acc)) m_accept, MEDIAN(DATEDIFF(minute,t_offer,t_dec)) m_decline, MEDIAN(DATEDIFF(minute,t_offer,t_noact)) m_noact, MEDIAN(DATEDIFF(minute,t_acc,t_asg)) m_assign, MEDIAN(DATEDIFF(minute,t_asg,t_arr)) m_arrive, MEDIAN(DATEDIFF(minute,t_arr,t_otp)) m_onsite, MEDIAN(DATEDIFF(minute,t_offer,t_act)) m_e2e,
+ APPROX_PERCENTILE(DATEDIFF(minute,t_offer,t_acc),0.9) p90_accept, APPROX_PERCENTILE(DATEDIFF(minute,t_acc,t_asg),0.9) p90_assign, APPROX_PERCENTILE(DATEDIFF(minute,t_asg,t_arr),0.9) p90_arrive, APPROX_PERCENTILE(DATEDIFF(minute,t_offer,t_act),0.9) p90_e2e
+FROM x

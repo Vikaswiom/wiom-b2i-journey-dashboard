@@ -9,3 +9,9 @@ __pycache__/
 /b2i_*.json
 index_before_*.html
 p_*.js
+october/raw.json
+october/b2i_snapshot.json
+october/q.py
+october/notes.py
+october/build.py
+october/shape.py

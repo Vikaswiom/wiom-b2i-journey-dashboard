@@ -48,7 +48,8 @@ stage_lab={'1':'After FPN','2':'After accept','3':'After tech assigned','4':'Aft
 out_lab={'CANCELLED_BY_UPSTREAM':'System cancelled','DECLINED':'CSP declined','INSTALLATION_REPORTED_FAILED':'CSP reported failure','CANCELLED_BY_CUSTOMER':'Customer cancelled'}
 rc_lab={'TIMEOUT_P41':'No response before deadline','CSP_NO_SHOW':'Timed out, task not moved','COVERAGE_NOT_FEASIBLE':'No coverage at address','OTHER':'Other (free text)',
  'DEVICE_UNAVAILABLE':'No Netbox in hand','CUSTOMER_CANCELLED':'Customer cancelled (per CSP)','USER_CANCELLATION':'Customer cancelled in app',
- 'CUSTOMER_UNREACHABLE':'Customer unreachable','CANCEL_BY_CUSTOMER_BACKEND':'Cancelled by ops','SUSPENDED':'CSP suspended'}
+ 'CUSTOMER_UNREACHABLE':'Customer unreachable','CANCEL_BY_CUSTOMER_BACKEND':'Cancelled by ops','SUSPENDED':'CSP suspended',
+ 'ADDRESS_UNCLEAR':'Address unclear','NO_INSTALLER_AVAILABLE':'No installer available','REQUEST_EXPIRED':'Booking request expired'}
 agg={}; note_rows=[]
 for r in S['exits']['rows']:
     st=r['stage'][0]
