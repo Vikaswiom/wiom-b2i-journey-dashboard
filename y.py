@@ -1,4 +1,4 @@
-import json, subprocess, urllib.request, datetime
+import json, subprocess, urllib.request, datetime, notes
 import os
 key = os.environ.get('METABASE_API_KEY') or subprocess.check_output(['security','find-generic-password','-s','wiom-metabase-api-key','-w']).decode().strip()
 def run(sql):
@@ -42,7 +42,7 @@ rc_lab={'TIMEOUT_P41':'FPN deadline passed','COVERAGE_NOT_FEASIBLE':'No coverage
  'HOLD_FOR_CSP_ACCEPTANCE':'Waiting for CSP to accept','ALLOCATION_ASSIGNED':'FPN sent, waiting for CSP','TECHNICIAN_CHANGED':'Technician changed','STEP_SPEED_TEST_SUBMITTED':'On site, happy code pending',
  'STEP_SHARED_SUBMITTED':'On site, setup in progress','STEP_SELFIE_SUBMITTED_BY_CSP':'On site, KYC in progress','-':'—'}
 flags=['acc_eod','asg_eod','arr_eod','inst_eod']
-leaks={}
+leaks={}; note_rows=[]
 for r in D:
     if r['inst_eod']==1: continue
     lvl=0
@@ -51,6 +51,7 @@ for r in D:
     # lvl = highest step reached (0=due only). leak sits between step lvl+1 and lvl+2 (1-indexed steps)
     k=(lvl+1, r['day_outcome'], rc_lab.get(r['eod_rc'],r['eod_rc']))
     leaks[k]=leaks.get(k,0)+r['tasks']
+    note_rows.append(dict(from_step=k[0],outcome=k[1],reason=k[2],note=r.get('note'),n=r['tasks']))
 leaks=[dict(from_step=k[0],outcome=k[1],reason=k[2],tasks=v) for k,v in sorted(leaks.items(),key=lambda kv:(kv[0][0],-kv[1]))]
 summary=dict(date=str(yday),installs=tot,x=split[0]['installs']+split[1]['installs'],x_on_day=split[0]['installs'],x_early=split[1]['installs'],
   y=split[2]['installs']+split[3]['installs'],y_on_time=split[2]['installs'],y_late=split[3]['installs'],y_early=S([r for r in rs if r['timing']=='Before slot day']),y_on_day=S([r for r in rs if r['timing']=='On slot day']),y_on_time_pct=r1(100*split[2]['installs']/tot),y_late_pct=r1(100*split[3]['installs']/tot),z=split[4]['installs'],
@@ -60,8 +61,8 @@ summary=dict(date=str(yday),installs=tot,x=split[0]['installs']+split[1]['instal
   due=due,accepted=funnel[1]['tasks'],assigned=funnel[2]['tasks'],arrived=funnel[3]['tasks'],installed_on_day=funnel[4]['tasks'],
   assigned_to_installed_pct=r1(100*funnel[4]['tasks']/funnel[2]['tasks']),installs_not_due_yday=tot-funnel[4]['tasks'],
   snapshot=gen.isoformat(timespec='minutes'))
-data=dict(y_summary=[summary],y_split=split,y_late=late,y_funnel=funnel,y_leaks=leaks)
-sqlmap=dict(y_summary='y_installs',y_split='y_installs',y_late='y_installs',y_funnel='y_due',y_leaks='y_due')
+data=dict(y_summary=[summary],y_split=split,y_late=late,y_funnel=funnel,y_leaks=leaks,y_notes=notes.build(note_rows,['from_step','outcome','reason']) or [dict(from_step=0,outcome='',reason='',theme='',tasks=0,examples='',notes_total=0,reason_total=0)])
+sqlmap=dict(y_summary='y_installs',y_split='y_installs',y_late='y_installs',y_funnel='y_due',y_leaks='y_due',y_notes='y_due')
 out=dict(generated_at=summary['snapshot'],cohort=f'Yesterday = {yday} (IST)',datasets={k:dict(rows=v,sql=SQL[sqlmap[k]] if k!='y_summary' else SQL['y_installs']+'\n\n-- and --\n\n'+SQL['y_due']) for k,v in data.items()},shape_code=open('y.py').read())
 json.dump(out,open('b2i_yesterday_snapshot.json','w'),default=str)
 print(json.dumps(summary,indent=0)); print(split); print(late); print(funnel); print(leaks[:12])

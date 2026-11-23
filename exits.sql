@@ -41,5 +41,5 @@ SELECT CASE WHEN t_act IS NOT NULL THEN '9 active'
   WHEN t_asg IS NULL THEN '2 accepted_not_assigned'
   WHEN t_arr IS NULL THEN '3 assigned_not_arrived'
   ELSE '4 arrived_not_installed' END stage,
-  last_state, COALESCE(last_rc,'-') rc, COUNT(*) n
-FROM x GROUP BY 1,2,3 ORDER BY 1,4 DESC
+  last_state, COALESCE(last_rc,'-') rc, IFF(t_act IS NULL, nt.note, NULL) note, COUNT(*) n
+FROM x LEFT JOIN (SELECT execution_candidate_id ecx, LOWER(TRIM(failure_detail)) note FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_EXECUTION_CANDIDATES WHERE _FIVETRAN_ACTIVE QUALIFY ROW_NUMBER() OVER (PARTITION BY execution_candidate_id ORDER BY _fivetran_synced DESC)=1) nt ON nt.ecx = x.ec GROUP BY 1,2,3,4 ORDER BY 1,5 DESC

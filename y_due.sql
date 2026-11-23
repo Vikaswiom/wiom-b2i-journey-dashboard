@@ -40,6 +40,7 @@ SELECT
        WHEN m.moved_yday=1 THEN 'Rescheduled to a later day'
        ELSE 'Still open at end of day' END day_outcome,
   acc_eod, asg_eod, arr_eod, otp_eod, inst_eod, inst_ever, COALESCE(IFF(inst_eod=0, rc_eod, NULL),'-') eod_rc,
+  IFF(inst_eod=0, nt.note, NULL) note,
   COUNT(*) tasks, COUNT(DISTINCT i.csp_id) csps
-FROM ev LEFT JOIN moved m USING(ec) LEFT JOIN iec i USING(ec)
-GROUP BY 1,2,3,4,5,6,7,8 ORDER BY tasks DESC
+FROM ev LEFT JOIN moved m USING(ec) LEFT JOIN iec i USING(ec) LEFT JOIN (SELECT execution_candidate_id ecx, LOWER(TRIM(failure_detail)) note FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_EXECUTION_CANDIDATES WHERE _FIVETRAN_ACTIVE QUALIFY ROW_NUMBER() OVER (PARTITION BY execution_candidate_id ORDER BY _fivetran_synced DESC)=1) nt ON nt.ecx = ev.ec
+GROUP BY 1,2,3,4,5,6,7,8,9 ORDER BY tasks DESC

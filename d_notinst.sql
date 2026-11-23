@@ -57,6 +57,7 @@ x AS (
 )
 SELECT outcome, stage,
   CASE WHEN m < 120 THEN '1 Under 2 h' WHEN m < 720 THEN '2 2–12 h' WHEN m < 1440 THEN '3 12–24 h' WHEN m < 2880 THEN '4 1–2 days' WHEN m < 4320 THEN '5 2–3 days' ELSE '6 3+ days' END time_in_stage,
-  COALESCE(end_rc,'-') rc, COUNT(*) n
-FROM (SELECT x.*, DATEDIFF(minute, t_enter_stage, COALESCE(t_end, CURRENT_TIMESTAMP())) m FROM x WHERE outcome<>'Installed')
-GROUP BY 1,2,3,4 ORDER BY 1,2,3
+  COALESCE(end_rc,'-') rc, nt.note note, COUNT(*) n
+FROM (SELECT x.*, DATEDIFF(minute, t_enter_stage, COALESCE(t_end, CURRENT_TIMESTAMP())) m FROM x WHERE outcome<>'Installed') xx
+LEFT JOIN (SELECT execution_candidate_id ecx, LOWER(TRIM(failure_detail)) note FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_EXECUTION_CANDIDATES WHERE _FIVETRAN_ACTIVE QUALIFY ROW_NUMBER() OVER (PARTITION BY execution_candidate_id ORDER BY _fivetran_synced DESC)=1) nt ON nt.ecx = xx.ec
+GROUP BY 1,2,3,4,5 ORDER BY 1,2,3

@@ -7,3 +7,5 @@ index_before_install_def.html
 __pycache__/
 .DS_Store
 /b2i_*.json
+index_before_*.html
+p_*.js

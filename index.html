@@ -170,6 +170,16 @@
 .bj-status { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; font-size: var(--cds-font-size-caption); padding: 8px 12px; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); }
 .bj-status b { font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
 .bj-status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--color-ok); margin-right: 6px; vertical-align: middle; }
+.bj-why-row.is-click { cursor: pointer; border-radius: 6px; padding: 3px 4px; margin: 0 -4px; }
+.bj-why-row.is-click:hover { background: color-mix(in srgb, var(--color-fg) 6%, transparent); }
+.bj-why-row.is-click:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 1px; }
+.bj-reason-detail { margin: 2px 0 8px 14px; padding: 8px 12px; border-left: 2px solid var(--color-border-line); display: grid; gap: 6px; }
+.bj-reason-detail p { margin: 0; }
+.bj-theme { display: grid; gap: 2px; }
+.bj-theme .tt { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(40px, 1fr) 44px 40px; gap: 8px; align-items: center; font-size: var(--cds-font-size-caption); }
+.bj-theme .tt i { display: block; height: 6px; border-radius: 3px; background: var(--cds-chart-muted); min-width: 2px; }
+.bj-theme .tt b, .bj-theme .tt .muted { text-align: right; font-variant-numeric: tabular-nums; }
+.bj-theme .ex { font-size: 11px; color: var(--color-fg-muted); line-height: 1.45; }
 /* Daily tracker flags */
 .bj-flaghead { display: flex; gap: 14px; align-items: center; background: color-mix(in srgb, var(--bj-c, var(--color-ok)) 10%, var(--color-panel)); border: 1px solid color-mix(in srgb, var(--bj-c, var(--color-ok)) 45%, var(--color-border-line)); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
 .bj-flaghead .ic { width: 32px; height: 32px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--bj-c, var(--color-ok)); color: var(--color-bg); font-weight: 700; }
@@ -248,7 +258,7 @@
       <p class="muted cap">Read from the top. Each bar is the number of tasks that reached the step; one task is one booking sent to one CSP as a Booking FPN. Press a red “lost” tag to see why tasks dropped between two steps.</p>
     </header>
     <div class="bj-dir" data-dirpage="overview"><span class="lab">Read this funnel</span><span class="bj-toggle" role="group" aria-label="Funnel direction"><button type="button" class="bj-tbtn" data-dir="up" aria-pressed="true">Install → back to FPN</button><button type="button" class="bj-tbtn" data-dir="down" aria-pressed="false">FPN → forward to install</button></span><span class="cap muted">Flips the steps below. Install at the top, or the Booking FPN at the top.</span></div>
-      <div class="bj-journey" data-draw="journey" data-source="steps exits summary">—</div>
+      <div class="bj-journey" data-draw="journey" data-source="steps exits summary exit_notes">—</div>
     <button type="button" class="bj-goto" data-goto="after-assign">Deep dive: what happens after the technician is assigned →</button>
   </section>
 
@@ -419,7 +429,7 @@
       </div>
       <div class="bj-card">
         <div><b>Reasons recorded, by outcome</b></div>
-        <div class="bj-why" style="margin:0" data-draw="stuckreasons" data-source="d_reasons"></div>
+        <div class="bj-why" style="margin:0" data-draw="stuckreasons" data-source="d_reasons d_notes"></div>
       </div>
     </section>
 
@@ -580,7 +590,7 @@
         <b data-draw="num" data-source="y_summary" data-field="assigned_to_installed_pct" data-row="0" data-fmt="pct">—</b>
       </div>
       <div class="bj-dir" data-dirpage="daily-tracker"><span class="lab">Read this funnel</span><span class="bj-toggle" role="group" aria-label="Funnel direction"><button type="button" class="bj-tbtn" data-dir="up" aria-pressed="true">Install → back to FPN</button><button type="button" class="bj-tbtn" data-dir="down" aria-pressed="false">FPN → forward to install</button></span><span class="cap muted">Flips the steps below. Installed on the day at the top, or all due tasks at the top.</span></div>
-      <div class="bj-journey" data-draw="yfunnel" data-source="y_funnel y_leaks">—</div>
+      <div class="bj-journey" data-draw="yfunnel" data-source="y_funnel y_leaks y_notes">—</div>
       <p class="bj-note">Yesterday's <span data-draw="num" data-source="y_summary" data-field="installs" data-row="0" data-fmt="int">—</span> installs = <span data-draw="num" data-source="y_summary" data-field="installed_on_day" data-row="0" data-fmt="int">—</span> tasks due yesterday and installed on the day + <span data-draw="num" data-source="y_summary" data-field="installs_not_due_yday" data-row="0" data-fmt="int">—</span> installs of tasks due on other days (early or late). “Due yesterday” counts tasks, so a booking sent to two CSPs counts twice at the bottom step.</p>
     </section>
 
@@ -914,13 +924,11 @@ dash.draw('journey', {
       const box = document.createElement('div'); box.className = 'bj-why'; box.id = 'why-' + stageNo;
       const h = document.createElement('div'); h.className = 'cap muted'; h.textContent = title; box.append(h);
       const max = d3.max(rows, x => +x.tasks) || 1;
+      const EN = dash.data('exit_notes'); const en = EN.status === 'ok' ? EN.data : [];
       rows.forEach(x => {
-        const r = document.createElement('div'); r.className = 'bj-why-row';
-        const l = document.createElement('div'); l.className = 'r'; const t1 = document.createElement('span'); t1.textContent = x.reason; const t2 = document.createElement('small'); t2.textContent = x.outcome; l.append(t1, t2);
-        const m = document.createElement('div'); m.className = 'm'; m.style.width = (100 * x.tasks / max) + '%'; m.style.background = BJ.outcomeColor(x.outcome);
-        const n = BJ.mark(document.createElement('div'), 'exits', 'tasks', 'stage_no=' + stageNo + '&reason=' + BJ.enc(x.reason) + '&outcome=' + BJ.enc(x.outcome)); n.className = 'n'; n.textContent = BJ.fmt(x.tasks, 'int');
-        r.title = (100 * x.tasks / sum).toFixed(1) + '% of tasks lost here';
-        r.append(l, m, n); box.append(r);
+        box.append(...BJ.reasonRow({ key: 'ov|' + stageNo + '|' + x.outcome + '|' + x.reason, reason: x.reason, sub: x.outcome + ' · ' + (100 * x.tasks / sum).toFixed(1) + '% of tasks lost here', tasks: +x.tasks, max: max, color: BJ.outcomeColor(x.outcome),
+          mark: ['exits', 'stage_no=' + stageNo + '&reason=' + BJ.enc(x.reason) + '&outcome=' + BJ.enc(x.outcome)],
+          notes: en.filter((q) => +q.stage_no === stageNo && q.outcome === x.outcome && q.reason === x.reason), draw: 'journey' }));
       });
       return box;
     };
@@ -1398,13 +1406,15 @@ dash.draw('stuckreasons', (el) => {
   const o = pick ? pick.value : '';
   const rows = d.data.filter((r) => !o || r.outcome === o).slice().sort((a, b) => b.tasks - a.tasks).slice(0, 14);
   const max = d3.max(rows, (r) => +r.tasks) || 1;
-  el.replaceChildren(...rows.map((x) => {
-    const r = document.createElement('div'); r.className = 'bj-why-row';
-    const l = document.createElement('div'); l.className = 'r'; const t1 = document.createElement('span'); t1.textContent = x.reason; const t2 = document.createElement('small'); t2.textContent = x.outcome + ' · stopped at: ' + x.stage; l.append(t1, t2);
-    const m = document.createElement('div'); m.className = 'm'; m.style.width = (100 * x.tasks / max) + '%'; m.style.background = BJ.outcomeColor(x.outcome === 'System timeout (no-show)' ? 'System cancelled' : x.outcome);
-    const n = BJ.mark(document.createElement('div'), 'd_reasons', 'tasks', 'outcome=' + BJ.enc(x.outcome) + '&stage=' + BJ.enc(x.stage) + '&reason=' + BJ.enc(x.reason)); n.className = 'n'; n.textContent = BJ.fmt(x.tasks, 'int');
-    r.append(l, m, n); return r;
-  }));
+  const DN = dash.data('d_notes'); const dn = DN.status === 'ok' ? DN.data : [];
+  const kids = [];
+  rows.forEach((x) => {
+    kids.push(...BJ.reasonRow({ key: 'dd|' + x.outcome + '|' + x.stage + '|' + x.reason, reason: x.reason, sub: x.outcome + ' · stopped at: ' + x.stage, tasks: +x.tasks, max: max,
+      color: BJ.outcomeColor(x.outcome === 'System timeout (no-show)' ? 'System cancelled' : x.outcome),
+      mark: ['d_reasons', 'outcome=' + BJ.enc(x.outcome) + '&stage=' + BJ.enc(x.stage) + '&reason=' + BJ.enc(x.reason)],
+      notes: dn.filter((q) => q.outcome === x.outcome && q.stage === x.stage && q.reason === x.reason), draw: 'stuckreasons' }));
+  });
+  el.replaceChildren(...kids);
 });
 
 dash.draw('liveheat', (el) => {
@@ -1522,13 +1532,12 @@ dash.draw('yfunnel', {
         const box = document.createElement('div'); box.className = 'bj-why';
         const h = document.createElement('div'); h.className = 'cap muted'; h.textContent = 'Where these ' + BJ.fmt(lost, 'int') + ' tasks were at the end of the day'; box.append(h);
         const max = d3.max(rows, (x) => +x.tasks) || 1;
+        const YN = dash.data('y_notes'); const yn = YN.status === 'ok' ? YN.data : [];
         rows.slice().sort((a, b) => b.tasks - a.tasks).forEach((x) => {
-          const r = document.createElement('div'); r.className = 'bj-why-row';
-          const l = document.createElement('div'); l.className = 'r'; const t1 = document.createElement('span'); t1.textContent = x.reason; const t2 = document.createElement('small'); t2.textContent = x.outcome; l.append(t1, t2);
-          const m = document.createElement('div'); m.className = 'm'; m.style.width = (100 * x.tasks / max) + '%';
-          m.style.background = /Still open|Rescheduled/.test(x.outcome) ? 'var(--color-warn)' : (/cancel/i.test(x.outcome) ? 'var(--cds-chart-muted)' : 'var(--color-bad)');
-          const n = BJ.mark(document.createElement('div'), 'y_leaks', 'tasks', 'from_step=' + fromStep + '&outcome=' + BJ.enc(x.outcome) + '&reason=' + BJ.enc(x.reason)); n.className = 'n'; n.textContent = BJ.fmt(x.tasks, 'int');
-          r.append(l, m, n); box.append(r);
+          box.append(...BJ.reasonRow({ key: 'yd|' + fromStep + '|' + x.outcome + '|' + x.reason, reason: x.reason, sub: x.outcome, tasks: +x.tasks, max: max,
+            color: /Still open|Rescheduled/.test(x.outcome) ? 'var(--color-warn)' : (/cancel/i.test(x.outcome) ? 'var(--cds-chart-muted)' : 'var(--color-bad)'),
+            mark: ['y_leaks', 'from_step=' + fromStep + '&outcome=' + BJ.enc(x.outcome) + '&reason=' + BJ.enc(x.reason)],
+            notes: yn.filter((q) => +q.from_step === fromStep && q.outcome === x.outcome && q.reason === x.reason), draw: 'yfunnel' }));
         });
         w.append(box); out.push(w);
       }
@@ -2090,4 +2099,84 @@ dash.draw('cscatter', (el) => {
     .on('pointerleave', () => tip.hide());
   el.replaceChildren(svg.node());
 });
+</script>
+
+<script>
+dash.loader('exit_notes', { description: 'What CSPs typed when they declined or reported a failure (overview drop-offs)', fn: ({ answer }) => { const s = answer.datasets.exit_notes; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('d_notes', { description: 'What CSPs typed for tasks that got a technician but no install', fn: ({ answer }) => { const s = answer.datasets.d_notes; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+dash.loader('y_notes', { description: 'What CSPs typed for tasks due yesterday that were not installed', fn: ({ answer }) => { const s = answer.datasets.y_notes; return { data: s.rows, columns: Object.keys(s.rows[0]), meta: [{ label: 'SQL', value: s.sql, type: 'code', lang: 'sql' }, { label: 'Shaping code', value: answer.shape_code, type: 'code', lang: 'python' }, { label: 'Snapshot taken', value: answer.generated_at }] }; } });
+</script>
+
+<script>
+// Clickable reason rows: a click opens what the reason means and, where CSPs typed a note, what they wrote.
+window.BJ_OPEN = window.BJ_OPEN || new Set();
+window.BJ_REASON_HELP = {
+  'No response before deadline': 'The CSP neither accepted nor declined the Booking FPN before its deadline (about 16 hours), so the system took it back (TIMEOUT_P41). The booking then goes to another CSP.',
+  'FPN deadline passed': 'The CSP neither accepted nor declined the Booking FPN before its deadline, so the system took it back (TIMEOUT_P41).',
+  'Timed out, task not moved': 'After accepting, the CSP did not move the task forward before its deadline, so the system closed it (CSP_NO_SHOW). Most of these sat for 3+ days first.',
+  'System timeout, task not moved': 'After accepting, the CSP did not move the task forward before its deadline, so the system closed it (CSP_NO_SHOW). Most of these sat for 3+ days first.',
+  'No coverage at address': 'The CSP chose “No coverage at address”: their network cannot reach the customer’s home.',
+  'Other (free text)': 'The CSP chose “Other” and typed the reason in their own words.',
+  'No Netbox in hand': 'The CSP had no Netbox (router) available for this install.',
+  'Customer cancelled (per CSP)': 'The CSP reported that the customer cancelled. The customer did not cancel in the Wiom app themselves.',
+  'Customer cancelled in app': 'The customer cancelled the booking themselves in the Wiom app.',
+  'Customer unreachable': 'The CSP reported that they could not reach the customer by phone.',
+  'Cancelled by ops': 'Wiom ops cancelled the booking from the backend (CANCEL_BY_CUSTOMER_BACKEND).',
+  'CSP suspended': 'The CSP was suspended, so their open tasks were taken back.',
+  'Still open': 'The task has not ended yet.',
+  'Waiting for arrival': 'A technician is assigned but has not marked arrival at the customer’s home.',
+  'Technician assigned, did not arrive': 'A technician was assigned but did not mark arrival at the customer’s home that day.',
+  'Technician changed': 'The CSP swapped the technician; the task is still open.',
+  'Customer asked for another day': 'The CSP recorded that the customer asked for a different day.',
+  'No installer available': 'The CSP said no technician was free.',
+  'Accepted, no technician yet': 'The CSP accepted the FPN but had not assigned a technician by the end of the day.',
+  'Waiting for CSP to accept': 'The Booking FPN was with the CSP and they had not answered yet.',
+  'FPN sent, waiting for CSP': 'The Booking FPN was sent and the CSP had not answered yet.',
+  'Address unclear': 'The CSP could not work out the customer’s address.',
+  'Selfie done, Aadhaar pending': 'The technician reached the home and took the selfie, but the Aadhaar step was not done.',
+  'On site, KYC in progress': 'The technician was at the home doing the selfie and Aadhaar steps.',
+  'On site, setup in progress': 'The technician was at the home setting up the device.',
+  'On site, happy code pending': 'Setup was done; the customer’s happy code had not been entered yet.',
+  'Customer cancelled (per CSP) ': ''
+};
+BJ.reasonRow = function (o) {
+  // o: {key, reason, sub, tasks, max, color, mark: [source, where], notes: [rows], draw}
+  const open = window.BJ_OPEN.has(o.key);
+  const r = document.createElement('div'); r.className = 'bj-why-row is-click'; r.tabIndex = 0; r.setAttribute('role', 'button'); r.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const l = document.createElement('div'); l.className = 'r';
+  const t1 = document.createElement('span'); t1.textContent = (open ? '▾ ' : '▸ ') + o.reason;
+  const t2 = document.createElement('small'); t2.textContent = o.sub; l.append(t1, t2);
+  const m = document.createElement('div'); m.className = 'm'; m.style.width = (100 * o.tasks / (o.max || 1)) + '%'; m.style.background = o.color;
+  const n = BJ.mark(document.createElement('div'), o.mark[0], 'tasks', o.mark[1]); n.className = 'n'; n.textContent = BJ.fmt(o.tasks, 'int');
+  r.append(l, m, n);
+  const toggle = () => { window.BJ_OPEN.has(o.key) ? window.BJ_OPEN.delete(o.key) : window.BJ_OPEN.add(o.key); dash.draw(o.draw); };
+  r.addEventListener('click', toggle);
+  r.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  if (!open) return [r];
+  const det = document.createElement('div'); det.className = 'bj-reason-detail';
+  const help = window.BJ_REASON_HELP[o.reason];
+  const p = document.createElement('p'); p.className = 'cap'; p.textContent = help || 'Recorded by the backend with this reason.'; det.append(p);
+  const notes = (o.notes || []).filter((x) => +x.tasks > 0);
+  if (notes.length) {
+    const nt = +notes[0].notes_total, rt = +notes[0].reason_total;
+    const h = document.createElement('div'); h.className = 'cap muted';
+    h.textContent = 'What CSPs typed: ' + BJ.fmt(nt, 'int') + ' of ' + BJ.fmt(rt, 'int') + ' tasks have a note, grouped by theme. Example notes are shown as written.';
+    det.append(h);
+    const mx = d3.max(notes, (x) => +x.tasks) || 1;
+    notes.slice().sort((a, b) => b.tasks - a.tasks).forEach((x) => {
+      const row = document.createElement('div'); row.className = 'bj-theme';
+      const top = document.createElement('div'); top.className = 'tt';
+      const name = document.createElement('span'); name.textContent = x.theme;
+      const bar = document.createElement('i'); bar.style.width = (100 * x.tasks / mx) + '%';
+      const cnt = document.createElement('b'); cnt.textContent = BJ.fmt(x.tasks, 'int');
+      const pc = document.createElement('span'); pc.className = 'muted'; pc.textContent = (100 * x.tasks / nt).toFixed(0) + '%';
+      top.append(name, bar, cnt, pc); row.append(top);
+      if (x.examples) { const ex = document.createElement('div'); ex.className = 'ex'; ex.textContent = x.examples.split(' | ').map((s) => '“' + s + '”').join('  ·  '); row.append(ex); }
+      det.append(row);
+    });
+  } else {
+    const q = document.createElement('div'); q.className = 'cap muted'; q.textContent = 'CSPs do not type a note for this reason, so there is no further detail.'; det.append(q);
+  }
+  return [r, det];
+};
 </script>

@@ -1,4 +1,4 @@
-import json, datetime
+import json, datetime, notes
 _today=(datetime.datetime.utcnow()+datetime.timedelta(minutes=330)).date()
 _cf=str(_today-datetime.timedelta(days=17)); _ct=str(_today-datetime.timedelta(days=5))
 raw=json.load(open('raw.json')); S=raw['sections']; f=S['funnel']['rows'][0]
@@ -49,13 +49,14 @@ out_lab={'CANCELLED_BY_UPSTREAM':'System cancelled','DECLINED':'CSP declined','I
 rc_lab={'TIMEOUT_P41':'No response before deadline','CSP_NO_SHOW':'Timed out, task not moved','COVERAGE_NOT_FEASIBLE':'No coverage at address','OTHER':'Other (free text)',
  'DEVICE_UNAVAILABLE':'No Netbox in hand','CUSTOMER_CANCELLED':'Customer cancelled (per CSP)','USER_CANCELLATION':'Customer cancelled in app',
  'CUSTOMER_UNREACHABLE':'Customer unreachable','CANCEL_BY_CUSTOMER_BACKEND':'Cancelled by ops','SUSPENDED':'CSP suspended'}
-agg={}
+agg={}; note_rows=[]
 for r in S['exits']['rows']:
     st=r['stage'][0]
     if st=='9':continue
     o=out_lab.get(r['last_state'],'Still open')
     lbl='Still open' if o=='Still open' else rc_lab.get(r['rc'],r['rc'])
     key=(st,o,lbl); agg[key]=agg.get(key,0)+r['n']
+    note_rows.append(dict(stage_no=int(st),outcome=o,reason=lbl,note=r.get('note'),n=r['n']))
 exits=[dict(stage_no=int(k[0]),stage=stage_lab[k[0]],outcome=k[1],reason=k[2],tasks=v) for k,v in agg.items()]
 exits.sort(key=lambda e:(e['stage_no'],-e['tasks']))
 tot_noact=sum(r['noact'] for r in S['cspband']['rows']); tot_t=sum(r['tasks'] for r in S['cspband']['rows'])
@@ -65,8 +66,8 @@ bands=[dict(csp_group=bl[r['band'][0]],csps=r['csps'],tasks=r['tasks'],accepted=
 hourly=[dict(hour=r['h'],tasks=r['n'],accepted=r['acc'],no_response=r['noact'],accept_pct=r1(100*r['acc']/r['n']),no_response_pct=r1(100*r['noact']/r['n'])) for r in S['hour']['rows']]
 daily=[dict(date=r['d'],tasks=r['n'],fpn_rendered=r['seen'],accepted=r['acc'],declined=r['dec'],no_response=r['noact'],assigned=r['asg'],arrived=r['arr'],installed=r['act'],
   accept_pct=r1(100*r['acc']/r['n']),no_response_pct=r1(100*r['noact']/r['n']),install_pct=r1(100*r['act']/r['n'])) for r in S['daily']['rows']]
-sqlmap={'steps':'funnel','offer':'funnel','fpn_reach':'funnel','summary':'funnel','exits':'exits','fpn_response':'fpn','bookings':'conn','csp_groups':'cspband','hourly':'hour','daily':'daily'}
-data=dict(summary=[summary],steps=steps,offer=offer,fpn_reach=[fpn],exits=exits,fpn_response=fpnresp,bookings=bookings,csp_groups=bands,hourly=hourly,daily=daily)
+sqlmap={'steps':'funnel','offer':'funnel','fpn_reach':'funnel','summary':'funnel','exits':'exits','fpn_response':'fpn','bookings':'conn','csp_groups':'cspband','hourly':'hour','daily':'daily','exit_notes':'exits'}
+data=dict(summary=[summary],steps=steps,offer=offer,fpn_reach=[fpn],exits=exits,fpn_response=fpnresp,bookings=bookings,csp_groups=bands,hourly=hourly,daily=daily,exit_notes=notes.build(note_rows,['stage_no','outcome','reason']) or [dict(stage_no=0,outcome='',reason='',theme='',tasks=0,examples='',notes_total=0,reason_total=0)])
 shape_code=open('shape.py').read()
 out={'generated_at':raw['generated_at'],'cohort':raw['cohort'],'datasets':{k:{'rows':v,'sql':S[sqlmap[k]]['sql']} for k,v in data.items()},'shape_code':shape_code}
 json.dump(out,open('b2i_snapshot.json','w'),indent=0,default=str)

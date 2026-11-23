@@ -1,4 +1,4 @@
-import json, subprocess, urllib.request, datetime
+import json, subprocess, urllib.request, datetime, notes
 _today=(datetime.datetime.utcnow()+datetime.timedelta(minutes=330)).date()
 import os
 key = os.environ.get('METABASE_API_KEY') or subprocess.check_output(['security','find-generic-password','-s','wiom-metabase-api-key','-w']).decode().strip()
@@ -47,11 +47,12 @@ rc_lab={'TIMEOUT_P41':'No response before deadline','CSP_NO_SHOW':'System timeou
  'CANCEL_BY_CUSTOMER_BACKEND':'Cancelled by ops','SUSPENDED':'CSP suspended','TECHNICIAN_ASSIGNED_AWAITING_ARRIVAL':'Waiting for arrival','TECHNICIAN_CHANGED':'Technician changed',
  'CUSTOMER_ASKED_OTHER_DAY':'Customer asked for another day','NO_INSTALLER_AVAILABLE':'No installer available','OTP_VERIFIED':'Happy code done, rating pending',
  'STEP_SELFIE_SUBMITTED_BY_CSP':'Selfie done, Aadhaar pending','STEP_SELFIE_SUBMITTED_BY_TECHNICIAN':'Selfie done, Aadhaar pending'}
-stuck={};reasons={}
+stuck={};reasons={};note_rows=[]
 for r in N:
     st=r['stage'][2:]; k=(r['outcome'],st,r['time_in_stage'])
     stuck[k]=stuck.get(k,0)+r['n']
     k2=(r['outcome'],st,rc_lab.get(r['rc'],r['rc'])); reasons[k2]=reasons.get(k2,0)+r['n']
+    note_rows.append(dict(outcome=k2[0],stage=k2[1],reason=k2[2],note=r.get('note'),n=r['n']))
 stuck=[dict(outcome=k[0],stage=k[1],time_in_stage=k[2][2:],time_order=int(k[2][0]),tasks=v) for k,v in sorted(stuck.items())]
 reasons=[dict(outcome=k[0],stage=k[1],reason=k[2],tasks=v) for k,v in sorted(reasons.items(),key=lambda kv:-kv[1])]
 L=R['d_live']['rows']
@@ -71,8 +72,8 @@ summary=dict(assigned=A,installed=f['installed'],install_pct=r1(100*f['installed
   live_waiting_arrival=sum(l['tasks'] for l in live if l['stage_order']==1),live_rating_pending=sum(l['tasks'] for l in live if l['stage_order']==7),
   late_1day=next((d['installs'] for d in days if d['days_vs_slot']==1),0),snapshot=gen,
   cohort_from=str(_today-datetime.timedelta(days=17)),cohort_to=str(_today-datetime.timedelta(days=5)))
-data=dict(d_summary=[summary],d_steps=steps,d_timing=timing,d_days=days,d_late=late,d_assign_to_install=asg,d_stuck=stuck,d_reasons=reasons,d_live=live)
-sqlmap=dict(d_summary='d_funnel',d_steps='d_funnel',d_timing='d_timing',d_days='d_timing',d_late='d_timing',d_assign_to_install='d_timing',d_stuck='d_notinst',d_reasons='d_notinst',d_live='d_live')
+data=dict(d_summary=[summary],d_steps=steps,d_timing=timing,d_days=days,d_late=late,d_assign_to_install=asg,d_stuck=stuck,d_reasons=reasons,d_live=live,d_notes=notes.build(note_rows,['outcome','stage','reason']) or [dict(outcome='',stage='',reason='',theme='',tasks=0,examples='',notes_total=0,reason_total=0)])
+sqlmap=dict(d_summary='d_funnel',d_steps='d_funnel',d_timing='d_timing',d_days='d_timing',d_late='d_timing',d_assign_to_install='d_timing',d_stuck='d_notinst',d_reasons='d_notinst',d_live='d_live',d_notes='d_notinst')
 base=open('deep_base.sql').read()
 out=dict(generated_at=gen,cohort='Install tasks created 17 to 5 days before generation (IST) that reached TECHNICIAN_ASSIGNED; live section = all open tasks now',
   datasets={k:dict(rows=v,sql=R[sqlmap[k]]['sql']) for k,v in data.items()},shape_code=open('deep.py').read())

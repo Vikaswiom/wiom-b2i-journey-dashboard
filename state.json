@@ -2,7 +2,7 @@
  "artifact_url": "https://claude.ai/artifact/WUWh5LShPxE5zb36fcvZmW",
  "files": {
   "b2i_snapshot.json": {
-   "asset_id": "b20a9fad38e68eea9158c6cb550d8af4",
+   "asset_id": "59e7a2a7912b1d39fbab437d6cbf2618",
    "datasets": [
     "summary",
     "steps",
@@ -13,11 +13,12 @@
     "bookings",
     "csp_groups",
     "hourly",
-    "daily"
+    "daily",
+    "exit_notes"
    ]
   },
   "b2i_deep_snapshot.json": {
-   "asset_id": "e018d1d7b37464a1fe4d74e0fbad9ebc",
+   "asset_id": "ea69afe0a5c5198588fbf58deec836f1",
    "datasets": [
     "d_summary",
     "d_steps",
@@ -27,11 +28,12 @@
     "d_assign_to_install",
     "d_stuck",
     "d_reasons",
-    "d_live"
+    "d_live",
+    "d_notes"
    ]
   },
   "b2i_yesterday_snapshot.json": {
-   "asset_id": "75afd5a805a8bc4746c97d8825946a5a",
+   "asset_id": "6652ebc95f33b2885fe9952cdb183666",
    "datasets": [
     "y_summary",
     "y_split",
@@ -43,11 +45,12 @@
     "y_flags",
     "y_activity",
     "y_lag",
-    "y_promise"
+    "y_promise",
+    "y_notes"
    ]
   },
   "b2i_csp_snapshot.json": {
-   "asset_id": "895203d9220b6ef5d3b1a046fb7b1cc8",
+   "asset_id": "4897865f53a447ce8226826c604b9b9a",
    "datasets": [
     "c_summary",
     "c_segments",
@@ -56,40 +59,40 @@
   }
  },
  "dataset_versions": {
-  "bookings": 4,
-  "c_csps": 3,
-  "c_segments": 3,
-  "c_summary": 3,
-  "csp_groups": 4,
-  "d_assign_to_install": 4,
-  "d_days": 4,
-  "d_late": 4,
-  "d_live": 4,
-  "d_reasons": 4,
-  "d_steps": 4,
-  "d_stuck": 4,
-  "d_summary": 4,
-  "d_timing": 4,
-  "daily": 4,
-  "exits": 4,
-  "fpn_reach": 4,
-  "fpn_response": 4,
-  "hourly": 4,
-  "offer": 4,
-  "steps": 4,
-  "summary": 4,
-  "trend": 8,
-  "y_activity": 6,
-  "y_compare": 8,
-  "y_flags": 7,
-  "y_funnel": 9,
-  "y_lag": 6,
-  "y_late": 9,
-  "y_leaks": 9,
-  "y_promise": 5,
-  "y_split": 9,
-  "y_summary": 9
+  "bookings": 5,
+  "c_csps": 4,
+  "c_segments": 4,
+  "c_summary": 4,
+  "csp_groups": 5,
+  "d_assign_to_install": 5,
+  "d_days": 5,
+  "d_late": 5,
+  "d_live": 5,
+  "d_reasons": 5,
+  "d_steps": 5,
+  "d_stuck": 5,
+  "d_summary": 5,
+  "d_timing": 5,
+  "daily": 5,
+  "exits": 5,
+  "fpn_reach": 5,
+  "fpn_response": 5,
+  "hourly": 5,
+  "offer": 5,
+  "steps": 5,
+  "summary": 5,
+  "trend": 9,
+  "y_activity": 7,
+  "y_compare": 9,
+  "y_flags": 8,
+  "y_funnel": 10,
+  "y_lag": 7,
+  "y_late": 10,
+  "y_leaks": 10,
+  "y_promise": 6,
+  "y_split": 10,
+  "y_summary": 10
  },
  "page_version": 19,
- "last_publish": "2026-11-20T12:14+05:30"
+ "last_publish": "2026-11-23T15:43+05:30"
 }
