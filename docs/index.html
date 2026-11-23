@@ -196,6 +196,9 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 .bj-tab { font: inherit; font-size: var(--cds-font-size-body); background: transparent; color: var(--color-fg-muted); border: 0; border-bottom: 2px solid transparent; padding: 8px 12px 10px; cursor: pointer; margin-bottom: -1px; }
 .bj-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
 .bj-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.bj-tab-link { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); text-decoration: none; padding: 8px 12px 10px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.bj-tab-link:hover { color: var(--color-fg); border-bottom-color: var(--color-border-line); }
+.bj-tab-link:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
 .bj-page { display: grid; gap: var(--cds-gap-xl); }
 .bj-goto { justify-self: start; font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 99px; padding: 6px 14px; cursor: pointer; }
 .bj-goto:hover { border-color: var(--color-fg-muted); }
@@ -327,6 +330,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
     <button type="button" class="bj-tab" role="tab" id="tab-daily-tracker" aria-controls="daily-tracker" aria-selected="false" tabindex="-1">Daily tracker</button>
     <button type="button" class="bj-tab" role="tab" id="tab-csp-reschedule" aria-controls="csp-reschedule" aria-selected="false" tabindex="-1">CSP reschedule behaviour</button>
     <button type="button" class="bj-tab" role="tab" id="tab-definitions" aria-controls="definitions" aria-selected="false" tabindex="-1">Definitions</button>
+    <a class="bj-tab-link" href="https://vikaswiom.github.io/wiom-csp-ship-tracker-site/#releases">Shipped features <span aria-hidden="true">↗</span></a>
   </nav>
   <div class="bj-status" id="bj-status">
     <span><span class="dot" aria-hidden="true"></span>Data updated <b data-draw="num" data-source="y_summary" data-field="snapshot" data-row="0" data-fmt="stamp">—</b></span>
