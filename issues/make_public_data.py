@@ -1,4 +1,4 @@
-"""Copy the CSP Issue Lens dataset into this repo for the public "Understanding issues" tab.
+"""Copy the CSP Issue Lens dataset and the Understanding tree page into this repo for the public "Understanding issues" tab.
 Source: ~/Projects/csp-issue-lens/csp_issue_lens.json (built by the csp-issue-lens skill; phone numbers already masked).
 Also masks any run of 8+ digits (UTRs, ticket and customer ids) and UPI handles. Run after each Issue Lens rebuild, then commit."""
 import json, os, re, shutil
@@ -15,4 +15,9 @@ for r in d['rows']:
 here = os.path.dirname(os.path.abspath(__file__))
 json.dump(d, open(os.path.join(here, 'tickets.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
 shutil.copy(os.path.join(src, 'index.html'), os.path.join(here, 'index.html'))
-print(len(d['rows']), 'tickets;', n[0], 'numbers or ids masked')
+# The Understanding tree page (ticket rows are embedded in it): mask the same way inside its RAW array only.
+t = open(os.path.join(src, 'understanding_tree.html')).read()
+i = t.index('const RAW'); a = t.index('[', i); b = t.index('];', a) + 1
+raw = [[mask(c) for c in row] for row in json.loads(t[a:b])]
+open(os.path.join(here, 'tree.html'), 'w').write(t[:a] + json.dumps(raw, ensure_ascii=False, separators=(',', ':')) + t[b:])
+print(len(d['rows']), 'tickets;', len(raw), 'tree rows;', n[0], 'numbers or ids masked')

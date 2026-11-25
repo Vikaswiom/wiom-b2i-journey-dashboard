@@ -98,48 +98,6 @@
 .bj-tab { font: inherit; font-size: var(--cds-font-size-body); background: transparent; color: var(--color-fg-muted); border: 0; border-bottom: 2px solid transparent; padding: 8px 12px 10px; cursor: pointer; margin-bottom: -1px; }
 .bj-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
 .bj-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
-/* Understanding tree (Understanding issues tab): indented tree with connector lines; each node = label, count, share of parent, bar */
-.bj-tree { --ut-comm: #2f63d8; --ut-comm-soft: #e4ecfd; --ut-exp: #d9711c; --ut-exp-soft: #fcebdc; --ut-neutral: #7a8394; --ut-neutral-soft: #eceef2; --ut-line: #cfd5de; display: grid; gap: var(--cds-gap-md); max-width: 900px; }
-@media (prefers-color-scheme: dark) { .bj-tree { --ut-comm: #7ea2ff; --ut-comm-soft: #1f2b48; --ut-exp: #f29a52; --ut-exp-soft: #3a2818; --ut-neutral: #9aa3b2; --ut-neutral-soft: #262c36; --ut-line: #364050; } }
-.ut-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.ut-legend span { display: inline-flex; align-items: center; gap: 6px; }
-.ut-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-.ut-controls { display: flex; gap: 8px; flex-wrap: wrap; }
-.ut-controls button { font: inherit; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
-.ut-controls button:hover { border-color: var(--color-fg-muted); }
-.ut-controls button:focus-visible, .ut-box summary:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
-.ut-box { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 18px 14px 18px 12px; overflow-x: auto; }
-.ut-box ul { list-style: none; margin: 0; padding: 0; }
-.ut-box ul ul { margin-left: 14px; padding-left: 16px; border-left: 1.5px solid var(--ut-line); }
-.ut-box li { position: relative; }
-.ut-box ul ul > li::before { content: ""; position: absolute; left: -16px; top: 22px; width: 14px; border-top: 1.5px solid var(--ut-line); }
-.ut-box ul ul > li:last-child::after { content: ""; position: absolute; left: -17.5px; top: 23px; bottom: 0; width: 3px; background: var(--color-panel); }
-.bj .ut-box details { border-top: 0; padding-top: 0; }
-.bj .ut-box summary { list-style: none; cursor: pointer; font-weight: inherit; }
-.ut-box summary::-webkit-details-marker { display: none; }
-.ut-node { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; min-height: 32px; }
-.ut-box summary .ut-node:hover { background: var(--ut-neutral-soft); }
-.ut-chev { width: 18px; height: 18px; display: grid; place-items: center; color: var(--color-fg-muted); transition: transform .15s; }
-.ut-box details[open] > summary .ut-chev { transform: rotate(90deg); }
-.ut-leaf .ut-chev { visibility: hidden; }
-.ut-lbl { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.ut-name { font-weight: 500; }
-.ut-name small { font-weight: 400; color: var(--color-fg-muted); margin-left: 6px; }
-.ut-bar { height: 5px; border-radius: 3px; background: var(--ut-neutral-soft); max-width: 260px; overflow: hidden; }
-.ut-bar i { display: block; height: 100%; border-radius: 3px; background: var(--ut-c, var(--ut-neutral)); }
-.ut-nums { display: flex; align-items: baseline; gap: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ut-n { font-size: 15px; font-weight: var(--cds-font-weight-medium); }
-.ut-pct { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); min-width: 3.6em; text-align: right; }
-.ut-lv0 > summary .ut-name { font-family: var(--font-anthropic-serif); font-size: 20px; font-weight: 600; }
-.ut-lv1 > summary .ut-name, .ut-lv1 > .ut-node .ut-name { font-size: 16px; font-weight: 600; }
-.ut-chip { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: var(--ut-soft, var(--ut-neutral-soft)); color: var(--ut-c, var(--color-fg-muted)); margin-left: 8px; vertical-align: 2px; }
-.ut-t-comm { --ut-c: var(--ut-comm); --ut-soft: var(--ut-comm-soft); }
-.ut-t-exp { --ut-c: var(--ut-exp); --ut-soft: var(--ut-exp-soft); }
-.ut-t-out { --ut-c: var(--ut-neutral); --ut-soft: var(--ut-neutral-soft); }
-.ut-t-root { --ut-c: var(--color-fg); }
-.ut-gap > summary .ut-node { background: var(--ut-soft); }
-@media (max-width: 520px) { .ut-box ul ul { margin-left: 6px; padding-left: 12px; } .ut-box ul ul > li::before { left: -12px; width: 10px; } .ut-box ul ul > li:last-child::after { left: -13.5px; } .ut-bar { max-width: 160px; } }
-@media (prefers-reduced-motion: reduce) { .ut-chev { transition: none; } }
 a.bj-ps { text-decoration: none; color: inherit; max-width: 760px; gap: var(--cds-gap-sm); transition: border-color 120ms; }
 a.bj-ps:hover { border-color: var(--color-fg-muted); }
 a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
@@ -988,21 +946,9 @@ a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px;
     <section class="bj-sec" id="understanding-tree">
       <header>
         <h2>Understanding tree</h2>
-        <p class="bj-take">287 CSP support tickets from 7 Sep to 15 Nov 2026, split step by step: how each was filed, what caused it, then which part of the CSP's work it touched. The percentage is each node's share of the node above it.</p>
+        <p class="bj-sub"><a href="issues/tree/" target="_blank" rel="noopener">Open it on its own page</a></p>
       </header>
-      <div class="bj-tree">
-        <div class="ut-legend">
-          <span><i class="ut-dot" style="background:var(--ut-comm)"></i>Communication gap: an app message or screen could have prevented it</span>
-          <span><i class="ut-dot" style="background:var(--ut-exp)"></i>Experience gap: the app lacks the action or dead-ends</span>
-          <span><i class="ut-dot" style="background:var(--ut-neutral)"></i>Outside design</span>
-        </div>
-        <div class="ut-controls">
-          <button type="button" id="ut-expand">Expand all</button>
-          <button type="button" id="ut-collapse">Show design gaps only</button>
-        </div>
-        <div class="ut-box" id="ut-tree"></div>
-        <p class="bj-sub">Root causes are Claude's reading of each ticket's RCA. The design lead confirmed 16 November tickets one by one. Categories are grouped from the sheet's workflow column. Source: CSP Bug Data sheet; 24 test rows excluded.</p>
-      </div>
+      <iframe class="bj-frame" id="bj-tree-frame" title="CSP Understanding Tree" data-src="issues/tree/" loading="lazy"></iframe>
     </section>
 
     <section class="bj-sec" id="issue-lens">
@@ -1408,67 +1354,6 @@ dash.loader('d_live', { description: 'Open tasks right now by stage and age', fn
 </script>
 
 <script>
-// Understanding tree (Understanding issues tab). The numbers are a fixed copy of
-// ~/Projects/csp-issue-lens/understanding_tree.html (7 Sep – 15 Nov 2026); update them when that tree is rebuilt.
-(function () {
-const T={n:"All tickets",v:287,t:"root",c:[
- {n:"Understanding",v:244,t:"root",open:1,c:[
-  {n:"Communication gap",v:108,t:"comm",gap:1,open:1,chip:"Design",c:[
-   {n:"Money & payouts",v:49,t:"comm",open:1,c:[
-     {n:"₹750 Dominance payout & proof",v:21},{n:"ISP recharge ticket & payout",v:17},
-     {n:"Bonus & incentives",note:"₹200 install, MG, Sehat",v:8},{n:"Wallet deductions & balance",v:2},{n:"Wallet withdrawal to bank",v:1}]},
-   {n:"NetBox & inventory",v:23,t:"comm",open:1,c:[
-     {n:"Carry fee, loss & deposit",v:17},{n:"Return, pickup & swap",v:5},{n:"Device order, setup & details",v:1}]},
-   {n:"Quality scores",v:19,t:"comm",open:1,c:[{n:"Optical power, speed, M1 & rating",v:19}]},
-   {n:"Jobs: leads, installs & tickets",v:16,t:"comm",open:1,c:[
-     {n:"Leads & allocation",v:8},{n:"Installation task",v:4},{n:"Service ticket",v:4}]},
-   {n:"Account & access",v:1,t:"comm",open:1,c:[{n:"Login / OTP",v:1}]}]},
-  {n:"Experience gap",v:32,t:"exp",gap:1,open:1,chip:"Design",c:[
-   {n:"NetBox & inventory",v:17,t:"exp",open:1,c:[{n:"Device order, setup & details",v:10},{n:"Return, pickup & swap",v:7}]},
-   {n:"Money & payouts",v:11,t:"exp",open:1,c:[
-     {n:"Wallet withdrawal to bank",v:6},{n:"₹750 Dominance payout & proof",v:2},{n:"Bonus & incentives",v:1},
-     {n:"ISP recharge ticket & payout",v:1},{n:"Wallet deductions & balance",v:1}]},
-   {n:"Jobs: leads, installs & tickets",v:3,t:"exp",open:1,c:[{n:"Installation task",v:3}]},
-   {n:"Account & access",v:1,t:"exp",open:1,c:[{n:"App screens & navigation",v:1}]}]},
-  {n:"Outside design",v:104,t:"out",c:[
-   {n:"Ops / external",note:"bank, SMS carrier, warehouse",v:67,t:"out",c:[
-     {n:"Wallet withdrawal to bank",v:24},{n:"Login / OTP",v:16},{n:"Customer recharge, payment & offers",v:8},{n:"Return, pickup & swap",v:8},{n:"Other",v:11}]},
-   {n:"No issue / CSP error",v:24,t:"out",c:[
-     {n:"ISP recharge ticket & payout",v:5},{n:"Service ticket",v:4},{n:"Leads & allocation",v:3},{n:"Installation task",v:2},{n:"Other",v:10}]},
-   {n:"System defect",v:11,t:"out",c:[{n:"Carry fee, loss & deposit",v:6},{n:"Device order, setup & details",v:2},{n:"Other",v:3}]},
-   {n:"Business request",v:2,t:"out",c:[{n:"ISP recharge ticket & payout",v:1},{n:"₹750 Dominance payout & proof",v:1}]}]}]},
- {n:"Feature request & Request",v:43,t:"root",c:[
-   {n:"Account & access",v:16,t:"exp",c:[{n:"Team & account changes",note:"owner number, roles, bank account",v:16}]},
-   {n:"NetBox & inventory",v:16,t:"exp",c:[{n:"Return, pickup & swap",v:10},{n:"Carry fee, loss & deposit",v:3},{n:"Device order, setup & details",v:3}]},
-   {n:"Money & payouts",v:8,t:"exp",c:[{n:"₹750 Dominance payout & proof",v:8}]},
-   {n:"Customer side",v:2,t:"out",c:[{n:"Customer recharge, payment & offers",v:2}]},
-   {n:"Jobs: leads, installs & tickets",v:1,t:"out",c:[{n:"Leads & allocation",v:1}]}]}]};
-  const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-  function nodeRow(d, parent) {
-    const pct = parent ? Math.round(d.v / parent * 100) + '%' : '100%';
-    const w = parent ? (d.v / parent * 100) : 100;
-    return '<div class="ut-node"><span class="ut-chev" aria-hidden="true">▸</span>'
-      + '<span class="ut-lbl"><span class="ut-name">' + esc(d.n) + (d.note ? '<small>' + esc(d.note) + '</small>' : '') + (d.chip ? '<span class="ut-chip">' + esc(d.chip) + '</span>' : '') + '</span>'
-      + '<span class="ut-bar"><i style="width:' + w.toFixed(1) + '%"></i></span></span>'
-      + '<span class="ut-nums"><span class="ut-n">' + d.v + '</span><span class="ut-pct">' + pct + '</span></span></div>';
-  }
-  function render(d, parent, depth, inheritT) {
-    const t = d.t || inheritT || 'out';
-    const cls = 'ut-lv' + depth + ' ut-t-' + t + (d.gap ? ' ut-gap' : '');
-    if (!d.c) return '<li><div class="ut-leaf ' + cls + '">' + nodeRow(d, parent) + '</div></li>';
-    const kids = d.c.map((k) => render(k, d.v, depth + 1, t)).join('');
-    const open = (depth === 0 || d.open) ? ' open' : '';
-    return '<li><details class="' + cls + '" data-design="' + (d.gap || d.open ? 1 : 0) + '"' + open + '><summary>' + nodeRow(d, parent) + '</summary><ul>' + kids + '</ul></details></li>';
-  }
-  const box = document.getElementById('ut-tree'); if (!box) return;
-  box.innerHTML = '<ul>' + render(T, null, 0, 'root') + '</ul>';
-  const all = () => box.querySelectorAll('details');
-  document.getElementById('ut-expand').addEventListener('click', () => all().forEach((d) => { d.open = true; }));
-  document.getElementById('ut-collapse').addEventListener('click', () => all().forEach((d) => { d.open = d.classList.contains('ut-lv0') || d.dataset.design === '1'; }));
-})();
-</script>
-
-<script>
 // Tabs: show one page at a time, keep it in the link.
 (function () {
   document.querySelectorAll('.bj').forEach((el) => el.style.setProperty('--bj-early', dash.colors[0]));
@@ -1476,9 +1361,9 @@ const T={n:"All tickets",v:287,t:"root",c:[
   const tabs = () => Array.from(document.querySelectorAll('.bj-tab'));
   // Framed pages (Ship Tracker, Issue Lens) load only when their tab is first opened. On the same site
   // (GitHub Pages) the frame grows to fit its content.
-  const FRAMES = { shipped: 'bj-shipped-frame', issues: 'bj-issues-frame' };
-  const loadFrame = (id) => {
-    const f = document.getElementById(FRAMES[id]);
+  const FRAMES = { shipped: ['bj-shipped-frame'], issues: ['bj-tree-frame', 'bj-issues-frame'] };
+  const loadFrame = (fid) => {
+    const f = document.getElementById(fid);
     if (!f || f.src) return;
     f.addEventListener('load', () => {
       try {
@@ -1494,7 +1379,7 @@ const T={n:"All tickets",v:287,t:"root",c:[
     pages().forEach((p) => { p.hidden = p.id !== id; });
     tabs().forEach((t) => { const on = t.getAttribute('aria-controls') === id; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
     dash.setLink(id);
-    if (FRAMES[id]) loadFrame(id);
+    (FRAMES[id] || []).forEach(loadFrame);
     if (scroll) { const n = document.getElementById('bj-tabs'); if (n) n.scrollIntoView({ block: 'start' }); }
   };
   tabs().forEach((t) => t.addEventListener('click', () => show(t.getAttribute('aria-controls'), false)));

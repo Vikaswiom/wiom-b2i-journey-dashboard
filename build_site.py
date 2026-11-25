@@ -60,3 +60,9 @@ open('docs/issues/index.html', 'w').write(ihead + ipage + '\n</div>\n</body>\n</
 shutil.copy('issues/tickets.json', 'docs/issues/data/tickets.json')
 print('docs/issues/index.html', len(ihead + ipage), 'bytes')
 
+# The Understanding tree is a self-contained page (its own styles, script and embedded rows): add a document skeleton only.
+os.makedirs('docs/issues/tree', exist_ok=True)
+tree = open('issues/tree.html').read()
+open('docs/issues/tree/index.html', 'w').write('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<meta name="robots" content="noindex, nofollow">\n<style>html, body { margin: 0; }</style>\n' + tree.split('<div class="wrap">')[0] + '</head>\n<body>\n<div class="wrap">' + tree.split('<div class="wrap">', 1)[1] + '\n</body>\n</html>\n')
+print('docs/issues/tree/index.html', len(tree), 'bytes')
+
