@@ -2,7 +2,7 @@
 -- grp: timeout = removed by the system (CSP_NO_SHOW) while still at "technician assigned";
 --      on_time = installed on or before the original slot day; late = installed after it; other = everything else.
 WITH tl AS (
-  SELECT execution_candidate_id ec, from_state f, to_state t, reason_code rc, occurred_at ts, actor_type, actor_id
+  SELECT execution_candidate_id ec, from_state f, to_state t, reason_code rc, occurred_at::TIMESTAMP_NTZ ts  /* UTC wall clock; +330 min = IST, comparable with CleverTap's IST text timestamps */, actor_type, actor_id
   FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG WHERE NOT _FIVETRAN_DELETED AND occurred_at >= '2026-09-30'
 ),
 cohort AS (
