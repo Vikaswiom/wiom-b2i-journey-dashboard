@@ -1,10 +1,11 @@
 name: Refresh and publish
 # Refreshes the data and publishes the page to GitHub Pages.
-# There is no schedule here. The one schedule for the whole dashboard is the Ship Tracker's refresh (every 3 hours):
-# each of its runs pushes branch claude/refresh-trigger to this repo, and start-refresh.yml then starts this workflow.
+# This is the only schedule for the dashboard: every 3 hours. (GitHub may start scheduled runs late.)
 # Nothing is committed: the built page and data go straight to Pages, so the repo does not grow with every refresh.
-# A push to main (a page or query change) publishes the same way.
+# A push to main (a page or query change) publishes at once with the data already on the site.
 on:
+  schedule:
+    - cron: '23 */3 * * *'   # every 3 hours
   push:
     branches: [main]
   workflow_dispatch:
@@ -25,7 +26,7 @@ jobs:
       # Just after midnight IST the source tables have not finished syncing yesterday. Until they have,
       # the data is not refreshed.
       # A push is a page or query change: publish it straight away with the data already on the site.
-      # The data itself is refreshed by the 3-hourly run (workflow_dispatch from the Ship Tracker's schedule).
+      # The data itself is refreshed by the 3-hourly schedule (or a manual run).
       - name: Is yesterday's data complete?
         id: fresh
         if: github.event_name != 'push'
