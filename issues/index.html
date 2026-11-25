@@ -1,0 +1,581 @@
+<meta name="dash-one-writer">
+<style>
+.cil { display:flex; flex-direction:column; gap:var(--cds-gap-xl); font-family:var(--font-anthropic-sans); color:var(--color-fg); }
+.cil h1 { font-family:var(--font-anthropic-serif); font-weight:400; font-size:var(--cds-font-size-title); margin:0; text-wrap:balance; }
+.cil h2 { font-size:var(--cds-font-size-heading); font-weight:var(--cds-font-weight-medium); margin:0; text-wrap:balance; }
+.cil p { margin:0; max-width:72ch; line-height:1.5; }
+.cil-sub { color:var(--color-fg-muted); font-size:var(--cds-font-size-caption); }
+.cil-lede { font-size:var(--cds-font-size-body); }
+.cil-head { display:flex; flex-direction:column; gap:var(--cds-gap-sm); }
+.cil-tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:var(--cds-gap-md); }
+.cil-tile { background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-lg); display:flex; flex-direction:column; gap:var(--cds-gap-xs); min-width:0; }
+.cil-tile .lab { font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); display:flex; align-items:center; gap:6px; }
+.cil-tile .big { font-family:var(--font-anthropic-serif); font-weight:400; font-size:2.2rem; font-variant-numeric:tabular-nums; line-height:1.1; }
+.cil-tile .note { font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); }
+.cil-dot { width:10px; height:10px; border-radius:2px; display:inline-block; flex:none; }
+.cil-sec { display:flex; flex-direction:column; gap:var(--cds-gap-md); min-width:0; }
+.cil-two { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:var(--cds-gap-xl); }
+.cil-box { position:relative; min-height:120px; min-width:0; }
+.cil-bars { display:flex; flex-direction:column; gap:10px; }
+.cil-row { display:grid; grid-template-columns:minmax(120px,38%) 1fr; gap:10px; align-items:center; cursor:default; }
+.cil-row.click { cursor:pointer; border-radius:4px; }
+.cil-row.click:hover .cil-name, .cil-row.click:focus-visible .cil-name { text-decoration:underline; }
+.cil-row:focus-visible { outline:2px solid var(--color-fg); outline-offset:2px; }
+.cil-name { font-size:var(--cds-font-size-caption); line-height:1.3; min-width:0; }
+.cil-track { display:flex; align-items:center; gap:8px; min-width:0; }
+.cil-bar { height:14px; border-radius:3px; min-width:2px; }
+.cil-val { font-size:var(--cds-font-size-caption); font-variant-numeric:tabular-nums; color:var(--color-fg-muted); white-space:nowrap; }
+.cil-val b { color:var(--color-fg); font-weight:var(--cds-font-weight-medium); }
+.cil-group { font-size:var(--cds-font-size-caption); letter-spacing:.04em; text-transform:uppercase; color:var(--color-fg-muted); margin-top:6px; display:flex; align-items:center; gap:6px; }
+.cil-fix { font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); grid-column:2; margin-top:-6px; line-height:1.35; }
+.cil-stack { display:flex; height:22px; border-radius:3px; overflow:hidden; flex:1; min-width:0; }
+.cil-stack span { height:100%; }
+.cil-legend { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); }
+.cil-legend span { display:inline-flex; align-items:center; gap:6px; }
+.cil-tip { position:absolute; pointer-events:none; background:var(--cds-surface-popover); border:1px solid var(--cds-border); box-shadow:var(--cds-shadow-popover); border-radius:6px; padding:8px 10px; font-size:var(--cds-font-size-caption); max-width:280px; z-index:5; line-height:1.4; color:var(--color-fg); }
+.cil-tip .t { color:var(--cds-text-secondary); }
+.cil-tablewrap { overflow:auto; max-height:560px; border:1px solid var(--color-border-line); border-radius:var(--cds-radius); }
+.cil table { border-collapse:collapse; width:100%; font-size:var(--cds-font-size-caption); }
+.cil th { text-align:left; font-weight:var(--cds-font-weight-medium); color:var(--color-fg-muted); padding:8px 10px; border-bottom:1px solid var(--color-border-line); background:var(--color-bg); position:sticky; top:0; z-index:1; white-space:nowrap; }
+.cil td { padding:8px 10px; border-bottom:1px solid var(--color-border-line); vertical-align:top; line-height:1.4; }
+.cil td.num, .cil th.num { text-align:right; font-variant-numeric:tabular-nums; }
+.cil .wf td:first-child { min-width:180px; }
+.cil-tk td:nth-child(5), .cil-tk td:nth-child(6) { min-width:220px; }
+.cil-chip { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+.cil-filters { display:flex; flex-wrap:wrap; gap:var(--cds-gap-sm); align-items:center; }
+.cil-filters input { font:inherit; font-size:var(--cds-font-size-caption); padding:6px 10px; border:1px solid var(--color-border-line); border-radius:var(--cds-radius); background:var(--color-bg); color:var(--color-fg); min-width:0; flex:1 1 180px; max-width:280px; }
+.cil-btn { font:inherit; font-size:var(--cds-font-size-caption); padding:6px 10px; border:1px solid var(--color-border-line); border-radius:var(--cds-radius); background:var(--color-panel); color:var(--color-fg); cursor:pointer; }
+.cil-btn:focus-visible, .cil-filters input:focus-visible { outline:2px solid var(--color-fg); outline-offset:1px; }
+.cil-callout p { max-width:none; }
+.cil-lanes { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr)); gap:var(--cds-gap-lg); align-items:start; }
+.cil-lane { display:flex; flex-direction:column; gap:var(--cds-gap-sm); min-width:0; }
+.cil-lane-head { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:var(--cds-pad-md) var(--cds-pad-lg); border-radius:var(--cds-radius); background:var(--color-panel); border:1px solid var(--color-border-line); }
+.cil-lane-dot { width:6px; align-self:stretch; border-radius:3px; }
+.cil-lane-name { font-weight:var(--cds-font-weight-medium); font-size:var(--cds-font-size-heading); }
+.cil-lane-desc { font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); line-height:1.4; }
+.cil-lane-n { text-align:right; display:flex; flex-direction:column; }
+.cil-lane-n b { font-family:var(--font-anthropic-serif); font-weight:400; font-size:2.4rem; line-height:1; font-variant-numeric:tabular-nums; }
+.cil-lane-n span { font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); }
+.cil-scs { display:flex; flex-direction:column; gap:var(--cds-gap-sm); }
+.cil-sc { border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-md) var(--cds-pad-lg); display:flex; flex-direction:column; gap:6px; cursor:pointer; background:var(--color-bg); min-width:0; }
+.cil-sc:hover { border-color:var(--color-fg-muted); }
+.cil-sc:focus-visible { outline:2px solid var(--color-fg); outline-offset:2px; }
+.cil-sc-top { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; }
+.cil-sc h3 { margin:0; font-size:var(--cds-font-size-body); font-weight:var(--cds-font-weight-medium); }
+.cil-code { font-size:var(--cds-font-size-caption); font-weight:var(--cds-font-weight-medium); padding:2px 7px; border-radius:4px; color:var(--color-bg); font-variant-numeric:tabular-nums; }
+.cil-sc-n b { font-family:var(--font-anthropic-serif); font-weight:400; font-size:1.6rem; font-variant-numeric:tabular-nums; }
+.cil-sc-mean, .cil-sc-themes, .cil-sc-fix { margin:0; font-size:var(--cds-font-size-caption); line-height:1.45; max-width:none; }
+.cil-sc-mean { color:var(--color-fg-muted); }
+.cil-sc-fix span { display:inline-block; margin-right:6px; font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--color-fg-muted); }
+.cil-sc-bar { display:flex; align-items:center; gap:8px; }
+.cil-sc-bar .trk { flex:1; height:6px; border-radius:3px; background:var(--cds-chart-grid); overflow:hidden; }
+.cil-sc-bar .fill { height:100%; border-radius:3px; }
+.cil-sc-bar .pc { font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); font-variant-numeric:tabular-nums; min-width:3.2em; text-align:right; }
+.cil-sumwrap { max-height:none; }
+.cil-sum td { vertical-align:middle; }
+.cil-sum td:first-child { min-width:240px; }
+.cil-mean { color:var(--color-fg-muted); margin-top:2px; }
+.cil-s-group td { background:var(--color-panel); font-weight:var(--cds-font-weight-medium); }
+.cil-s-group .cil-mean { font-weight:400; }
+.cil-s-lens td:first-child { padding-left:22px; }
+.cil-s-total td { font-weight:var(--cds-font-weight-medium); border-bottom:0; border-top:2px solid var(--color-border-line); }
+.cil-split { min-height:auto; display:flex; flex-direction:column; gap:8px; }
+.cil-split .cil-stack { height:28px; flex:none; width:100%; }
+.cil-split .cil-stack span { display:flex; align-items:center; justify-content:center; font-size:var(--cds-font-size-caption); color:var(--color-bg); font-variant-numeric:tabular-nums; overflow:hidden; white-space:nowrap; }
+.cil-meta { font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); grid-column:2; margin-top:-8px; }
+.cil-pill { display:inline-block; padding:1px 7px; border-radius:999px; border:1px solid var(--color-border-line); font-size:var(--cds-font-size-caption); white-space:nowrap; }
+@media (max-width:520px){ .cil-meta { grid-column:1; } }
+.cil details { border-top:1px solid var(--color-border-line); padding-top:var(--cds-pad-md); }
+.cil summary { cursor:pointer; font-weight:var(--cds-font-weight-medium); }
+.cil dl { display:grid; grid-template-columns:minmax(140px,max-content) 1fr; gap:8px 16px; margin:12px 0 0; font-size:var(--cds-font-size-caption); line-height:1.45; }
+.cil dt { font-weight:var(--cds-font-weight-medium); display:flex; gap:6px; align-items:baseline; }
+.cil dd { margin:0; color:var(--color-fg-muted); }
+@media (max-width:520px){ .cil-row { grid-template-columns:1fr; gap:4px; } .cil-fix { grid-column:1; margin-top:-2px; } .cil dl { grid-template-columns:1fr; } }
+</style>
+
+<div class="cil">
+  <header class="cil-head" id="top">
+    <h1>CSP Issue Lens</h1>
+    <p class="cil-lede"><b data-draw="k-share" data-source="kpi" data-field="design_share" data-row="0">—</b> of real CSP tickets could have been prevented by the CSP app's design. Either the app didn't tell the CSP a rule, a reason or a timeline at the right moment, or it didn't let them do the task. Only <b data-draw="k-sys" data-source="kpi" data-field="system_defect" data-row="0">—</b> tickets were actual system defects.</p>
+    <p class="cil-sub">Source: CSP Bug Data sheet. <span data-draw="k-total" data-source="kpi" data-field="total" data-row="0">—</span> tickets raised between 7 Sep and 15 Nov 2026, not counting 24 test tickets. Each ticket was tagged with one root-cause lens after reading its RCA.</p>
+  </header>
+
+  <section class="cil-sec" id="summary" data-fetchpriority="high">
+    <h2>Summary</h2>
+    <p class="cil-lede">The sheet has <b>311</b> tickets. <b>24</b> are test tickets, which leaves <b data-draw="k-total2" data-source="kpi" data-field="total" data-row="0">—</b> real tickets. Of these, <b data-draw="k-design2" data-source="kpi" data-field="design" data-row="0">—</b> could have been prevented by the CSP app's design and <b data-draw="k-other2" data-source="kpi" data-field="other" data-row="0">—</b> could not.</p>
+    <div class="cil-box cil-split" data-draw="split-bar" data-source="lens_counts"></div>
+    <div class="cil-tablewrap cil-sumwrap">
+      <table class="cil-sum">
+        <thead><tr><th>Root cause</th><th class="num">Filed as understanding</th><th class="num">Filed as feature request</th><th class="num">Filed as request</th><th class="num">Total</th><th class="num">Share</th></tr></thead>
+        <tbody>
+          <tr class="cil-s-group"><td><div class="cil-chip"><span>Design can act on</span></div><div class="cil-mean">Could have been prevented by the CSP app</div></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="understanding" data-where="lens=Design can act on">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="feature_request" data-where="lens=Design can act on">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="request" data-where="lens=Design can act on">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="total" data-where="lens=Design can act on">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="share" data-where="lens=Design can act on">—</span></td></tr>
+          <tr class="cil-s-lens"><td><div class="cil-chip"><i class="cil-dot" data-draw="sdot" data-lens="Communication gap"></i><span>Communication gap</span></div><div class="cil-mean">The system worked, but the app didn't tell the CSP the rule, reason or timing</div></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="understanding" data-where="lens=Communication gap">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="feature_request" data-where="lens=Communication gap">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="request" data-where="lens=Communication gap">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="total" data-where="lens=Communication gap">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="share" data-where="lens=Communication gap">—</span></td></tr>
+          <tr class="cil-s-lens"><td><div class="cil-chip"><i class="cil-dot" data-draw="sdot" data-lens="Experience gap"></i><span>Experience gap</span></div><div class="cil-mean">The app has no way to do the task, or blocks or errors without saying why</div></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="understanding" data-where="lens=Experience gap">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="feature_request" data-where="lens=Experience gap">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="request" data-where="lens=Experience gap">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="total" data-where="lens=Experience gap">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="share" data-where="lens=Experience gap">—</span></td></tr>
+          <tr class="cil-s-group"><td><div class="cil-chip"><span>Outside design</span></div><div class="cil-mean">The CSP app's design can't prevent these</div></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="understanding" data-where="lens=Outside design">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="feature_request" data-where="lens=Outside design">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="request" data-where="lens=Outside design">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="total" data-where="lens=Outside design">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="share" data-where="lens=Outside design">—</span></td></tr>
+          <tr class="cil-s-lens"><td><div class="cil-chip"><i class="cil-dot" data-draw="sdot" data-lens="Ops / external"></i><span>Ops / external</span></div><div class="cil-mean">Bank or payout partner, SMS carrier, warehouse or ops, customer side</div></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="understanding" data-where="lens=Ops / external">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="feature_request" data-where="lens=Ops / external">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="request" data-where="lens=Ops / external">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="total" data-where="lens=Ops / external">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="share" data-where="lens=Ops / external">—</span></td></tr>
+          <tr class="cil-s-lens"><td><div class="cil-chip"><i class="cil-dot" data-draw="sdot" data-lens="No issue / CSP error"></i><span>No issue / CSP error</span></div><div class="cil-mean">The CSP's own mistake, a duplicate, or not enough information</div></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="understanding" data-where="lens=No issue / CSP error">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="feature_request" data-where="lens=No issue / CSP error">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="request" data-where="lens=No issue / CSP error">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="total" data-where="lens=No issue / CSP error">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="share" data-where="lens=No issue / CSP error">—</span></td></tr>
+          <tr class="cil-s-lens"><td><div class="cil-chip"><i class="cil-dot" data-draw="sdot" data-lens="System defect"></i><span>System defect</span></div><div class="cil-mean">Wrong data or a broken process inside Wiom</div></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="understanding" data-where="lens=System defect">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="feature_request" data-where="lens=System defect">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="request" data-where="lens=System defect">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="total" data-where="lens=System defect">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="share" data-where="lens=System defect">—</span></td></tr>
+          <tr class="cil-s-lens"><td><div class="cil-chip"><i class="cil-dot" data-draw="sdot" data-lens="Business request"></i><span>Business request</span></div><div class="cil-mean">Opting out of ₹750, pausing leads, cancelling a ticket</div></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="understanding" data-where="lens=Business request">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="feature_request" data-where="lens=Business request">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="request" data-where="lens=Business request">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="total" data-where="lens=Business request">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="share" data-where="lens=Business request">—</span></td></tr>
+          <tr class="cil-s-total"><td><div class="cil-chip"><span>All real tickets</span></div></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="understanding" data-where="lens=All real tickets">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="feature_request" data-where="lens=All real tickets">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="request" data-where="lens=All real tickets">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="total" data-where="lens=All real tickets">—</span></td><td class="num"><span data-draw="sv" data-source="summary_tab" data-field="share" data-where="lens=All real tickets">—</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cil-sub">"Filed as" is the type column in the sheet. Root cause is my reading of each ticket's RCA. Share is out of all real tickets.</p>
+  </section>
+
+
+  <section class="cil-sec" id="types">
+    <h2>Type and subtype</h2>
+    <p class="cil-sub">Each design-addressable ticket has one main subtype, which names what the app failed to say or let the CSP do. The bar shows the subtype's share of its type. Click a card to list its tickets.</p>
+    <div class="cil-lanes">
+    <div class="cil-lane">
+      <div class="cil-lane-head">
+        <span class="cil-lane-dot" data-draw="sdot" data-lens="Communication gap"></span>
+        <div><div class="cil-lane-name">Communication gap</div><div class="cil-lane-desc">The system worked. The app didn't tell the CSP the rule, reason or timing.</div></div>
+        <div class="cil-lane-n"><b data-draw="lane-n" data-source="kpi" data-field="comm" data-row="0">—</b><span>tickets</span></div>
+      </div>
+      <div class="cil-scs">
+        <article class="cil-sc" data-sub="C1 · Rule not explained" tabindex="0" role="button" aria-label="C1 · Rule not explained: show tickets">
+          <div class="cil-sc-top"><span class="cil-code" data-draw="sub-code" data-lens="Communication gap">C1</span><h3>Rule not explained</h3><span class="cil-sc-n"><b data-draw="stv" data-source="subtype_counts" data-field="primary" data-where="subtype=C1 · Rule not explained">—</b></span></div>
+          <p class="cil-sc-mean">The CSP didn't know how something works: eligibility, metric windows, policy.</p>
+          <div class="cil-sc-bar" data-draw="sub-bar" data-sub="C1 · Rule not explained"></div>
+          <p class="cil-sc-themes" data-draw="sub-themes" data-sub="C1 · Rule not explained"></p>
+          <p class="cil-sc-fix"><span>Design fix</span>Show the rule on the screen where it applies</p>
+        </article>
+        <article class="cil-sc" data-sub="C2 · Charge or payout not itemised" tabindex="0" role="button" aria-label="C2 · Charge or payout not itemised: show tickets">
+          <div class="cil-sc-top"><span class="cil-code" data-draw="sub-code" data-lens="Communication gap">C2</span><h3>Charge or payout not itemised</h3><span class="cil-sc-n"><b data-draw="stv" data-source="subtype_counts" data-field="primary" data-where="subtype=C2 · Charge or payout not itemised">—</b></span></div>
+          <p class="cil-sc-mean">Money moved, but the CSP can't see what it was for.</p>
+          <div class="cil-sc-bar" data-draw="sub-bar" data-sub="C2 · Charge or payout not itemised"></div>
+          <p class="cil-sc-themes" data-draw="sub-themes" data-sub="C2 · Charge or payout not itemised"></p>
+          <p class="cil-sc-fix"><span>Design fix</span>Break each wallet entry down by device or install</p>
+        </article>
+        <article class="cil-sc" data-sub="C3 · Next step or date not shown" tabindex="0" role="button" aria-label="C3 · Next step or date not shown: show tickets">
+          <div class="cil-sc-top"><span class="cil-code" data-draw="sub-code" data-lens="Communication gap">C3</span><h3>Next step or date not shown</h3><span class="cil-sc-n"><b data-draw="stv" data-source="subtype_counts" data-field="primary" data-where="subtype=C3 · Next step or date not shown">—</b></span></div>
+          <p class="cil-sc-mean">The CSP is waiting and doesn't know for what, or until when.</p>
+          <div class="cil-sc-bar" data-draw="sub-bar" data-sub="C3 · Next step or date not shown"></div>
+          <p class="cil-sc-themes" data-draw="sub-themes" data-sub="C3 · Next step or date not shown"></p>
+          <p class="cil-sc-fix"><span>Design fix</span>Show the next step, its date and who it waits on</p>
+        </article>
+        <article class="cil-sc" data-sub="C4 · Auto-action not warned" tabindex="0" role="button" aria-label="C4 · Auto-action not warned: show tickets">
+          <div class="cil-sc-top"><span class="cil-code" data-draw="sub-code" data-lens="Communication gap">C4</span><h3>Auto-action not warned</h3><span class="cil-sc-n"><b data-draw="stv" data-source="subtype_counts" data-field="primary" data-where="subtype=C4 · Auto-action not warned">—</b></span></div>
+          <p class="cil-sc-mean">The system cancelled, suspended or blocked without telling the CSP first.</p>
+          <div class="cil-sc-bar" data-draw="sub-bar" data-sub="C4 · Auto-action not warned"></div>
+          <p class="cil-sc-themes" data-draw="sub-themes" data-sub="C4 · Auto-action not warned"></p>
+          <p class="cil-sc-fix"><span>Design fix</span>Warn before it happens; explain after</p>
+        </article>
+        <article class="cil-sc" data-sub="C5 · Status or reason unclear" tabindex="0" role="button" aria-label="C5 · Status or reason unclear: show tickets">
+          <div class="cil-sc-top"><span class="cil-code" data-draw="sub-code" data-lens="Communication gap">C5</span><h3>Status or reason unclear</h3><span class="cil-sc-n"><b data-draw="stv" data-source="subtype_counts" data-field="primary" data-where="subtype=C5 · Status or reason unclear">—</b></span></div>
+          <p class="cil-sc-mean">A state or block is on screen without why, or no longer applies.</p>
+          <div class="cil-sc-bar" data-draw="sub-bar" data-sub="C5 · Status or reason unclear"></div>
+          <p class="cil-sc-themes" data-draw="sub-themes" data-sub="C5 · Status or reason unclear"></p>
+          <p class="cil-sc-fix"><span>Design fix</span>Put the reason and the way out next to the status</p>
+        </article>
+      </div>
+    </div>
+    <div class="cil-lane">
+      <div class="cil-lane-head">
+        <span class="cil-lane-dot" data-draw="sdot" data-lens="Experience gap"></span>
+        <div><div class="cil-lane-name">Experience gap</div><div class="cil-lane-desc">The app couldn't do the task, or blocked or confused without a way forward.</div></div>
+        <div class="cil-lane-n"><b data-draw="lane-n" data-source="kpi" data-field="exp" data-row="0">—</b><span>tickets</span></div>
+      </div>
+      <div class="cil-scs">
+        <article class="cil-sc" data-sub="E1 · No self-serve action" tabindex="0" role="button" aria-label="E1 · No self-serve action: show tickets">
+          <div class="cil-sc-top"><span class="cil-code" data-draw="sub-code" data-lens="Experience gap">E1</span><h3>No self-serve action</h3><span class="cil-sc-n"><b data-draw="stv" data-source="subtype_counts" data-field="primary" data-where="subtype=E1 · No self-serve action">—</b></span></div>
+          <p class="cil-sc-mean">The task can only be done by asking support.</p>
+          <div class="cil-sc-bar" data-draw="sub-bar" data-sub="E1 · No self-serve action"></div>
+          <p class="cil-sc-themes" data-draw="sub-themes" data-sub="E1 · No self-serve action"></p>
+          <p class="cil-sc-fix"><span>Design fix</span>Add the action to the app</p>
+        </article>
+        <article class="cil-sc" data-sub="E2 · Error or block without a way forward" tabindex="0" role="button" aria-label="E2 · Error or block without a way forward: show tickets">
+          <div class="cil-sc-top"><span class="cil-code" data-draw="sub-code" data-lens="Experience gap">E2</span><h3>Error or block without a way forward</h3><span class="cil-sc-n"><b data-draw="stv" data-source="subtype_counts" data-field="primary" data-where="subtype=E2 · Error or block without a way forward">—</b></span></div>
+          <p class="cil-sc-mean">A wrong or generic error, a hidden button, a dead end.</p>
+          <div class="cil-sc-bar" data-draw="sub-bar" data-sub="E2 · Error or block without a way forward"></div>
+          <p class="cil-sc-themes" data-draw="sub-themes" data-sub="E2 · Error or block without a way forward"></p>
+          <p class="cil-sc-fix"><span>Design fix</span>Say what blocked it and what to do next</p>
+        </article>
+        <article class="cil-sc" data-sub="E3 · Mistake-prone action" tabindex="0" role="button" aria-label="E3 · Mistake-prone action: show tickets">
+          <div class="cil-sc-top"><span class="cil-code" data-draw="sub-code" data-lens="Experience gap">E3</span><h3>Mistake-prone action</h3><span class="cil-sc-n"><b data-draw="stv" data-source="subtype_counts" data-field="primary" data-where="subtype=E3 · Mistake-prone action">—</b></span></div>
+          <p class="cil-sc-mean">No confirmation or undo before an action that can't be reversed.</p>
+          <div class="cil-sc-bar" data-draw="sub-bar" data-sub="E3 · Mistake-prone action"></div>
+          <p class="cil-sc-themes" data-draw="sub-themes" data-sub="E3 · Mistake-prone action"></p>
+          <p class="cil-sc-fix"><span>Design fix</span>Confirm with consequences, or allow undo</p>
+        </article>
+        <article class="cil-sc" data-sub="E4 · Wrong or stale display" tabindex="0" role="button" aria-label="E4 · Wrong or stale display: show tickets">
+          <div class="cil-sc-top"><span class="cil-code" data-draw="sub-code" data-lens="Experience gap">E4</span><h3>Wrong or stale display</h3><span class="cil-sc-n"><b data-draw="stv" data-source="subtype_counts" data-field="primary" data-where="subtype=E4 · Wrong or stale display">—</b></span></div>
+          <p class="cil-sc-mean">The screen shows old, wrong or hard-to-find information.</p>
+          <div class="cil-sc-bar" data-draw="sub-bar" data-sub="E4 · Wrong or stale display"></div>
+          <p class="cil-sc-themes" data-draw="sub-themes" data-sub="E4 · Wrong or stale display"></p>
+          <p class="cil-sc-fix"><span>Design fix</span>Refresh, relabel or move the information</p>
+        </article>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <section class="cil-sec" id="themes">
+    <h2>What the design-addressable tickets are about</h2>
+    <p class="cil-sub">Each theme shows the change that would have prevented its tickets. Click a theme to see its tickets below.</p>
+    <div class="cil-box" data-draw="theme-chart" data-source="theme_counts"></div>
+  </section>
+
+  <section class="cil-sec" id="features">
+    <h2>Feature requests</h2>
+    <p class="cil-lede"><b data-draw="fr-total" data-source="fr_kpi" data-field="fr_total" data-row="0">—</b> tickets were filed as a feature request or request. They boil down to <b data-draw="fr-asks" data-source="fr_kpi" data-field="asks" data-row="0">—</b> distinct asks. <b data-draw="fr-open" data-source="fr_kpi" data-field="open" data-row="0">—</b> are still open and <b data-draw="fr-roadmap" data-source="fr_kpi" data-field="on_roadmap" data-row="0">—</b> is on the roadmap. The ones marked resolved were mostly fixed by hand in the backend for that one CSP, so the next CSP with the same need raises another ticket.</p>
+    <div class="cil-legend" data-draw="fr-legend"></div>
+    <div class="cil-box" data-draw="fr-chart" data-source="feature_asks"></div>
+    <div class="cil-tile cil-callout" id="hidden-asks">
+      <div class="lab">Feature asks filed as "understanding"</div>
+      <p><b data-draw="fr-hidden" data-source="fr_kpi" data-field="hidden" data-row="0">—</b> more experience-gap tickets were filed as "understanding" because nothing was technically broken. But each one is a missing screen, message or option: hidden order buttons, swap errors that name the wrong cause, a wallet that doesn't show the held amount. They don't appear in the feature-request count above.</p>
+      <div><button type="button" class="cil-btn" id="show-hidden">Show these tickets</button></div>
+    </div>
+  </section>
+
+  <div class="cil-two">
+    <section class="cil-sec" id="months">
+      <h2>Mix by month</h2>
+      <p class="cil-sub">November covers only 1–15 Nov.</p>
+      <div class="cil-box" data-draw="month-chart" data-source="by_month"></div>
+    </section>
+    <section class="cil-sec" id="workflows">
+      <h2>Workflows with the most tickets</h2>
+      <div class="cil-tablewrap">
+        <table class="wf" data-source="by_workflow" data-row-key="workflow">
+          <thead><tr><th data-field="workflow">Workflow</th><th class="num" data-field="total">Tickets</th><th class="num" data-field="comm">Comm.</th><th class="num" data-field="exp">Exp.</th><th class="num" data-field="design_pct">Design %</th></tr></thead>
+          <tbody data-draw="wf-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="cil-sec" id="tickets">
+    <h2>Ticket explorer</h2>
+    <div class="cil-filters">
+      <select class="dash-select" data-draw="f-lens" aria-label="Root cause" id="f-lens"></select>
+      <select class="dash-select" data-draw="f-theme" aria-label="Theme" id="f-theme"></select>
+      <select class="dash-select" data-draw="f-sub" aria-label="Subtype" id="f-sub"></select>
+      <select class="dash-select" data-draw="f-type" aria-label="Filed as" id="f-type"></select>
+      <input type="search" id="f-q" placeholder="Search issue or RCA" aria-label="Search tickets">
+      <button type="button" class="cil-btn" id="f-reset">Clear filters</button>
+      <span class="cil-sub" data-draw="f-count"></span>
+    </div>
+    <div class="cil-tablewrap">
+      <table class="cil-tk" data-source="tickets" data-row-key="ref">
+        <thead><tr><th data-field="ref">Ref</th><th data-field="created">Created</th><th data-field="lens">Root cause</th><th data-field="theme">Theme</th><th data-field="csp_issue">What the CSP faced</th><th data-field="rca">Why (RCA)</th><th data-field="subtype">Subtype</th><th data-field="sheet_type">Filed as</th><th data-field="priority">Priority</th></tr></thead>
+        <tbody data-draw="tk-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details id="method">
+    <summary>How tickets were sorted</summary>
+    <dl>
+      <dt>Communication gap</dt><dd>The system behaved as designed, and a message or screen in the CSP app would have stopped the CSP raising the ticket. Tickets where the app had nothing more to say go elsewhere: a bank transfer already processed with a UTR, a payout partner retry, a device the warehouse never received. Examples: why a ₹750 proof was rejected, when the next ISP ticket is due, the 15-day window behind speed and optical power, carry-fee "starting soon" alerts. Fix with in-app explanation, push or belief-break messages, or clearer copy at the moment it matters.</dd>
+      <dt>Experience gap</dt><dd>The app is missing a self-serve path (cancel an auto-return, change the owner number or bank account, a scan fallback), or a screen blocks or errors without a reason (hidden order button, "device not linked" during a swap), or a label is confusing or stale. Fix by changing the flow or screen.</dd>
+      <dt>System defect</dt><dd>Wrong data or a broken process inside Wiom: manual ad-hoc deductions, stale device mapping, tickets not routed.</dd>
+      <dt>Ops / external</dt><dd>Things the CSP app's design can't fix: bank-side delays after a processed transfer, payout partner retries and outages, OTP SMS not delivered by the carrier, failed customer UPI payments, warehouse not marking returns, wrong links shared by ops, manual migrations and incentives.</dd>
+      <dt>Business request</dt><dd>Opting out of ₹750 Dominance, blocking leads, cancelling a recharge ticket.</dd>
+      <dt>Subtype</dt><dd>What the app failed to say (C1–C5) or let the CSP do (E1–E4). Every design-addressable ticket has one main subtype, tagged by Claude; the design team's corrections override it.</dd>
+      <dt>Feature asks</dt><dd>Tickets the sheet files as "Feature request" or "Request" (43), grouped by the capability they ask for. "Lead" says who has to build it: Design-led needs a new screen or flow, Backend-led needs a system or ops change the CSP never sees.</dd>
+      <dt>No issue / CSP error</dt><dd>Wrong number given, the CSP cancelled it themselves, a duplicate, or not enough information.</dd>
+    </dl>
+    <p class="cil-sub" style="margin-top:12px">Every ticket gets exactly one lens. Where a ticket fits two (for example, ops delay plus silent UI), it went to whichever change would have stopped the CSP from raising it. The tagging is one person's reading of the RCA, so check any single ticket in the explorer above. Phone numbers are masked.</p>
+  </details>
+</div>
+
+<script>
+window.CIL = {
+  LENSES: ['Communication gap','Experience gap','System defect','Ops / external','Business request','No issue / CSP error'],
+  color(l){ const c=dash.colors; return ({ 'Communication gap':c[0], 'Experience gap':c[1], 'System defect':'var(--cds-chart-status-critical)', 'Ops / external':c[2]||'var(--cds-chart-muted)', 'Business request':c[3]||'var(--cds-chart-muted)', 'No issue / CSP error':'var(--cds-chart-muted)' })[l]; },
+  design(l){ return l==='Communication gap'||l==='Experience gap'; },
+  f: { lens:'', theme:'', q:'', type:'', sub:'' },
+  LEADS: ['Design-led','Design + business','Backend + design','Backend-led','Business decision'],
+  leadColor(l){ const c=dash.colors; return ({ 'Design-led':c[1], 'Design + business':c[0], 'Backend + design':c[4]||'var(--cds-chart-muted)', 'Backend-led':'var(--cds-chart-muted)', 'Business decision':c[3]||'var(--cds-chart-muted)' })[l]; },
+  pct(n,d){ return d? Math.round(n*100/d) : 0; },
+  tip(box){ let t=box.querySelector(':scope > .cil-tip'); if(!t){ t=document.createElement('div'); t.className='cil-tip'; t.hidden=true; box.appendChild(t);} return t; },
+  place(box,t,ev){ const r=box.getBoundingClientRect(); let x=ev.clientX-r.left+12, y=ev.clientY-r.top+12; t.hidden=false; const w=t.offsetWidth; if(x+w>r.width) x=Math.max(0,ev.clientX-r.left-w-12); t.style.left=x+'px'; t.style.top=y+'px'; }
+};
+
+dash.calc('kpi', { inputs:['tickets'], title:'Headline counts', description:'Tickets per lens and the share design can act on.',
+  fn:(tickets) => {
+    const n=(l)=>tickets.filter(t=>t.lens===l).length;
+    const total=tickets.length, comm=n('Communication gap'), exp=n('Experience gap');
+    return [{ total, comm, exp, design:comm+exp, other:total-comm-exp, system_defect:n('System defect'), design_share: total? Math.round((comm+exp)*100/total):0 }];
+  }});
+
+dash.calc('summary_tab', { inputs:['tickets'], title:'Summary by root cause and filed type', description:'Tickets per root cause, split by how the sheet filed them, with design / outside-design subtotals.',
+  fn:(tickets) => {
+    const total=tickets.length;
+    const row=(lens,ts)=>({ lens, understanding:ts.filter(t=>t.sheet_type==='Understanding').length, feature_request:ts.filter(t=>t.sheet_type==='Feature request').length, request:ts.filter(t=>t.sheet_type==='Request').length, total:ts.length, share: total? Math.round(ts.length*100/total):0 });
+    const des=['Communication gap','Experience gap'], out=['Ops / external','No issue / CSP error','System defect','Business request'];
+    return [ row('Design can act on', tickets.filter(t=>des.includes(t.lens))), ...des.map(l=>row(l,tickets.filter(t=>t.lens===l))),
+      row('Outside design', tickets.filter(t=>out.includes(t.lens))), ...out.map(l=>row(l,tickets.filter(t=>t.lens===l))),
+      row('All real tickets', tickets) ];
+  }});
+
+dash.calc('subtype_counts', { inputs:['tickets'], title:'Reviewed tickets by subtype', description:'Count of reviewed tickets with each subtype as main or secondary.',
+  fn:(tickets) => ['C1 · Rule not explained','C2 · Charge or payout not itemised','C3 · Next step or date not shown','C4 · Auto-action not warned','C5 · Status or reason unclear','E1 · No self-serve action','E2 · Error or block without a way forward','E3 · Mistake-prone action','E4 · Wrong or stale display']
+    .map(subtype=>({ subtype, primary: tickets.filter(t=>t.subtype===subtype).length, secondary: tickets.filter(t=>t.secondary===subtype).length })) });
+
+dash.calc('lens_counts', { inputs:['tickets'], title:'Tickets by root cause', description:'Count and share of tickets in each lens.',
+  fn:(tickets) => ['Communication gap','Experience gap','System defect','Ops / external','Business request','No issue / CSP error']
+    .map(lens => { const c=tickets.filter(t=>t.lens===lens).length; return { lens, tickets:c, share: tickets.length? Math.round(c*100/tickets.length):0 }; }) });
+
+dash.calc('theme_counts', { inputs:['tickets'], title:'Design-addressable themes', description:'Communication and experience gap tickets grouped by theme.',
+  fn:(tickets) => {
+    const m=new Map();
+    tickets.filter(t=>t.lens==='Communication gap'||t.lens==='Experience gap').forEach(t=>{
+      const k=t.theme; if(!m.has(k)) m.set(k,{theme:k,lens:t.lens,design_fix:t.design_fix,tickets:0}); m.get(k).tickets++; });
+    return [...m.values()].sort((a,b)=> a.lens===b.lens ? b.tickets-a.tickets : (a.lens==='Communication gap'?-1:1));
+  }});
+
+dash.calc('fr_kpi', { inputs:['tickets'], title:'Feature request counts', description:'Tickets filed as Feature request or Request, their distinct asks and status, plus experience gaps filed as Understanding.',
+  fn:(tickets) => {
+    const fr=tickets.filter(t=>t.sheet_type==='Feature request'||t.sheet_type==='Request');
+    const asks=new Set(fr.map(t=>t.feature_ask));
+    const roadmapAsks=new Set(fr.filter(t=>t.on_roadmap==='Yes').map(t=>t.feature_ask));
+    return [{ fr_total:fr.length, asks:asks.size, open:fr.filter(t=>t.status==='open'||t.status==='needs_info').length,
+      resolved:fr.filter(t=>t.status==='resolved').length, rejected:fr.filter(t=>t.status==='rejected').length,
+      on_roadmap:roadmapAsks.size, hidden:tickets.filter(t=>t.hidden_feature_ask===true||t.hidden_feature_ask==='true').length }];
+  }});
+
+dash.calc('feature_asks', { inputs:['tickets'], title:'Feature asks', description:'Feature request and request tickets grouped into distinct asks, with priority and status counts.',
+  fn:(tickets) => {
+    const m=new Map();
+    tickets.filter(t=>t.feature_ask && (t.sheet_type==='Feature request'||t.sheet_type==='Request')).forEach(t=>{
+      if(!m.has(t.feature_ask)) m.set(t.feature_ask,{feature_ask:t.feature_ask, lead:t.feature_lead, what:t.feature_what, tickets:0, p0_urgent:0, open:0, resolved:0, rejected:0, on_roadmap:'No', owners:new Set()});
+      const r=m.get(t.feature_ask); r.tickets++;
+      if(t.priority==='P0'||t.priority==='URGENT') r.p0_urgent++;
+      if(t.status==='open'||t.status==='needs_info') r.open++; else if(t.status==='resolved') r.resolved++; else if(t.status==='rejected') r.rejected++;
+      if(t.on_roadmap==='Yes') r.on_roadmap='Yes';
+      if(t.product_owner) r.owners.add(t.product_owner);
+    });
+    return [...m.values()].map(r=>({...r, owners:[...r.owners].join(', ')})).sort((a,b)=>b.tickets-a.tickets);
+  }});
+
+dash.calc('by_month', { inputs:['tickets'], title:'Tickets by month and lens', description:'Ticket count per created month and lens.',
+  fn:(tickets) => {
+    const out=[]; const months=[...new Set(tickets.map(t=>t.month))].sort();
+    months.forEach(month=>['Communication gap','Experience gap','System defect','Ops / external','Business request','No issue / CSP error'].forEach(lens=>{
+      out.push({ month, lens, tickets: tickets.filter(t=>t.month===month&&t.lens===lens).length }); }));
+    return out;
+  }});
+
+dash.calc('by_workflow', { inputs:['tickets'], title:'Tickets by workflow', description:'Top 12 workflows by ticket count with communication and experience gap counts.',
+  fn:(tickets) => {
+    const m=new Map();
+    tickets.forEach(t=>{ const k=t.workflow||'(blank)'; if(!m.has(k)) m.set(k,{workflow:k,total:0,comm:0,exp:0}); const r=m.get(k); r.total++; if(t.lens==='Communication gap') r.comm++; if(t.lens==='Experience gap') r.exp++; });
+    return [...m.values()].map(r=>({...r, design_pct: Math.round((r.comm+r.exp)*100/r.total)})).sort((a,b)=>b.total-a.total).slice(0,12);
+  }});
+</script>
+
+<script>
+(function(){
+  const C=window.CIL;
+  const kpi=(field,fmt)=> (el)=>{ const k=dash.data('kpi'); if(k.status!=='ok'||!k.data||!k.data.length){ el.textContent='—'; return; } el.textContent=fmt(k.data[0][field],k.data[0]); };
+  dash.draw('k-share', kpi('design_share', v=>v+'%'));
+  dash.draw('k-sys', kpi('system_defect', v=>String(v)));
+  dash.draw('k-total', kpi('total', v=>String(v)));
+  dash.draw('k-total2', kpi('total', v=>String(v)));
+  dash.draw('k-design2', kpi('design', (v,r)=>v+' ('+C.pct(v,r.total)+'%)'));
+  dash.draw('k-other2', kpi('other', (v,r)=>v+' ('+C.pct(v,r.total)+'%)'));
+  dash.draw('sdot', el=>{ el.style.background=C.color(el.dataset.lens||''); if(!C.design(el.dataset.lens||'')) el.style.opacity='.55'; });
+  dash.draw('sv', el=>{
+    const d=dash.data('summary_tab'); const w=(el.dataset.where||'').replace(/^lens=/,''); const f=el.dataset.field;
+    if(d.status!=='ok'||!Array.isArray(d.data)){ el.textContent='—'; return; }
+    const r=d.data.find(x=>x.lens===w); if(!r){ el.textContent='—'; return; }
+    el.textContent = f==='share' ? r.share+'%' : String(r[f]);
+  });
+  dash.draw('stv', el=>{
+    const d=dash.data('subtype_counts'); const w=decodeURIComponent((el.dataset.where||'').replace(/^subtype=/,'')); const f=el.dataset.field;
+    if(d.status!=='ok'||!Array.isArray(d.data)){ el.textContent='—'; return; }
+    const r=d.data.find(x=>x.subtype===w); el.textContent = r? String(r[f]) : '—';
+  });
+  dash.draw('lane-n', el=>{ const k=dash.data('kpi'); const f=el.dataset.field; el.textContent=(k.status==='ok'&&k.data&&k.data.length)? String(k.data[0][f]):'—'; });
+  dash.draw('sub-code', el=>{ el.style.background=C.color(el.dataset.lens||''); });
+  const subRows=(sub)=>{ const d=dash.data('tickets'); return (d.status==='ok'&&Array.isArray(d.data))? d.data.filter(t=>t.subtype===sub) : null; };
+  dash.draw('sub-bar', el=>{
+    const sub=el.dataset.sub||''; const rows=subRows(sub); el.replaceChildren(); if(!rows) return;
+    const lens=sub.startsWith('C')?'Communication gap':'Experience gap';
+    const d=dash.data('tickets'); const tot=d.data.filter(t=>t.lens===lens&&t.subtype).length||1;
+    const trk=document.createElement('div'); trk.className='trk'; const f=document.createElement('div'); f.className='fill'; f.style.width=(rows.length/tot*100)+'%'; f.style.background=C.color(lens); trk.appendChild(f);
+    const pc=document.createElement('span'); pc.className='pc'; pc.textContent=C.pct(rows.length,tot)+'%';
+    el.append(trk,pc);
+  });
+  dash.draw('sub-themes', el=>{
+    const rows=subRows(el.dataset.sub||''); if(!rows){ el.textContent=''; return; }
+    const c=d3.rollups(rows,v=>v.length,t=>t.theme).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    el.textContent = c.length ? 'Mostly: '+c.map(([t,n])=>t+' ('+n+')').join(' · ') : 'No tickets yet';
+  });
+  document.querySelectorAll('.cil-sc').forEach(el=>{
+    const go=()=>{ C.f={lens:'',theme:'',q:'',type:'',sub:el.dataset.sub||''}; const q=document.getElementById('f-q'); if(q) q.value=''; ['f-lens','f-theme','f-type','f-sub','tk-body','f-count'].forEach(n=>dash.draw(n)); document.getElementById('tickets')?.scrollIntoView({behavior:'smooth',block:'start'}); };
+    el.addEventListener('click',go); el.addEventListener('keydown',(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+  });
+  dash.draw('split-bar', el=>{
+    const d=dash.data('lens_counts'); if(d.status!=='ok'||!Array.isArray(d.data)){ failed(el,d.status); return; }
+    el.replaceChildren(); const tip=C.tip(el); const tot=d3.sum(d.data,r=>r.tickets)||1;
+    const st=document.createElement('div'); st.className='cil-stack'; st.setAttribute('role','img'); st.setAttribute('aria-label','Tickets by root cause: '+d.data.map(r=>r.lens+' '+r.tickets).join(', '));
+    d.data.forEach(r=>{ if(!r.tickets) return; const s=document.createElement('span'); s.style.width=(r.tickets/tot*100)+'%'; s.style.background=C.color(r.lens); if(!C.design(r.lens)) s.style.opacity='.55'; if(r.tickets/tot>0.06) s.textContent=r.tickets;
+      s.onmousemove=(e)=>{ tip.replaceChildren(); const a=document.createElement('div'); a.textContent=r.lens+': '+r.tickets+' ('+r.share+'%)'; tip.append(a); C.place(el,tip,e); }; s.onmouseleave=()=>{ tip.hidden=true; }; st.appendChild(s); });
+    const lg=document.createElement('div'); lg.className='cil-legend';
+    d.data.forEach(r=>{ const s=document.createElement('span'); const dt=document.createElement('i'); dt.className='cil-dot'; dt.style.background=C.color(r.lens); if(!C.design(r.lens)) dt.style.opacity='.55'; s.append(dt, r.lens+' '+r.tickets); lg.appendChild(s); });
+    el.append(st,lg); el.appendChild(tip);
+  });
+
+  function failed(el,s){ el.replaceChildren(); const p=document.createElement('p'); p.className='cil-sub'; p.textContent = s==='error'?'Failed to load':'Loading…'; el.appendChild(p); }
+
+  dash.draw('lens-chart', (el)=>{
+    const d=dash.data('lens_counts'); if(d.status!=='ok'||!Array.isArray(d.data)){ failed(el,d.status); return; }
+    el.replaceChildren(); const wrap=document.createElement('div'); wrap.className='cil-bars'; el.appendChild(wrap);
+    const max=d3.max(d.data,r=>r.tickets)||1;
+    d.data.forEach(r=>{
+      const row=document.createElement('div'); row.className='cil-row click'; row.tabIndex=0; row.setAttribute('role','button');
+      row.setAttribute('aria-label', r.lens+': '+r.tickets+' tickets. Show in explorer');
+      const nm=document.createElement('div'); nm.className='cil-name'; nm.textContent=r.lens; if(!C.design(r.lens)) nm.style.color='var(--color-fg-muted)';
+      const tr=document.createElement('div'); tr.className='cil-track';
+      const bar=document.createElement('div'); bar.className='cil-bar'; bar.style.width=(r.tickets/max*78)+'%'; bar.style.background=C.color(r.lens); if(!C.design(r.lens)) bar.style.opacity='.55';
+      const v=document.createElement('span'); v.className='cil-val';
+      const b=document.createElement('b'); b.textContent=r.tickets; b.dataset.source='lens_counts'; b.dataset.field='tickets'; b.dataset.where='lens='+encodeURIComponent(r.lens);
+      v.append(b, ' · '+r.share+'%');
+      tr.append(bar,v); row.append(nm,tr); wrap.appendChild(row);
+      const go=()=>{ C.f.lens=r.lens; C.f.theme=''; dash.draw('f-lens'); dash.draw('f-theme'); dash.draw('tk-body'); dash.draw('f-count'); document.getElementById('tickets')?.scrollIntoView({behavior:'smooth',block:'start'}); };
+      row.onclick=go; row.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } };
+    });
+  });
+
+  dash.draw('theme-chart', (el)=>{
+    const d=dash.data('theme_counts'); if(d.status!=='ok'||!Array.isArray(d.data)){ failed(el,d.status); return; }
+    el.replaceChildren(); const wrap=document.createElement('div'); wrap.className='cil-bars'; el.appendChild(wrap);
+    const tip=C.tip(el); const max=d3.max(d.data,r=>r.tickets)||1; let last='';
+    d.data.forEach(r=>{
+      if(r.lens!==last){ last=r.lens; const g=document.createElement('div'); g.className='cil-group'; const dot=document.createElement('i'); dot.className='cil-dot'; dot.style.background=C.color(r.lens); g.append(dot, r.lens); wrap.appendChild(g); }
+      const row=document.createElement('div'); row.className='cil-row click'; row.tabIndex=0; row.setAttribute('role','button'); row.setAttribute('aria-label', r.theme+': '+r.tickets+' tickets. Show in explorer');
+      const nm=document.createElement('div'); nm.className='cil-name'; nm.textContent=r.theme;
+      const tr=document.createElement('div'); tr.className='cil-track';
+      const bar=document.createElement('div'); bar.className='cil-bar'; bar.style.width=(r.tickets/max*78)+'%'; bar.style.background=C.color(r.lens);
+      const v=document.createElement('span'); v.className='cil-val'; const b=document.createElement('b'); b.textContent=r.tickets; b.dataset.source='theme_counts'; b.dataset.field='tickets'; b.dataset.where='theme='+encodeURIComponent(r.theme).replace(/%20/g,' '); v.appendChild(b);
+      tr.append(bar,v); row.append(nm,tr); wrap.appendChild(row);
+      const fx=document.createElement('div'); fx.className='cil-fix'; fx.textContent='→ '+r.design_fix; wrap.appendChild(fx);
+      row.onmousemove=(e)=>{ tip.replaceChildren(); const h=document.createElement('div'); h.textContent=r.theme+' — '+r.tickets+' tickets'; const t=document.createElement('div'); t.className='t'; t.textContent='Click to list them in the explorer'; tip.append(h,t); C.place(el,tip,e); };
+      row.onmouseleave=()=>{ tip.hidden=true; };
+      const go=()=>{ C.f.lens=r.lens; C.f.theme=r.theme; C.f.sub=''; C.f.type=''; dash.draw('f-sub'); dash.draw('f-type'); dash.draw('f-lens'); dash.draw('f-theme'); dash.draw('tk-body'); dash.draw('f-count'); document.getElementById('tickets')?.scrollIntoView({behavior:'smooth',block:'start'}); };
+      row.onclick=go; row.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } };
+    });
+  });
+
+  ['fr-total','fr-asks','fr-open','fr-roadmap','fr-hidden'].forEach(n=>{
+    const f={ 'fr-total':'fr_total','fr-asks':'asks','fr-open':'open','fr-roadmap':'on_roadmap','fr-hidden':'hidden' }[n];
+    dash.draw(n,(el)=>{ const k=dash.data('fr_kpi'); el.textContent=(k.status==='ok'&&k.data&&k.data.length)? String(k.data[0][f]) : '—'; });
+  });
+
+  dash.draw('fr-legend',(el)=>{
+    el.replaceChildren();
+    C.LEADS.forEach(l=>{ const s=document.createElement('span'); const dt=document.createElement('i'); dt.className='cil-dot'; dt.style.background=C.leadColor(l); s.append(dt,l); el.appendChild(s); });
+  });
+
+  dash.draw('fr-chart', (el)=>{
+    const d=dash.data('feature_asks'); if(d.status!=='ok'||!Array.isArray(d.data)){ failed(el,d.status); return; }
+    el.replaceChildren(); const wrap=document.createElement('div'); wrap.className='cil-bars'; el.appendChild(wrap);
+    const tip=C.tip(el); const max=d3.max(d.data,r=>r.tickets)||1;
+    d.data.forEach(r=>{
+      const row=document.createElement('div'); row.className='cil-row click'; row.tabIndex=0; row.setAttribute('role','button'); row.setAttribute('aria-label', r.feature_ask+': '+r.tickets+' tickets. Show in explorer');
+      const nm=document.createElement('div'); nm.className='cil-name'; nm.textContent=r.feature_ask;
+      const tr=document.createElement('div'); tr.className='cil-track';
+      const bar=document.createElement('div'); bar.className='cil-bar'; bar.style.width=(r.tickets/max*70)+'%'; bar.style.background=C.leadColor(r.lead);
+      const v=document.createElement('span'); v.className='cil-val'; const b=document.createElement('b'); b.textContent=r.tickets; b.dataset.source='feature_asks'; b.dataset.field='tickets'; b.dataset.where='feature_ask='+encodeURIComponent(r.feature_ask).replace(/%20/g,' '); v.appendChild(b);
+      tr.append(bar,v); row.append(nm,tr); wrap.appendChild(row);
+      const fx=document.createElement('div'); fx.className='cil-fix'; fx.textContent='→ '+r.what; wrap.appendChild(fx);
+      const mt=document.createElement('div'); mt.className='cil-meta';
+      const parts=[r.lead, r.open+' open', r.resolved+' resolved', r.rejected+' rejected'];
+      if(r.p0_urgent) parts.push(r.p0_urgent+' P0/urgent');
+      if(r.on_roadmap==='Yes') parts.push('on roadmap');
+      if(r.owners) parts.push('owner: '+r.owners);
+      mt.textContent=parts.join(' · '); wrap.appendChild(mt);
+      row.onmousemove=(e)=>{ tip.replaceChildren(); const h=document.createElement('div'); h.textContent=r.feature_ask+' — '+r.tickets+' tickets'; const t=document.createElement('div'); t.className='t'; t.textContent='Click to list them in the explorer'; tip.append(h,t); C.place(el,tip,e); };
+      row.onmouseleave=()=>{ tip.hidden=true; };
+      const go=()=>{ C.f={lens:'',theme:'',q:r.feature_ask,type:'fr',sub:''}; const q=document.getElementById('f-q'); if(q) q.value=r.feature_ask; ['f-lens','f-theme','f-type','f-sub','tk-body','f-count'].forEach(n=>dash.draw(n)); document.getElementById('tickets')?.scrollIntoView({behavior:'smooth',block:'start'}); };
+      row.onclick=go; row.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } };
+    });
+  });
+
+  dash.draw('month-chart', (el)=>{
+    const d=dash.data('by_month'); if(d.status!=='ok'||!Array.isArray(d.data)){ failed(el,d.status); return; }
+    el.replaceChildren(); const tip=C.tip(el);
+    const wrap=document.createElement('div'); wrap.className='cil-bars'; el.appendChild(wrap);
+    const months=[...new Set(d.data.map(r=>r.month))].sort();
+    const fmt=d3.utcFormat('%b %Y');
+    months.forEach(m=>{
+      const rs=d.data.filter(r=>r.month===m); const tot=d3.sum(rs,r=>r.tickets); const des=d3.sum(rs.filter(r=>C.design(r.lens)),r=>r.tickets);
+      const row=document.createElement('div'); row.className='cil-row';
+      const nm=document.createElement('div'); nm.className='cil-name'; nm.textContent=fmt(new Date(m+'-01T00:00:00Z'))+' · '+tot+' tickets';
+      const tr=document.createElement('div'); tr.className='cil-track';
+      const st=document.createElement('div'); st.className='cil-stack'; st.setAttribute('role','img'); st.setAttribute('aria-label', fmt(new Date(m+'-01T00:00:00Z'))+': '+C.pct(des,tot)+'% design-addressable of '+tot);
+      rs.forEach(r=>{ if(!r.tickets) return; const s=document.createElement('span'); s.style.width=(r.tickets/tot*100)+'%'; s.style.background=C.color(r.lens); if(!C.design(r.lens)) s.style.opacity='.55';
+        s.onmousemove=(e)=>{ tip.replaceChildren(); const h=document.createElement('div'); h.textContent=r.lens+': '+r.tickets+' ('+C.pct(r.tickets,tot)+'%)'; const t=document.createElement('div'); t.className='t'; t.textContent=fmt(new Date(m+'-01T00:00:00Z')); tip.append(h,t); C.place(el,tip,e); };
+        s.onmouseleave=()=>{ tip.hidden=true; }; st.appendChild(s); });
+      const v=document.createElement('span'); v.className='cil-val'; const b=document.createElement('b'); b.textContent=C.pct(des,tot)+'%'; v.append(b,' design');
+      tr.append(st,v); row.append(nm,tr); wrap.appendChild(row);
+    });
+    const lg=document.createElement('div'); lg.className='cil-legend';
+    C.LENSES.forEach(l=>{ const s=document.createElement('span'); const dt=document.createElement('i'); dt.className='cil-dot'; dt.style.background=C.color(l); if(!C.design(l)) dt.style.opacity='.55'; s.append(dt,l); lg.appendChild(s); });
+    el.appendChild(lg);
+  });
+
+  dash.draw('wf-body', (tb)=>{
+    const d=dash.data('by_workflow'); tb.replaceChildren(); if(d.status!=='ok'||!Array.isArray(d.data)) return;
+    d.data.forEach(r=>{ const tr=document.createElement('tr'); tr.dataset.key=encodeURIComponent(r.workflow);
+      [['workflow',r.workflow,''],['total',r.total,'num'],['comm',r.comm,'num'],['exp',r.exp,'num'],['design_pct',r.design_pct+'%','num']].forEach(([f,v,c])=>{ const td=document.createElement('td'); td.textContent=v; if(c) td.className=c; tr.appendChild(td); });
+      tb.appendChild(tr); });
+  });
+
+  function filtered(){
+    const d=dash.data('tickets'); if(d.status!=='ok'||!Array.isArray(d.data)) return null;
+    const q=C.f.q.trim().toLowerCase();
+    const isFr=(t)=>t.sheet_type==='Feature request'||t.sheet_type==='Request';
+    const isHidden=(t)=>t.hidden_feature_ask===true||t.hidden_feature_ask==='true';
+    return d.data.filter(t=>(!C.f.lens||t.lens===C.f.lens)&&(!C.f.theme||t.theme===C.f.theme)&&(C.f.type!=='fr'||isFr(t))&&(C.f.type!=='hidden'||isHidden(t))&&(!C.f.sub||t.subtype===C.f.sub)&&(!q||(t.ref+' '+t.csp_issue+' '+t.rca+' '+t.root_cause+' '+t.workflow+' '+(t.feature_ask||'')+' '+(t.subtype||'')).toLowerCase().includes(q)))
+      .sort((a,b)=> a.created<b.created?1:-1);
+  }
+
+  dash.draw('f-lens', (sel)=>{
+    sel.replaceChildren(new Option('All root causes',''), ...C.LENSES.map(l=>new Option(l,l)));
+    sel.value=C.f.lens;
+    sel.onchange=()=>{ C.f.lens=sel.value; C.f.theme=''; dash.draw('f-theme'); dash.draw('tk-body'); dash.draw('f-count'); };
+  });
+  dash.draw('f-theme', (sel)=>{
+    const d=dash.data('tickets'); const rows=(d.status==='ok'&&Array.isArray(d.data))?d.data:[];
+    const themes=[...new Set(rows.filter(t=>!C.f.lens||t.lens===C.f.lens).map(t=>t.theme))].sort();
+    sel.replaceChildren(new Option('All themes',''), ...themes.map(t=>new Option(t,t)));
+    sel.value=C.f.theme;
+    sel.onchange=()=>{ C.f.theme=sel.value; dash.draw('tk-body'); dash.draw('f-count'); };
+  });
+  dash.draw('f-type', (sel)=>{
+    sel.replaceChildren(new Option('Filed as: any',''), new Option('Feature request / Request','fr'), new Option('Feature asks filed as understanding','hidden'));
+    sel.value=C.f.type;
+    sel.onchange=()=>{ C.f.type=sel.value; dash.draw('tk-body'); dash.draw('f-count'); };
+  });
+  dash.draw('f-sub', (sel)=>{
+    const d=dash.data('tickets'); const rows=(d.status==='ok'&&Array.isArray(d.data))?d.data:[];
+    const subs=[...new Set(rows.map(t=>t.subtype).filter(Boolean))].sort();
+    sel.replaceChildren(new Option('All subtypes',''), ...subs.map(s=>new Option(s,s)));
+    sel.value=C.f.sub||'';
+    sel.onchange=()=>{ C.f.sub=sel.value; dash.draw('tk-body'); dash.draw('f-count'); };
+  });
+  dash.draw('f-count', (el)=>{ const r=filtered(); el.textContent = r? r.length+' tickets' : ''; });
+
+  dash.draw('tk-body', (tb)=>{
+    const rows=filtered(); tb.replaceChildren(); if(!rows) return;
+    rows.forEach(t=>{ const tr=document.createElement('tr'); tr.dataset.key=encodeURIComponent(t.ref);
+      const td=(v)=>{ const c=document.createElement('td'); c.textContent=v; return c; };
+      const lensTd=document.createElement('td'); const ch=document.createElement('span'); ch.className='cil-chip'; const dt=document.createElement('i'); dt.className='cil-dot'; dt.style.background=C.color(t.lens); ch.append(dt,t.lens); lensTd.appendChild(ch);
+      tr.append(td(t.ref), td(d3.utcFormat('%-d %b')(new Date(t.created+'T00:00:00Z'))), lensTd, td(t.theme), td(t.csp_issue), td(t.rca||t.root_cause), td(t.subtype||''), td(t.sheet_type), td(t.priority));
+      tb.appendChild(tr); });
+  });
+
+  const q=document.getElementById('f-q');
+  if(q){ q.addEventListener('input',()=>{ C.f.q=q.value; dash.draw('tk-body'); dash.draw('f-count'); }); }
+  const rs=document.getElementById('f-reset');
+  if(rs){ rs.addEventListener('click',()=>{ C.f={lens:'',theme:'',q:'',type:'',sub:''}; if(q) q.value=''; dash.draw('f-lens'); dash.draw('f-theme'); dash.draw('f-type'); dash.draw('f-sub'); dash.draw('tk-body'); dash.draw('f-count'); }); }
+  const sh=document.getElementById('show-hidden');
+  if(sh){ sh.addEventListener('click',()=>{ C.f={lens:'',theme:'',q:'',type:'hidden',sub:''}; if(q) q.value=''; ['f-lens','f-theme','f-type','f-sub','tk-body','f-count'].forEach(n=>dash.draw(n)); document.getElementById('tickets')?.scrollIntoView({behavior:'smooth',block:'start'}); }); }
+})();
+</script>

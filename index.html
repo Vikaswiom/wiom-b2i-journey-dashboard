@@ -239,6 +239,7 @@ a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px;
     <button type="button" class="bj-tab" role="tab" id="tab-daily-tracker" aria-controls="daily-tracker" aria-selected="false" tabindex="-1">Daily tracker</button>
     <button type="button" class="bj-tab" role="tab" id="tab-csp-reschedule" aria-controls="csp-reschedule" aria-selected="false" tabindex="-1">CSP reschedule behaviour</button>
     <button type="button" class="bj-tab" role="tab" id="tab-definitions" aria-controls="definitions" aria-selected="false" tabindex="-1">Definitions</button>
+    <button type="button" class="bj-tab" role="tab" id="tab-issues" aria-controls="issues" aria-selected="false" tabindex="-1">Understanding issues</button>
     <button type="button" class="bj-tab" role="tab" id="tab-problems" aria-controls="problems" aria-selected="false" tabindex="-1">Problem statements picked</button>
     <button type="button" class="bj-tab" role="tab" id="tab-shipped" aria-controls="shipped" aria-selected="false" tabindex="-1">Shipped features</button>
   </nav>
@@ -936,6 +937,15 @@ a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px;
     </section>
   </section>
 
+  <section class="bj-page" id="issues" hidden>
+    <header class="bj-head">
+      <div class="bj-eyebrow">CSP support tickets · CSP Issue Lens</div>
+      <h1>Understanding issues</h1>
+      <p class="bj-take">CSP support tickets (understanding issues, requests and feature requests) sorted by root cause, to show which ones CSP app design can fix: a communication gap, an experience gap, or something outside design. This data is updated by hand when new tickets are tagged, not by the dashboard's refresh. <a href="issues/" target="_blank" rel="noopener">Open it on its own page</a>.</p>
+    </header>
+    <iframe class="bj-frame" id="bj-issues-frame" title="CSP Issue Lens" data-src="issues/" loading="lazy"></iframe>
+  </section>
+
   <section class="bj-page" id="problems" hidden>
     <header class="bj-head">
       <div class="bj-eyebrow">From this dashboard to action</div>
@@ -1335,9 +1345,11 @@ dash.loader('d_live', { description: 'Open tasks right now by stage and age', fn
   document.querySelectorAll('.bj').forEach((el) => el.style.setProperty('--bj-early', dash.colors[0]));
   const pages = () => Array.from(document.querySelectorAll('.bj-page'));
   const tabs = () => Array.from(document.querySelectorAll('.bj-tab'));
-  // The Ship Tracker loads only when its tab is first opened. On the same site (GitHub Pages) the frame grows to fit its content.
-  const loadShipped = () => {
-    const f = document.getElementById('bj-shipped-frame');
+  // Framed pages (Ship Tracker, Issue Lens) load only when their tab is first opened. On the same site
+  // (GitHub Pages) the frame grows to fit its content.
+  const FRAMES = { shipped: 'bj-shipped-frame', issues: 'bj-issues-frame' };
+  const loadFrame = (id) => {
+    const f = document.getElementById(FRAMES[id]);
     if (!f || f.src) return;
     f.addEventListener('load', () => {
       try {
@@ -1353,7 +1365,7 @@ dash.loader('d_live', { description: 'Open tasks right now by stage and age', fn
     pages().forEach((p) => { p.hidden = p.id !== id; });
     tabs().forEach((t) => { const on = t.getAttribute('aria-controls') === id; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
     dash.setLink(id);
-    if (id === 'shipped') loadShipped();
+    if (FRAMES[id]) loadFrame(id);
     if (scroll) { const n = document.getElementById('bj-tabs'); if (n) n.scrollIntoView({ block: 'start' }); }
   };
   tabs().forEach((t) => t.addEventListener('click', () => show(t.getAttribute('aria-controls'), false)));

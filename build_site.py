@@ -44,3 +44,19 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 '''
 open('docs/index.html','w').write(head+page+'\n</div>\n</body>\n</html>\n')
 print('docs/index.html', len(head+page), 'bytes;', len(files), 'datasets')
+
+# "Understanding issues" tab: the CSP Issue Lens page, built as its own page (docs/issues/) and shown in a frame.
+# Same head as above with its own title, datasets and runtime stand-in. Its data is static (issues/tickets.json).
+import os, shutil
+os.makedirs('docs/issues/data', exist_ok=True)
+ihead = head.replace('<title>CSP Booking-to-Install Journey</title>', '<title>CSP Issue Lens</title>') \
+    .replace(json.dumps(files), json.dumps({'tickets': 'data/tickets.json'})) \
+    .replace(open('site_shim.js').read(), open('issues/shim.js').read()) \
+    .replace('--cds-chart-muted: #b9b5ad;', '--cds-chart-muted: #b9b5ad; --cds-chart-status-critical: #c6403a;') \
+    .replace('--cds-chart-muted: #5d5a54;', '--cds-chart-muted: #5d5a54; --cds-chart-status-critical: #ec6d66;')
+assert 'issues' not in head and 'tickets.json' in ihead and 'dash.calc' not in head and 'calc:' in ihead and ihead.count('status-critical') == 2
+ipage = open('issues/index.html').read().replace('<meta name="dash-one-writer">\n', '')
+open('docs/issues/index.html', 'w').write(ihead + ipage + '\n</div>\n</body>\n</html>\n')
+shutil.copy('issues/tickets.json', 'docs/issues/data/tickets.json')
+print('docs/issues/index.html', len(ihead + ipage), 'bytes')
+
