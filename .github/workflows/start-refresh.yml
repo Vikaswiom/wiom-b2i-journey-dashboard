@@ -1,0 +1,22 @@
+name: Start refresh (from the Ship Tracker)
+# The Ship Tracker's 3-hourly refresh pushes branch claude/refresh-trigger here. This starts "Refresh and publish"
+# on main and removes the branch, so both dashboards refresh from that one schedule.
+on:
+  push:
+    branches: ['claude/refresh-trigger']
+permissions:
+  actions: write
+  contents: write
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Start "Refresh and publish" on main
+        run: gh workflow run refresh.yml --ref main
+      - name: Remove the trigger branch
+        if: always()
+        run: gh api -X DELETE "repos/$GH_REPO/git/refs/heads/claude/refresh-trigger" || true

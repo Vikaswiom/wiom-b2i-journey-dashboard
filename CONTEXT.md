@@ -8,7 +8,7 @@ The full background for this dashboard: what it shows, how the data is defined, 
 
 | | |
 |---|---|
-| Live page (GitHub Pages, refreshed every 30 minutes) | https://vikaswiom.github.io/wiom-b2i-journey-dashboard/ |
+| Live page (GitHub Pages, refreshed every 3 hours) | https://vikaswiom.github.io/wiom-b2i-journey-dashboard/ |
 | claude.ai copy (Data artifact) | https://claude.ai/artifact/WUWh5LShPxE5zb36fcvZmW |
 | Source page | `index.html` (one file for both copies) |
 | Data | Snowflake through Metabase (`https://metabase.wiom.in/api/dataset`, database 113) |
@@ -46,7 +46,7 @@ The full background for this dashboard: what it shows, how the data is defined, 
   - Rescheduled, installed late
   - Late, never rescheduled
 - **Percentages** are shown everywhere.
-- **Status line:** the page shows "Data updated", the date of yesterday, and "Refreshes every 30 minutes".
+- **Status line:** the page shows "Data updated", the date of yesterday, and "Refreshes every 3 hours".
 
 ## 3. Data model
 
@@ -111,11 +111,14 @@ The full background for this dashboard: what it shows, how the data is defined, 
 - **Better than usual:** 2+ standard deviations better.
 
 **GitHub Action** (`.github/workflows/refresh.yml`, "Refresh and publish"):
-- **Schedule:** every 30 minutes (`7,37 * * * *`), plus every push to `main` and by hand (`workflow_dispatch`). GitHub starts scheduled runs late and sometimes drops them; a 30-minute schedule on another repo of this account really ran every 1.5–3.5 hours.
+- **One schedule for the whole dashboard, every 3 hours.** It lives in the Ship Tracker's repo (`daily-refresh.yml`, cron `17 */3 * * *`). Each of its runs pushes branch `claude/refresh-trigger` here with a write deploy key ("Ship Tracker refresh starts B2I refresh", secret `B2I_DEPLOY_KEY` in the tracker repo). `start-refresh.yml` then starts this workflow on `main` and deletes the branch. This repo has no schedule of its own.
+- **Other ways it starts:** every push to `main`, and by hand (`workflow_dispatch`).
+- **GitHub starts scheduled runs late** and sometimes drops them, so "every 3 hours" can stretch.
 - **Freshness check:** `check_fresh.py` requires the TAS tables to have synced past 00:30 IST. Until then the run ends cleanly and leaves the page as it is.
 - **Steps:** `refresh_all.py` (2 attempts) → `build_site.py` (wraps `index.html` with `site_shim.js`) → copy the 4 JSON files into `docs/data/` → publish `docs/` to GitHub Pages as an artifact.
 - **Nothing is committed.** Pages is set to "GitHub Actions" as its source. `docs/index.html` and the 4 refreshed JSON files are git-ignored; only `docs/data/b2i_oct_snapshot.json` (static) is in the repo. This keeps the repo from growing by about 6 MB a day.
-- **Shipped features tab:** its data comes from the Ship Tracker's own refresh, every 3 hours (private repo, limited free Actions minutes). The two refreshes are independent; the earlier chain (trigger branches, `B2I_DEPLOY_KEY`) and the "Refresh now" link were removed on 25 Nov.
+- **Shipped features tab:** its data is refreshed by the same Ship Tracker run that starts this workflow, so the whole dashboard updates together.
+- **History (25 Nov):** a "Refresh now" link and a separate 30-minute schedule here were tried and removed the same day.
 
 **claude.ai copy:** follow `README.md`:
 1. Upload the 4 JSON files as assets.
@@ -199,4 +202,4 @@ Customer outcome:
 |---|---|
 | Customer-outcome and escalation view as a click-through on "Timed out, task not moved" | Not built |
 | Full November month tab | From 1 Dec |
-| Refresh exactly on time | GitHub's scheduler runs late; a reliable 30 minutes needs an external scheduler calling `workflow_dispatch` (not set up) |
+| Refresh exactly on time | GitHub's scheduler runs late; exact timing needs an external scheduler calling the Ship Tracker's `workflow_dispatch` (not set up) |
