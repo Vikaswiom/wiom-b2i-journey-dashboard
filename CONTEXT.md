@@ -23,7 +23,7 @@ The full background for this dashboard: what it shows, how the data is defined, 
 | Daily tracker | `#daily-tracker` | Yesterday's installs split 4 ways, flags against the last 28 days, the day's activity funnel, "supposed to be installed yesterday", day, week and month trends | Yesterday; trends since 1 Aug 2026 |
 | CSP reschedule behaviour | `#csp-reschedule` | CSPs that install late without ever rescheduling, which suggests they don't know about the feature | Installs in the last 30 days |
 | Definitions | `#definitions` | Every term, with its backend and app event | |
-| Shipped features ↗ | link | Goes to the CSP App Ship Tracker | |
+| Shipped features | `#shipped` | The CSP App Ship Tracker site, embedded in a frame that loads when the tab is first opened and grows to fit its content | Whatever the tracker shows |
 
 ### UI rules agreed with the user
 - **Wording:**

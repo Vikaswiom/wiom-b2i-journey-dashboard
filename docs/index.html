@@ -196,6 +196,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 .bj-tab { font: inherit; font-size: var(--cds-font-size-body); background: transparent; color: var(--color-fg-muted); border: 0; border-bottom: 2px solid transparent; padding: 8px 12px 10px; cursor: pointer; margin-bottom: -1px; }
 .bj-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
 .bj-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.bj-frame { display: block; width: 100%; height: 1400px; min-height: 80vh; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); }
 .bj-tab-link { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); text-decoration: none; padding: 8px 12px 10px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .bj-tab-link:hover { color: var(--color-fg); border-bottom-color: var(--color-border-line); }
 .bj-tab-link:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
@@ -330,7 +331,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
     <button type="button" class="bj-tab" role="tab" id="tab-daily-tracker" aria-controls="daily-tracker" aria-selected="false" tabindex="-1">Daily tracker</button>
     <button type="button" class="bj-tab" role="tab" id="tab-csp-reschedule" aria-controls="csp-reschedule" aria-selected="false" tabindex="-1">CSP reschedule behaviour</button>
     <button type="button" class="bj-tab" role="tab" id="tab-definitions" aria-controls="definitions" aria-selected="false" tabindex="-1">Definitions</button>
-    <a class="bj-tab-link" href="https://vikaswiom.github.io/wiom-csp-ship-tracker-site/#releases">Shipped features <span aria-hidden="true">↗</span></a>
+    <button type="button" class="bj-tab" role="tab" id="tab-shipped" aria-controls="shipped" aria-selected="false" tabindex="-1">Shipped features</button>
   </nav>
   <div class="bj-status" id="bj-status">
     <span><span class="dot" aria-hidden="true"></span>Data updated <b data-draw="num" data-source="y_summary" data-field="snapshot" data-row="0" data-fmt="stamp">—</b></span>
@@ -1026,6 +1027,15 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
     </section>
   </section>
 
+  <section class="bj-page" id="shipped" hidden>
+    <header class="bj-head">
+      <div class="bj-eyebrow">CSP App Ship Tracker</div>
+      <h1>Shipped features</h1>
+      <p class="bj-take">How each CSP app release is being adopted: who it is for, its targets and where it stands. This is the CSP App Ship Tracker, shown here so you don't have to leave this page. <a href="https://vikaswiom.github.io/wiom-csp-ship-tracker-site/#releases" target="_blank" rel="noopener">Open it on its own page</a>.</p>
+    </header>
+    <iframe class="bj-frame" id="bj-shipped-frame" title="CSP App Ship Tracker" data-src="https://vikaswiom.github.io/wiom-csp-ship-tracker-site/?embed=1#releases" loading="lazy"></iframe>
+  </section>
+
 </div>
 
 <script>
@@ -1397,11 +1407,25 @@ dash.loader('d_live', { description: 'Open tasks right now by stage and age', fn
   document.querySelectorAll('.bj').forEach((el) => el.style.setProperty('--bj-early', dash.colors[0]));
   const pages = () => Array.from(document.querySelectorAll('.bj-page'));
   const tabs = () => Array.from(document.querySelectorAll('.bj-tab'));
+  // The Ship Tracker loads only when its tab is first opened. On the same site (GitHub Pages) the frame grows to fit its content.
+  const loadShipped = () => {
+    const f = document.getElementById('bj-shipped-frame');
+    if (!f || f.src) return;
+    f.addEventListener('load', () => {
+      try {
+        const d = f.contentDocument, root = d.getElementById('dash-root') || d.body;
+        const fit = () => { f.style.height = Math.max(600, Math.ceil(root.getBoundingClientRect().height) + 16) + 'px'; };
+        f.style.minHeight = '0'; fit(); new ResizeObserver(fit).observe(root);
+      } catch (e) { /* different site: keep the fixed height */ }
+    });
+    f.src = f.getAttribute('data-src');
+  };
   const show = (id, scroll) => {
     if (!pages().some((p) => p.id === id)) return;
     pages().forEach((p) => { p.hidden = p.id !== id; });
     tabs().forEach((t) => { const on = t.getAttribute('aria-controls') === id; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
     dash.setLink(id);
+    if (id === 'shipped') loadShipped();
     if (scroll) { const n = document.getElementById('bj-tabs'); if (n) n.scrollIntoView({ block: 'start' }); }
   };
   tabs().forEach((t) => t.addEventListener('click', () => show(t.getAttribute('aria-controls'), false)));
