@@ -17,7 +17,7 @@ concurrency: { group: refresh, cancel-in-progress: false }
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -32,12 +32,13 @@ jobs:
         env: { METABASE_API_KEY: '${{ secrets.METABASE_API_KEY }}', TZ: Asia/Kolkata }
         run: |
           if python3 check_fresh.py; then echo "ok=true" >> $GITHUB_OUTPUT; else echo "ok=false" >> $GITHUB_OUTPUT; echo "::notice::Source data not complete yet; keeping the data already on the site."; fi
-      # The refresh normally takes 2 to 3 minutes. Now and then a query hangs, so it is cut off at 12 minutes.
+      # The refresh normally takes 2 to 3 minutes, but about 20 when the database is busy (25 Nov 2026).
+      # It is cut off at 28 minutes in case a query hangs. A push never waits for this step.
       - name: Refresh the data
         id: refresh
         if: steps.fresh.outputs.ok == 'true'
         continue-on-error: true
-        timeout-minutes: 12
+        timeout-minutes: 28
         env: { METABASE_API_KEY: '${{ secrets.METABASE_API_KEY }}', TZ: Asia/Kolkata }
         run: python3 refresh_all.py
       # A page change must still go live when the data could not be refreshed: reuse the data files that are
