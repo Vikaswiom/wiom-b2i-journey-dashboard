@@ -18,48 +18,49 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    outputs:
-      fresh: ${{ steps.fresh.outputs.ok }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with: { python-version: '3.11' }
       # Just after midnight IST the source tables have not finished syncing yesterday. Until they have,
-      # keep the page as it is and let the next run try again.
+      # the data is not refreshed.
       - name: Is yesterday's data complete?
         id: fresh
         env: { METABASE_API_KEY: '${{ secrets.METABASE_API_KEY }}', TZ: Asia/Kolkata }
         run: |
-          if python3 check_fresh.py; then echo "ok=true" >> $GITHUB_OUTPUT; else echo "ok=false" >> $GITHUB_OUTPUT; echo "::notice::Source data not complete yet; page left as it is."; fi
-      - name: Refresh (up to 2 attempts)
+          if python3 check_fresh.py; then echo "ok=true" >> $GITHUB_OUTPUT; else echo "ok=false" >> $GITHUB_OUTPUT; echo "::notice::Source data not complete yet; keeping the data already on the site."; fi
+      # The refresh normally takes 2 to 3 minutes. Now and then a query hangs, so it is cut off at 12 minutes.
+      - name: Refresh the data
+        id: refresh
         if: steps.fresh.outputs.ok == 'true'
+        continue-on-error: true
+        timeout-minutes: 12
         env: { METABASE_API_KEY: '${{ secrets.METABASE_API_KEY }}', TZ: Asia/Kolkata }
+        run: python3 refresh_all.py
+      # A page change must still go live when the data could not be refreshed: reuse the data files that are
+      # on the live site now. The run is marked with a warning, and the next run refreshes the data.
+      - name: Keep the data already on the site (refresh skipped, slow or failed)
+        if: steps.refresh.outcome != 'success'
         run: |
-          for i in 1 2; do
-            echo "::group::Attempt $i"
-            if python3 refresh_all.py; then echo "::endgroup::"; echo "Attempt $i succeeded"; exit 0; fi
-            echo "::endgroup::"; echo "Attempt $i failed"
-            [ $i -lt 2 ] && sleep 60
+          echo "::warning::Data not refreshed in this run; publishing with the data already on the site."
+          for f in b2i_snapshot b2i_deep_snapshot b2i_yesterday_snapshot b2i_csp_snapshot; do
+            curl -fsS --retry 3 -o "$f.json" "https://vikaswiom.github.io/wiom-b2i-journey-dashboard/data/$f.json?t=$(date +%s)"
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f.json"
           done
-          echo "Both attempts failed; the next run will try again."; exit 1
       - name: Build the site
-        if: steps.fresh.outputs.ok == 'true'
         env: { TZ: Asia/Kolkata }
         run: |
           python3 build_site.py
           mkdir -p docs/data
           cp b2i_snapshot.json b2i_deep_snapshot.json b2i_yesterday_snapshot.json b2i_csp_snapshot.json docs/data/
       - uses: actions/configure-pages@v6
-        if: steps.fresh.outputs.ok == 'true'
       - uses: actions/upload-pages-artifact@v5
-        if: steps.fresh.outputs.ok == 'true'
         with: { path: docs }
 
   # Publishing is its own job, with a second try: asked for straight after the upload, GitHub sometimes
   # answers that the uploaded site does not exist yet ("Found 0 artifacts").
   publish:
     needs: refresh
-    if: needs.refresh.outputs.fresh == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
