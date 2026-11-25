@@ -1,5 +1,5 @@
 {
-"generated_at": "2026-11-25T10:03+05:30",
+"generated_at": "2026-11-25T12:19+05:30",
 "cohort": "Install tasks created from the 1st of the month (of the date 5 days back) to 5 days before generation (IST), outcomes observed to generation time",
 "datasets": {
 "summary": {
@@ -74,7 +74,7 @@
 "pct_of_prev": 74.7,
 "lost_after_prev": 1983,
 "median_min_from_prev": 1.0,
-"p90_min_from_prev": 1321
+"p90_min_from_prev": 1322
 },
 {
 "step_no": 4,
@@ -293,7 +293,7 @@
 "stage": "After accept",
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
-"tasks": 644
+"tasks": 646
 },
 {
 "stage_no": 2,
@@ -335,7 +335,7 @@
 "stage": "After accept",
 "outcome": "Still open",
 "reason": "Still open",
-"tasks": 18
+"tasks": 16
 },
 {
 "stage_no": 2,
@@ -389,16 +389,16 @@
 {
 "stage_no": 3,
 "stage": "After tech assigned",
-"outcome": "Still open",
-"reason": "Still open",
-"tasks": 33
+"outcome": "System cancelled",
+"reason": "Cancelled by ops",
+"tasks": 32
 },
 {
 "stage_no": 3,
 "stage": "After tech assigned",
-"outcome": "System cancelled",
-"reason": "Cancelled by ops",
-"tasks": 31
+"outcome": "Still open",
+"reason": "Still open",
+"tasks": 32
 },
 {
 "stage_no": 3,
@@ -431,16 +431,16 @@
 {
 "stage_no": 4,
 "stage": "After reaching customer home",
-"outcome": "Customer cancelled",
-"reason": "Customer cancelled in app",
+"outcome": "CSP reported failure",
+"reason": "Customer cancelled (per CSP)",
 "tasks": 23
 },
 {
 "stage_no": 4,
 "stage": "After reaching customer home",
-"outcome": "CSP reported failure",
-"reason": "Customer cancelled (per CSP)",
-"tasks": 22
+"outcome": "Customer cancelled",
+"reason": "Customer cancelled in app",
+"tasks": 23
 },
 {
 "stage_no": 4,
@@ -459,13 +459,6 @@
 {
 "stage_no": 4,
 "stage": "After reaching customer home",
-"outcome": "System cancelled",
-"reason": "Cancelled by ops",
-"tasks": 2
-},
-{
-"stage_no": 4,
-"stage": "After reaching customer home",
 "outcome": "CSP reported failure",
 "reason": "No Netbox in hand",
 "tasks": 2
@@ -473,9 +466,16 @@
 {
 "stage_no": 4,
 "stage": "After reaching customer home",
+"outcome": "System cancelled",
+"reason": "Cancelled by ops",
+"tasks": 2
+},
+{
+"stage_no": 4,
+"stage": "After reaching customer home",
 "outcome": "Still open",
 "reason": "Still open",
-"tasks": 2
+"tasks": 1
 }
 ],
 "sql": "WITH tl AS (\n  SELECT execution_candidate_id ec, from_state f, to_state t, reason_code rc, actor_type a, occurred_at ts\n  FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_STATE_TRANSITION_LOG WHERE NOT _FIVETRAN_DELETED\n),\ncohort AS (\n  SELECT ec, MIN(ts) created_at FROM tl WHERE t='ASSIGNED' AND f IS NULL GROUP BY 1\n  HAVING TO_DATE(DATEADD(minute,330,MIN(ts))) BETWEEN DATE_TRUNC('month', DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)) AND DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)\n),\nct AS (\n  SELECT PARSE_JSON(properties):execution_id::STRING ec, event_name e, PARSE_JSON(properties):action::STRING act, TRY_TO_TIMESTAMP(timestamp) ts\n  FROM PROD_DB.CLEVERTAP_CSP_API.EVENTS_DATA\n  WHERE event_name IN ('fpn_delivered','fpn_action_taken','install_candidate_opened','install_task_created')\n    AND TRY_TO_TIMESTAMP(timestamp) >= DATEADD(day,-2,DATE_TRUNC('month', DATEADD(day,-5, CONVERT_TIMEZONE('Asia/Kolkata', CURRENT_TIMESTAMP())::DATE)))\n),\nctf AS (\n  SELECT ec, MAX(IFF(e='install_task_created',1,0)) pushed, MAX(IFF(e='fpn_delivered',1,0)) fpn_seen,\n    MAX(IFF(e='fpn_action_taken' AND act='primary_cta',1,0)) fpn_cta, MAX(IFF(e='fpn_action_taken' AND act<>'primary_cta',1,0)) fpn_dismiss,\n    MAX(IFF(e='install_candidate_opened',1,0)) opened\n  FROM ct GROUP BY 1\n),\nf AS (\n  SELECT c.ec, c.created_at,\n   -- Two flows can be in the cohort (1\u20132 Nov had both). New (all tasks from 3 Nov): CSP accepts the FPN. Old: customer confirms a slot, then the CSP's decision is assigning a technician.\n   IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1,1,0) old_flow,\n   MIN(IFF(t='ASSIGNED',ts,NULL)) t_offer,\n   COALESCE(MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t IN ('AWAITING_TECHNICIAN_ASSIGNMENT','AWAITING_SLOT_PROPOSAL'),ts,NULL)), IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1, MIN(IFF(t='TECHNICIAN_ASSIGNED',ts,NULL)), NULL)) t_acc,\n   COALESCE(MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='DECLINED',ts,NULL)), IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1, MIN(IFF(f='AWAITING_TECHNICIAN_ASSIGNMENT' AND t='DECLINED',ts,NULL)), NULL)) t_dec,\n   COALESCE(MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND rc='TIMEOUT_P41',ts,NULL)), IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1, MIN(IFF(f='AWAITING_TECHNICIAN_ASSIGNMENT' AND rc='TIMEOUT_P41',ts,NULL)), NULL)) t_noact,\n   COALESCE(MIN(IFF(f='AWAITING_CSP_ACCEPTANCE' AND t='CANCELLED_BY_CUSTOMER',ts,NULL)), IFF(MAX(IFF(t='AWAITING_CUSTOMER_SCHEDULE',1,0))=1, MIN(IFF(f IN ('AWAITING_TECHNICIAN_ASSIGNMENT','AWAITING_CUSTOMER_SCHEDULE','SLOT_CONFIRMED_BY_CUSTOMER','ASSIGNED') AND t='CANCELLED_BY_CUSTOMER',ts,NULL)), NULL)) t_pre_cxcan,\n   MIN(IFF(t='TECHNICIAN_ASSIGNED',ts,NULL)) t_asg,\n   MIN(IFF(t='ARRIVED_AT_SITE',ts,NULL)) t_arr,\n   MIN(IFF(t='FEE_COLLECTION_PENDING',ts,NULL)) t_kyc,\n   MIN(IFF(f='FEE_COLLECTION_PENDING' AND t='INSTALLATION_IN_PROGRESS_POST_FEE',ts,NULL)) t_fee,\n   MIN(IFF(t='AWAITING_CUSTOMER_OTP',ts,NULL)) t_setup,\n   MIN(IFF(t='RATING_PENDING',ts,NULL)) t_otp,\n   MIN(IFF(t IN ('RATING_PENDING','CONNECTION_ACTIVE'),ts,NULL)) t_act,\n   MAX_BY(t, ts) last_state, MAX_BY(f, ts) last_from, MAX_BY(rc, ts) last_rc\n  FROM cohort c JOIN tl ON tl.ec=c.ec GROUP BY 1,2\n),\nx AS (SELECT f.*, COALESCE(ctf.pushed,0) pushed, COALESCE(ctf.fpn_seen,0) fpn_seen, COALESCE(ctf.fpn_cta,0) fpn_cta, COALESCE(ctf.fpn_dismiss,0) fpn_dismiss, COALESCE(ctf.opened,0) opened FROM f LEFT JOIN ctf ON ctf.ec=f.ec)\nSELECT CASE WHEN t_act IS NOT NULL THEN '9 active'\n  WHEN t_acc IS NULL THEN '1 offer'\n  WHEN t_asg IS NULL THEN '2 accepted_not_assigned'\n  WHEN t_arr IS NULL THEN '3 assigned_not_arrived'\n  ELSE '4 arrived_not_installed' END stage,\n  last_state, COALESCE(last_rc,'-') rc, IFF(t_act IS NULL, nt.note, NULL) note, COUNT(*) n\nFROM x LEFT JOIN (SELECT execution_candidate_id ecx, LOWER(TRIM(failure_detail)) note FROM PROD_DB.CSP_TAS_SERVICE_CSP_TAS_SERVICE.INSTALL_EXECUTION_CANDIDATES WHERE _FIVETRAN_ACTIVE QUALIFY ROW_NUMBER() OVER (PARTITION BY execution_candidate_id ORDER BY _fivetran_synced DESC)=1) nt ON nt.ecx = x.ec GROUP BY 1,2,3,4 ORDER BY 1,5 DESC\n"
@@ -1113,7 +1113,7 @@
 "reason": "Other (free text)",
 "theme": "Unclear or too vague",
 "tasks": 117,
-"examples": "not installation | ........... | nit available | koi hai nahi",
+"examples": "not installation | ........... | nit available | ............",
 "notes_total": 840,
 "reason_total": 840
 },
@@ -1123,7 +1123,7 @@
 "reason": "Other (free text)",
 "theme": "Customer unreachable (call not picked, phone off)",
 "tasks": 97,
-"examples": "customer call not pick | customer call nahin utha raha | call not picking | customer call nahin utha raha hai",
+"examples": "customer call not pick | customer call nahin utha raha | phone off hai | cx not pickup call",
 "notes_total": 840,
 "reason_total": 840
 },
@@ -1133,7 +1133,7 @@
 "reason": "Other (free text)",
 "theme": "Customer not interested, cancelled or won't pay",
 "tasks": 66,
-"examples": "not interested | cx mana kar raha hai | customer said no | aaj connection nahin laga payenge",
+"examples": "cx mana kar raha hai | not interested | customer said no | cx said no",
 "notes_total": 840,
 "reason_total": 840
 },
@@ -1143,7 +1143,7 @@
 "reason": "Other (free text)",
 "theme": "Already has another connection or booked twice",
 "tasks": 65,
-"examples": "already have connection to install | already have connection to install. | already connection installed | customer airtel ka nagvaenge net",
+"examples": "already have connection to install | already have connection to install. | already done | yaha dusra net lag gya hai",
 "notes_total": 840,
 "reason_total": 840
 },
@@ -1163,7 +1163,7 @@
 "reason": "Other (free text)",
 "theme": "CSP side: no team, technician or device",
 "tasks": 29,
-"examples": "staff not available | lco issue.. | team nahi hai | technician not available",
+"examples": "staff not available | lco issue.. | team nahi hai | ladke khali nahi hai",
 "notes_total": 840,
 "reason_total": 840
 },
@@ -1173,7 +1173,7 @@
 "reason": "Other (free text)",
 "theme": "Wrong or fake booking details",
 "tasks": 11,
-"examples": "not feasible wrong address | location wrong hai map ki | wrong address krichayan nagar nhi h | wrong address showing on map",
+"examples": "not feasible wrong address | wrong address | wrong address krichayan nagar nhi h | location wrong hai map ki",
 "notes_total": 840,
 "reason_total": 840
 },
@@ -1184,8 +1184,8 @@
 "theme": "No coverage at the address (no line, wire, fiber, signal; out of area)",
 "tasks": 317,
 "examples": "not feasible | out of area | power not available | line nhi h",
-"notes_total": 644,
-"reason_total": 644
+"notes_total": 646,
+"reason_total": 646
 },
 {
 "stage_no": 2,
@@ -1194,8 +1194,8 @@
 "theme": "Customer unreachable (call not picked, phone off)",
 "tasks": 138,
 "examples": "no response from customer side | call not picked | cx call pick nhi kr rhe hain | cx call pick nhi kr rha hai",
-"notes_total": 644,
-"reason_total": 644
+"notes_total": 646,
+"reason_total": 646
 },
 {
 "stage_no": 2,
@@ -1203,9 +1203,9 @@
 "reason": "Other (free text)",
 "theme": "Customer not interested, cancelled or won't pay",
 "tasks": 55,
-"examples": "not intrested | customer not interested | wire nhi ja payegi | customer says no",
-"notes_total": 644,
-"reason_total": 644
+"examples": "not intrested | customer not interested | wire nhi ja payegi | customer ko ott chahiye",
+"notes_total": 646,
+"reason_total": 646
 },
 {
 "stage_no": 2,
@@ -1213,19 +1213,19 @@
 "reason": "Other (free text)",
 "theme": "Customer not at home or asked for later",
 "tasks": 45,
-"examples": "customer not at home | not available | not at home | saturday bol rha hai cx",
-"notes_total": 644,
-"reason_total": 644
+"examples": "customer not at home | not at home | not available | we can't install for few days",
+"notes_total": 646,
+"reason_total": 646
 },
 {
 "stage_no": 2,
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
 "theme": "Unclear or too vague",
-"tasks": 42,
-"examples": "expter nhi hai edhar | not able to install here | cx not respodding | es jagha expert nhi hai mera",
-"notes_total": 644,
-"reason_total": 644
+"tasks": 44,
+"examples": "technical chhutti per hai | not desable | no no no no | customer act ka lagya ga",
+"notes_total": 646,
+"reason_total": 646
 },
 {
 "stage_no": 2,
@@ -1233,9 +1233,9 @@
 "reason": "Other (free text)",
 "theme": "Wrong or fake booking details",
 "tasks": 19,
-"examples": "fake details | locetion galat hai | xyzaaaaaahjb | customer put wrong location",
-"notes_total": 644,
-"reason_total": 644
+"examples": "wrong location | xyzaaaaaahjb | location galt hai | \ud83d\ude42\u200d\u2194\ufe0f bbbbbb",
+"notes_total": 646,
+"reason_total": 646
 },
 {
 "stage_no": 2,
@@ -1243,9 +1243,9 @@
 "reason": "Other (free text)",
 "theme": "CSP side: no team, technician or device",
 "tasks": 12,
-"examples": "team not available | lco issue.. | staff nhi hai | i don't have staff",
-"notes_total": 644,
-"reason_total": 644
+"examples": "team not available | lco issue.. | staff too short | staff nhi hai",
+"notes_total": 646,
+"reason_total": 646
 },
 {
 "stage_no": 2,
@@ -1253,9 +1253,9 @@
 "reason": "Other (free text)",
 "theme": "Already has another connection or booked twice",
 "tasks": 11,
-"examples": "yah dusre area ka connection | airtel lag wa leya | customer ne lagwa liya | already installed wiom",
-"notes_total": 644,
-"reason_total": 644
+"examples": "already installed wiom | yah dusre area ka connection | customer ne lagwa liya | airtel lag wa leya",
+"notes_total": 646,
+"reason_total": 646
 },
 {
 "stage_no": 2,
@@ -1264,8 +1264,8 @@
 "theme": "Complaint about Wiom (pricing, mis-selling, leads)",
 "tasks": 5,
 "examples": "issues with wiom | fake lead hai",
-"notes_total": 644,
-"reason_total": 644
+"notes_total": 646,
+"reason_total": 646
 },
 {
 "stage_no": 3,
@@ -1273,7 +1273,7 @@
 "reason": "Other (free text)",
 "theme": "No coverage at the address (no line, wire, fiber, signal; out of area)",
 "tasks": 183,
-"examples": "not feasible | not feasibility | out of area | not my location",
+"examples": "not feasible | out of area | not feasibility | not my location",
 "notes_total": 393,
 "reason_total": 393
 },
@@ -1283,7 +1283,7 @@
 "reason": "Other (free text)",
 "theme": "Customer unreachable (call not picked, phone off)",
 "tasks": 72,
-"examples": "customer not answering | not pick call | ivr se call nahin utha raha | mob no switch off hai",
+"examples": "customer not answering | not pick call | customer call nhi utha raha hai | call not reachble",
 "notes_total": 393,
 "reason_total": 393
 },
@@ -1293,7 +1293,7 @@
 "reason": "Other (free text)",
 "theme": "Unclear or too vague",
 "tasks": 41,
-"examples": "customer nahin milana | hai nahi ghar pe | .........a | customer cunfom nahi kar rha hai",
+"examples": "customer bevkuf banaa raha hai | customer cunfom nahi kar rha hai | customer baar baar taal rhe h | customer is nt ready",
 "notes_total": 393,
 "reason_total": 393
 },
@@ -1303,7 +1303,7 @@
 "reason": "Other (free text)",
 "theme": "Customer not interested, cancelled or won't pay",
 "tasks": 28,
-"examples": "cancel by customer | cx mana kar raha hai | customer ne mna kr diya | nhi lag payega",
+"examples": "cancel by customer | cx mana kar raha hai | mana kar diya bulane ke baad | wire nahi ja pay ge",
 "notes_total": 393,
 "reason_total": 393
 },
@@ -1313,7 +1313,7 @@
 "reason": "Other (free text)",
 "theme": "Customer not at home or asked for later",
 "tasks": 25,
-"examples": "customer not available | not available | user phele drill kraae ga | time short",
+"examples": "customer not available | not available | time short | user phele drill kraae ga",
 "notes_total": 393,
 "reason_total": 393
 },
@@ -1323,7 +1323,7 @@
 "reason": "Other (free text)",
 "theme": "Wrong or fake booking details",
 "tasks": 17,
-"examples": "fake details | location galat hai | customer fraud hai | galti se assign ho gaya hai",
+"examples": "location galat hai | customer fraud hai | fake details | wrong address",
 "notes_total": 393,
 "reason_total": 393
 },
@@ -1333,7 +1333,7 @@
 "reason": "Other (free text)",
 "theme": "CSP side: no team, technician or device",
 "tasks": 13,
-"examples": "router khatam ho gye hai | lco issue... | team not available | technician not available",
+"examples": "router khatam ho gye hai | team not available | lco issue... | technician not available",
 "notes_total": 393,
 "reason_total": 393
 },
@@ -1343,7 +1343,7 @@
 "reason": "Other (free text)",
 "theme": "Already has another connection or booked twice",
 "tasks": 9,
-"examples": "other operator location | customer ne lagwa liya hai",
+"examples": "customer ne lagwa liya hai | other operator location",
 "notes_total": 393,
 "reason_total": 393
 },
@@ -1363,7 +1363,17 @@
 "reason": "Other (free text)",
 "theme": "Customer unreachable (call not picked, phone off)",
 "tasks": 4,
-"examples": "customer call not pic | customer not answer",
+"examples": "customer not answer | customer call not pic",
+"notes_total": 17,
+"reason_total": 17
+},
+{
+"stage_no": 4,
+"outcome": "CSP reported failure",
+"reason": "Other (free text)",
+"theme": "No coverage at the address (no line, wire, fiber, signal; out of area)",
+"tasks": 3,
+"examples": "wire not installed in this area | vahan per hamari line nahin hai | optical power jyada hai",
 "notes_total": 17,
 "reason_total": 17
 },
@@ -1381,26 +1391,6 @@
 "stage_no": 4,
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
-"theme": "No coverage at the address (no line, wire, fiber, signal; out of area)",
-"tasks": 3,
-"examples": "wire not installed in this area | optical power jyada hai | vahan per hamari line nahin hai",
-"notes_total": 17,
-"reason_total": 17
-},
-{
-"stage_no": 4,
-"outcome": "CSP reported failure",
-"reason": "Other (free text)",
-"theme": "Customer not at home or asked for later",
-"tasks": 2,
-"examples": "customer has scheduled to next monday",
-"notes_total": 17,
-"reason_total": 17
-},
-{
-"stage_no": 4,
-"outcome": "CSP reported failure",
-"reason": "Other (free text)",
 "theme": "Customer not interested, cancelled or won't pay",
 "tasks": 2,
 "examples": "",
@@ -1411,9 +1401,9 @@
 "stage_no": 4,
 "outcome": "CSP reported failure",
 "reason": "Other (free text)",
-"theme": "Already has another connection or booked twice",
-"tasks": 1,
-"examples": "area dusra operator ka hai",
+"theme": "Customer not at home or asked for later",
+"tasks": 2,
+"examples": "customer has scheduled to next monday",
 "notes_total": 17,
 "reason_total": 17
 },
@@ -1434,6 +1424,16 @@
 "theme": "CSP side: no team, technician or device",
 "tasks": 1,
 "examples": "ladke nahi h",
+"notes_total": 17,
+"reason_total": 17
+},
+{
+"stage_no": 4,
+"outcome": "CSP reported failure",
+"reason": "Other (free text)",
+"theme": "Already has another connection or booked twice",
+"tasks": 1,
+"examples": "area dusra operator ka hai",
 "notes_total": 17,
 "reason_total": 17
 }
