@@ -111,7 +111,9 @@ The full background for this dashboard: what it shows, how the data is defined, 
 - **Better than usual:** 2+ standard deviations better.
 
 **GitHub Action** (`.github/workflows/refresh.yml`):
-- **Schedule:** crons at 03:00, 03:30 and 04:00 IST. GitHub's scheduler usually fires 4–5 hours late, so a Claude cloud routine also pushes branch `claude/refresh-trigger` at 03:00 IST to start it. The workflow then deletes that branch.
+- **Schedule:** crons at 03:00, 03:30 and 04:00 IST. GitHub's scheduler fires hours late (about 10:00 IST on 24 and 25 Nov).
+- **Other ways to start it:** by hand (`workflow_dispatch`), or by a push to branch `claude/refresh-trigger`, which the workflow deletes afterwards. That branch trigger was built for a Claude cloud routine, but the routine is **disabled**: cloud sessions can't push to the repo (HTTP 403).
+- **In progress (25 Nov):** an external cron (cron-job.org) calling `workflow_dispatch` at 03:00 IST with a fine-grained GitHub token. Setup details are in the ship tracker's `CONTEXT.md` (`~/Projects/wiom-csp-adoption-tracker`). Not yet confirmed working.
 - **Retries:** each run makes 3 attempts, 3 minutes apart.
 - **Skip rule:** a run is skipped if `docs/data` already has yesterday's data.
 - **Freshness check:** `check_fresh.py` requires the TAS tables to have synced past 00:30 IST.
@@ -199,4 +201,4 @@ Customer outcome:
 |---|---|
 | Customer-outcome and escalation view as a click-through on "Timed out, task not moved" | Not built |
 | Full November month tab | From 1 Dec |
-| Exact 03:00 IST runs | Need an external scheduler; the Claude routine push now covers this |
+| Exact 03:00 IST runs | Claude routine tried and disabled (HTTP 403 on push); cron-job.org setup in progress, not yet confirmed |
