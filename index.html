@@ -172,9 +172,6 @@
 .bj-ctable td.num { text-align: right; }
 .bj-ctable td .pill { white-space: normal; }
 .bj-status { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; font-size: var(--cds-font-size-caption); padding: 8px 12px; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); }
-.bj-refresh { margin-left: auto; color: var(--color-fg); text-decoration: none; border: 1px solid var(--color-border-line); border-radius: 8px; padding: 3px 10px; font-weight: var(--cds-font-weight-medium); }
-.bj-refresh:hover { border-color: var(--color-fg-muted); }
-.bj-refresh:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
 .bj-status b { font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
 .bj-status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--color-ok); margin-right: 6px; vertical-align: middle; }
 .bj-why-row.is-click { cursor: pointer; border-radius: 6px; padding: 3px 4px; margin: 0 -4px; }
@@ -241,8 +238,7 @@
   <div class="bj-status" id="bj-status">
     <span><span class="dot" aria-hidden="true"></span>Data updated <b data-draw="num" data-source="y_summary" data-field="snapshot" data-row="0" data-fmt="stamp">—</b></span>
     <span>Yesterday = <b data-draw="num" data-source="y_summary" data-field="date" data-row="0" data-fmt="dayname">—</b></span>
-    <span class="muted">Refreshes daily at 3:00 AM IST</span>
-    <a class="bj-refresh" href="https://github.com/Vikaswiom/wiom-csp-ship-tracker/actions/workflows/daily-refresh.yml" target="_blank" rel="noopener" title="Opens GitHub. Press “Run workflow” there to refresh this dashboard and Shipped features. Needs a GitHub sign-in with access to the repo; new data shows here after about 10 minutes.">Refresh now <span aria-hidden="true">↗</span></a>
+    <span class="muted">Refreshes every 30 minutes</span>
   </div>
 
   <section class="bj-page" id="overview">

@@ -1,61 +1,61 @@
-name: Daily refresh
-# Runs at 03:00 IST. If that run fails, 03:30 IST tries again, then 04:00 IST.
-# Each run makes up to 3 attempts. A run skips itself if today's refresh already succeeded.
+name: Refresh and publish
+# Refreshes the data and publishes the page to GitHub Pages every 30 minutes.
+# Nothing is committed: the built page and data go straight to Pages, so the repo does not grow with every refresh.
+# A push to main (a page or query change) publishes the same way.
 on:
   schedule:
-    - cron: '30 21 * * *'   # 03:00 IST
-    - cron: '0 22 * * *'    # 03:30 IST
-    - cron: '30 22 * * *'   # 04:00 IST
+    - cron: '7,37 * * * *'   # every 30 minutes (GitHub may start scheduled runs late)
   push:
-    branches: ['claude/refresh-trigger', 'claude/refresh-force']   # pushed by the Ship Tracker's daily refresh, so one trigger refreshes both dashboards
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      force:
-        description: 'Refresh even if today is already done'
-        type: boolean
-        default: true
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 concurrency: { group: refresh, cancel-in-progress: false }
 env:
   TZ: Asia/Kolkata
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 25
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-        with: { ref: main }
-      - name: Already refreshed today?
-        id: done
-        run: |
-          YDAY=$(date -d 'yesterday' +%F)
-          HAVE=$(python3 -c "import json;print(json.load(open('docs/data/b2i_yesterday_snapshot.json'))['datasets']['y_summary']['rows'][0]['date'])" 2>/dev/null || echo none)
-          echo "yesterday=$YDAY published=$HAVE"
-          if [ "$HAVE" = "$YDAY" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ "${{ github.ref_name }}" != "claude/refresh-force" ]; then echo "skip=true" >> $GITHUB_OUTPUT; echo "Already done today, nothing to do."; else echo "skip=false" >> $GITHUB_OUTPUT; fi
       - uses: actions/setup-python@v5
-        if: steps.done.outputs.skip != 'true'
         with: { python-version: '3.11' }
-      - name: Refresh (up to 3 attempts)
-        if: steps.done.outputs.skip != 'true'
+      # Just after midnight IST the source tables have not finished syncing yesterday. Until they have,
+      # keep the page as it is and let the next run try again.
+      - name: Is yesterday's data complete?
+        id: fresh
         env: { METABASE_API_KEY: '${{ secrets.METABASE_API_KEY }}' }
         run: |
-          for i in 1 2 3; do
+          if python3 check_fresh.py; then echo "ok=true" >> $GITHUB_OUTPUT; else echo "ok=false" >> $GITHUB_OUTPUT; echo "::notice::Source data not complete yet; page left as it is."; fi
+      - name: Refresh (up to 2 attempts)
+        if: steps.fresh.outputs.ok == 'true'
+        env: { METABASE_API_KEY: '${{ secrets.METABASE_API_KEY }}' }
+        run: |
+          for i in 1 2; do
             echo "::group::Attempt $i"
-            if python3 check_fresh.py && python3 refresh_all.py; then echo "::endgroup::"; echo "Attempt $i succeeded"; exit 0; fi
+            if python3 refresh_all.py; then echo "::endgroup::"; echo "Attempt $i succeeded"; exit 0; fi
             echo "::endgroup::"; echo "Attempt $i failed"
-            [ $i -lt 3 ] && sleep 180
+            [ $i -lt 2 ] && sleep 60
           done
-          echo "All 3 attempts failed; the next scheduled run will try again."; exit 1
-      - name: Publish
-        if: steps.done.outputs.skip != 'true'
+          echo "Both attempts failed; the next run will try again."; exit 1
+      - name: Build the site
+        if: steps.fresh.outputs.ok == 'true'
         run: |
           python3 build_site.py
           mkdir -p docs/data
           cp b2i_snapshot.json b2i_deep_snapshot.json b2i_yesterday_snapshot.json b2i_csp_snapshot.json docs/data/
-          git config user.name "b2i-refresh-bot"; git config user.email "actions@users.noreply.github.com"
-          git add docs/index.html docs/data/*.json
-          git diff --cached --quiet && echo "no change" || (git commit -m "Daily data refresh $(date +'%Y-%m-%d %H:%M IST')" && git push)
-      - name: Remove the trigger branch
-        if: always() && github.event_name == 'push'
-        run: git push origin --delete "${{ github.ref_name }}" || true
+      - uses: actions/configure-pages@v5
+        if: steps.fresh.outputs.ok == 'true'
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.fresh.outputs.ok == 'true'
+        with: { path: docs }
+      - name: Publish to GitHub Pages
+        id: deploy
+        if: steps.fresh.outputs.ok == 'true'
+        uses: actions/deploy-pages@v4

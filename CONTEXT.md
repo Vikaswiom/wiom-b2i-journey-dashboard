@@ -8,7 +8,7 @@ The full background for this dashboard: what it shows, how the data is defined, 
 
 | | |
 |---|---|
-| Live page (GitHub Pages, refreshed daily) | https://vikaswiom.github.io/wiom-b2i-journey-dashboard/ |
+| Live page (GitHub Pages, refreshed every 30 minutes) | https://vikaswiom.github.io/wiom-b2i-journey-dashboard/ |
 | claude.ai copy (Data artifact) | https://claude.ai/artifact/WUWh5LShPxE5zb36fcvZmW |
 | Source page | `index.html` (one file for both copies) |
 | Data | Snowflake through Metabase (`https://metabase.wiom.in/api/dataset`, database 113) |
@@ -46,7 +46,7 @@ The full background for this dashboard: what it shows, how the data is defined, 
   - Rescheduled, installed late
   - Late, never rescheduled
 - **Percentages** are shown everywhere.
-- **Status line:** the page shows "Data updated", the date of yesterday, and "Refreshes daily at 3:00 AM IST", with no retry times.
+- **Status line:** the page shows "Data updated", the date of yesterday, and "Refreshes every 30 minutes".
 
 ## 3. Data model
 
@@ -110,16 +110,12 @@ The full background for this dashboard: what it shows, how the data is defined, 
 - **Watch:** 1.5–2 standard deviations worse.
 - **Better than usual:** 2+ standard deviations better.
 
-**GitHub Action** (`.github/workflows/refresh.yml`):
-- **Schedule:** crons at 03:00, 03:30 and 04:00 IST. GitHub's scheduler fires hours late (about 10:00 IST on 24 and 25 Nov).
-- **Other ways to start it:** by hand (`workflow_dispatch`), or by a push to branch `claude/refresh-trigger`, which the workflow deletes afterwards. That branch trigger was built for a Claude cloud routine, but the routine is **disabled**: cloud sessions can't push to the repo (HTTP 403).
-- **Started by the Ship Tracker (25 Nov):** every run of the Ship Tracker's `daily-refresh.yml` pushes `claude/refresh-trigger` here with a write deploy key ("Ship Tracker refresh starts B2I refresh"), so one trigger refreshes both dashboards.
-- **Manual refresh (25 Nov):** the status line has a "Refresh now ↗" link to the Ship Tracker's workflow page on GitHub. Pressing "Run workflow" there (repo access needed) refreshes both dashboards: a manual run is forced by default and pushes `claude/refresh-force` here, which this workflow never skips.
-- **In progress (25 Nov):** an external cron (cron-job.org) calling `workflow_dispatch` at 03:00 IST with a fine-grained GitHub token. Setup details are in the ship tracker's `CONTEXT.md` (`~/Projects/wiom-csp-adoption-tracker`). Not yet confirmed working.
-- **Retries:** each run makes 3 attempts, 3 minutes apart.
-- **Skip rule:** a run is skipped if `docs/data` already has yesterday's data.
-- **Freshness check:** `check_fresh.py` requires the TAS tables to have synced past 00:30 IST.
-- **Steps:** `refresh_all.py` → `build_site.py` (wraps `index.html` with `site_shim.js`) → commit `docs/`.
+**GitHub Action** (`.github/workflows/refresh.yml`, "Refresh and publish"):
+- **Schedule:** every 30 minutes (`7,37 * * * *`), plus every push to `main` and by hand (`workflow_dispatch`). GitHub starts scheduled runs late and sometimes drops them; a 30-minute schedule on another repo of this account really ran every 1.5–3.5 hours.
+- **Freshness check:** `check_fresh.py` requires the TAS tables to have synced past 00:30 IST. Until then the run ends cleanly and leaves the page as it is.
+- **Steps:** `refresh_all.py` (2 attempts) → `build_site.py` (wraps `index.html` with `site_shim.js`) → copy the 4 JSON files into `docs/data/` → publish `docs/` to GitHub Pages as an artifact.
+- **Nothing is committed.** Pages is set to "GitHub Actions" as its source. `docs/index.html` and the 4 refreshed JSON files are git-ignored; only `docs/data/b2i_oct_snapshot.json` (static) is in the repo. This keeps the repo from growing by about 6 MB a day.
+- **Shipped features tab:** its data comes from the Ship Tracker's own refresh, every 3 hours (private repo, limited free Actions minutes). The two refreshes are independent; the earlier chain (trigger branches, `B2I_DEPLOY_KEY`) and the "Refresh now" link were removed on 25 Nov.
 
 **claude.ai copy:** follow `README.md`:
 1. Upload the 4 JSON files as assets.
@@ -203,4 +199,4 @@ Customer outcome:
 |---|---|
 | Customer-outcome and escalation view as a click-through on "Timed out, task not moved" | Not built |
 | Full November month tab | From 1 Dec |
-| Exact 03:00 IST runs | Claude routine tried and disabled (HTTP 403 on push); cron-job.org setup in progress, not yet confirmed |
+| Refresh exactly on time | GitHub's scheduler runs late; a reliable 30 minutes needs an external scheduler calling `workflow_dispatch` (not set up) |
