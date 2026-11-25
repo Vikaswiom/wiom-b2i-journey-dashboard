@@ -7,7 +7,7 @@ on:
     - cron: '0 22 * * *'    # 03:30 IST
     - cron: '30 22 * * *'   # 04:00 IST
   push:
-    branches: ['claude/refresh-trigger']   # pushed by the Ship Tracker's daily refresh, so one trigger refreshes both dashboards
+    branches: ['claude/refresh-trigger', 'claude/refresh-force']   # pushed by the Ship Tracker's daily refresh, so one trigger refreshes both dashboards
   workflow_dispatch:
     inputs:
       force:
@@ -32,7 +32,7 @@ jobs:
           YDAY=$(date -d 'yesterday' +%F)
           HAVE=$(python3 -c "import json;print(json.load(open('docs/data/b2i_yesterday_snapshot.json'))['datasets']['y_summary']['rows'][0]['date'])" 2>/dev/null || echo none)
           echo "yesterday=$YDAY published=$HAVE"
-          if [ "$HAVE" = "$YDAY" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then echo "skip=true" >> $GITHUB_OUTPUT; echo "Already done today, nothing to do."; else echo "skip=false" >> $GITHUB_OUTPUT; fi
+          if [ "$HAVE" = "$YDAY" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ "${{ github.ref_name }}" != "claude/refresh-force" ]; then echo "skip=true" >> $GITHUB_OUTPUT; echo "Already done today, nothing to do."; else echo "skip=false" >> $GITHUB_OUTPUT; fi
       - uses: actions/setup-python@v5
         if: steps.done.outputs.skip != 'true'
         with: { python-version: '3.11' }
@@ -58,4 +58,4 @@ jobs:
           git diff --cached --quiet && echo "no change" || (git commit -m "Daily data refresh $(date +'%Y-%m-%d %H:%M IST')" && git push)
       - name: Remove the trigger branch
         if: always() && github.event_name == 'push'
-        run: git push origin --delete claude/refresh-trigger || true
+        run: git push origin --delete "${{ github.ref_name }}" || true
