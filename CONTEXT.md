@@ -15,7 +15,19 @@ The full background for this dashboard: what it shows, how the data is defined, 
 
 ## 2. Tabs
 
-| Tab | Anchor | What it shows | Window |
+Five main tabs. The first two each hold several pages, picked from a row of buttons under the tabs. Every page keeps its own anchor, so old links still open the right page; opening a main tab shows the page last open in it (its first page the first time).
+
+| Main tab | Pages inside (anchor) |
+|---|---|
+| Installation full journey | Overview: install back to FPN (`#overview`), Daily tracker (`#daily-tracker`), October (`#october`) |
+| Technician assigned deep dive | After technician assigned (`#after-assign`), CSP reschedule behaviour (`#csp-reschedule`), Problem statements picked (`#problems`) |
+| Understanding issues | `#issues` |
+| Shipped features | `#shipped` |
+| Definitions | `#definitions` (the one place for definitions, for the whole dashboard) |
+
+Each page:
+
+| Page | Anchor | What it shows | Window |
 |---|---|---|---|
 | Overview | `#overview` | Funnel traced back from install to the Booking FPN, with clickable drop-off reasons, reassignment, CSP groups, hour of day and FPN reach | Tasks created from the 1st of the month to 5 days ago |
 | October | `#october` | The same view for 1–31 Oct 2026 (fixed snapshot, `o_` datasets) | 1–31 Oct |
