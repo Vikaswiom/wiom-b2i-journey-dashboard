@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read      # the publish step looks up the uploaded site by this run's id
   pages: write
   id-token: write
 concurrency: { group: refresh, cancel-in-progress: false }
