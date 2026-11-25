@@ -1,6 +1,7 @@
 name: Refresh and publish
 # Refreshes the data and publishes the page to GitHub Pages.
 # This is the only schedule for the dashboard: every 3 hours. (GitHub may start scheduled runs late.)
+# A scheduled or manual run also starts the Ship Tracker's refresh, which feeds the Shipped features tab.
 # Nothing is committed: the built page and data go straight to Pages, so the repo does not grow with every refresh.
 # A push to main (a page or query change) publishes at once with the data already on the site.
 on:
@@ -23,6 +24,23 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with: { python-version: '3.11' }
+      # The Shipped features tab shows the Ship Tracker's site, so the same schedule also starts that refresh:
+      # push branch claude/refresh-trigger to the (private) tracker repo, whose workflow starts on that push.
+      # TRACKER_DEPLOY_KEY is a write deploy key on Vikaswiom/wiom-csp-ship-tracker only. No file contents are
+      # downloaded here (blobless clone, no checkout), so nothing from the private repo reaches this public run.
+      - name: Start the Ship Tracker refresh (Shipped features tab)
+        if: github.event_name != 'push'
+        continue-on-error: true
+        env:
+          TRACKER_DEPLOY_KEY: ${{ secrets.TRACKER_DEPLOY_KEY }}
+        run: |
+          test -n "$TRACKER_DEPLOY_KEY" || { echo "TRACKER_DEPLOY_KEY secret is missing"; exit 1; }
+          mkdir -p ~/.ssh && printf '%s\n' "$TRACKER_DEPLOY_KEY" > ~/.ssh/tracker_key && chmod 600 ~/.ssh/tracker_key
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/tracker_key -o IdentitiesOnly=yes"
+          git clone -q --depth 1 --filter=blob:none --no-checkout git@github.com:Vikaswiom/wiom-csp-ship-tracker.git /tmp/tracker
+          git -C /tmp/tracker push -q -f origin HEAD:refs/heads/claude/refresh-trigger
+          rm -rf ~/.ssh/tracker_key /tmp/tracker
       # Just after midnight IST the source tables have not finished syncing yesterday. Until they have,
       # the data is not refreshed.
       # A push is a page or query change: publish it straight away with the data already on the site.

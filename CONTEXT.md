@@ -121,7 +121,7 @@ The full background for this dashboard: what it shows, how the data is defined, 
 - **A run always publishes the page.** The data refresh is cut off at 28 minutes. It normally takes 2 to 3, but on 25 Nov every query ran 5 to 8 times slower (about 20 minutes in all), so a 12-minute cut-off was too tight. If the refresh is skipped, cut off or fails, the run reuses the data files already on the live site and shows a warning, so a page change still goes live.
 - **Steps:** `refresh_all.py` → `build_site.py` (wraps `index.html` with `site_shim.js`) → copy the 4 JSON files into `docs/data/` → publish `docs/` to GitHub Pages as an artifact.
 - **Nothing is committed.** Pages is set to "GitHub Actions" as its source. `docs/index.html` and the 4 refreshed JSON files are git-ignored; only `docs/data/b2i_oct_snapshot.json` (static) is in the repo. This keeps the repo from growing by about 6 MB a day.
-- **Shipped features tab:** its data comes from the Ship Tracker's own refresh, which has no schedule and is started by hand. This repo's schedule does not refresh it.
+- **Shipped features tab:** every scheduled or manual run here first starts the Ship Tracker's refresh by pushing branch `claude/refresh-trigger` to that private repo with the `TRACKER_DEPLOY_KEY` secret (a write deploy key on the tracker repo). So the one schedule refreshes the whole dashboard. A push to `main` does not start it.
 - **History (25 Nov):** tried and removed the same day: a "Refresh now" link, a 30-minute schedule here, and a chain where the Ship Tracker's schedule started this workflow (`start-refresh.yml`, trigger branch, `B2I_DEPLOY_KEY`).
 
 **claude.ai copy:** follow `README.md`:
