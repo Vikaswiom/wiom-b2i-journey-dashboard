@@ -98,6 +98,12 @@
 .bj-tab { font: inherit; font-size: var(--cds-font-size-body); background: transparent; color: var(--color-fg-muted); border: 0; border-bottom: 2px solid transparent; padding: 8px 12px 10px; cursor: pointer; margin-bottom: -1px; }
 .bj-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
 .bj-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+a.bj-ps { text-decoration: none; color: inherit; max-width: 760px; gap: var(--cds-gap-sm); transition: border-color 120ms; }
+a.bj-ps:hover { border-color: var(--color-fg-muted); }
+a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.bj-ps h3 { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; text-wrap: balance; }
+.bj-ps p { margin: 0; }
+.bj-ps .open { font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); }
 .bj-frame { display: block; width: 100%; height: 1400px; min-height: 80vh; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); }
 .bj-tab-link { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); text-decoration: none; padding: 8px 12px 10px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .bj-tab-link:hover { color: var(--color-fg); border-bottom-color: var(--color-border-line); }
@@ -233,6 +239,7 @@
     <button type="button" class="bj-tab" role="tab" id="tab-daily-tracker" aria-controls="daily-tracker" aria-selected="false" tabindex="-1">Daily tracker</button>
     <button type="button" class="bj-tab" role="tab" id="tab-csp-reschedule" aria-controls="csp-reschedule" aria-selected="false" tabindex="-1">CSP reschedule behaviour</button>
     <button type="button" class="bj-tab" role="tab" id="tab-definitions" aria-controls="definitions" aria-selected="false" tabindex="-1">Definitions</button>
+    <button type="button" class="bj-tab" role="tab" id="tab-problems" aria-controls="problems" aria-selected="false" tabindex="-1">Problem statements picked</button>
     <button type="button" class="bj-tab" role="tab" id="tab-shipped" aria-controls="shipped" aria-selected="false" tabindex="-1">Shipped features</button>
   </nav>
   <div class="bj-status" id="bj-status">
@@ -926,6 +933,25 @@
         <li>History starts 1 Aug 2026. Reschedules are recorded from 18 Sep 2026. The CSP-acceptance step exists for every task from 3 Nov 2026.</li>
         <li>Every number is a snapshot from Snowflake through Metabase; the exact SQL is in Sources for each figure.</li>
       </ul>
+    </section>
+  </section>
+
+  <section class="bj-page" id="problems" hidden>
+    <header class="bj-head">
+      <div class="bj-eyebrow">From this dashboard to action</div>
+      <h1>Problem statements picked</h1>
+      <p class="bj-take">Problems found on this dashboard that the team has picked up to solve, newest first. Click one to open its problem statement.</p>
+    </header>
+
+    <!-- To add one: copy a whole <section class="bj-sec"> block, put it on top, and change the date, link and text. -->
+    <section class="bj-sec" id="ps-2026-11-25">
+      <header><h2>25 Nov 2026</h2></header>
+      <a class="bj-card bj-ps" href="https://claude.ai/artifact/YMVPm1qg3UStXcu4bLYjHF" target="_blank" rel="noopener">
+        <div class="bj-eyebrow">Install tasks · after technician assigned · discovery</div>
+        <h3>1 in 10 bookings assigned to a technician, but never installed</h3>
+        <p>A CSP accepts the booking and assigns a technician, then nothing is recorded. The system removes the task four days after the slot day. In October that was 1,070 tasks (10.6% of those with a technician), and only 9.9% of them were ever installed. Target: bring 10.6% down to 5%.</p>
+        <span class="open">Open the problem statement <span aria-hidden="true">↗</span></span>
+      </a>
     </section>
   </section>
 
