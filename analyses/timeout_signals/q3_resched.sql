@@ -1,0 +1,7 @@
+-- Q3 CSP reschedules before the timeout.
+-- Append to base.sql (it ends inside a WITH list, at CTE b) and run the two together.
+SELECT mon, 'A CSP reschedules on the task: tasks / timeouts / on time / late' sec, IFF(n_resched>=3,'3+',n_resched::STRING) k, COUNT(*) a, COUNT_IF(grp='timeout') b, COUNT_IF(grp='on_time') c, COUNT_IF(grp='late') d FROM b GROUP BY 1,3
+UNION ALL SELECT mon, 'B timeouts: last reschedule vs the original slot day', CASE WHEN n_resched=0 THEN '0: never rescheduled' WHEN TO_DATE(DATEADD(minute,330,t_first_resched)) < orig_slot THEN '1: first reschedule before the slot day' WHEN TO_DATE(DATEADD(minute,330,t_first_resched)) = orig_slot THEN '2: first reschedule on the slot day' ELSE '3: first reschedule after the slot day' END, COUNT(*), NULL, NULL, NULL FROM b WHERE grp='timeout' GROUP BY 1,3
+UNION ALL SELECT mon, 'C timeouts: days the final slot was pushed beyond the original', CASE WHEN DATEDIFF(day, orig_slot, final_slot)=0 THEN '0 days' WHEN DATEDIFF(day, orig_slot, final_slot)<=2 THEN '1-2 days' WHEN DATEDIFF(day, orig_slot, final_slot)<=5 THEN '3-5 days' ELSE '6+ days' END, COUNT(*), NULL, NULL, NULL FROM b WHERE grp='timeout' GROUP BY 1,3
+UNION ALL SELECT mon, 'D table reschedule_count vs event count (all tasks)', IFF(COALESCE(reschedule_count,0)=n_resched,'same','differs'), COUNT(*), SUM(reschedule_count), SUM(n_resched), NULL FROM b GROUP BY 1,3
+ORDER BY 1,2,3
