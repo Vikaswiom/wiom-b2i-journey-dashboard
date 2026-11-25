@@ -24,8 +24,11 @@ jobs:
         with: { python-version: '3.11' }
       # Just after midnight IST the source tables have not finished syncing yesterday. Until they have,
       # the data is not refreshed.
+      # A push is a page or query change: publish it straight away with the data already on the site.
+      # The data itself is refreshed by the 3-hourly run (workflow_dispatch from the Ship Tracker's schedule).
       - name: Is yesterday's data complete?
         id: fresh
+        if: github.event_name != 'push'
         env: { METABASE_API_KEY: '${{ secrets.METABASE_API_KEY }}', TZ: Asia/Kolkata }
         run: |
           if python3 check_fresh.py; then echo "ok=true" >> $GITHUB_OUTPUT; else echo "ok=false" >> $GITHUB_OUTPUT; echo "::notice::Source data not complete yet; keeping the data already on the site."; fi
@@ -42,7 +45,7 @@ jobs:
       - name: Keep the data already on the site (refresh skipped, slow or failed)
         if: steps.refresh.outcome != 'success'
         run: |
-          echo "::warning::Data not refreshed in this run; publishing with the data already on the site."
+          if [ "${{ github.event_name }}" = "push" ]; then echo "Page change: publishing with the data already on the site."; else echo "::warning::Data not refreshed in this run; publishing with the data already on the site."; fi
           for f in b2i_snapshot b2i_deep_snapshot b2i_yesterday_snapshot b2i_csp_snapshot; do
             curl -fsS --retry 3 -o "$f.json" "https://vikaswiom.github.io/wiom-b2i-journey-dashboard/data/$f.json?t=$(date +%s)"
             python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f.json"

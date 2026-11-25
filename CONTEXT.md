@@ -117,6 +117,7 @@ The full background for this dashboard: what it shows, how the data is defined, 
 - **Other ways it starts:** every push to `main`, and by hand (`workflow_dispatch`).
 - **GitHub starts scheduled runs late** and sometimes drops them, so "every 3 hours" can stretch.
 - **Freshness check:** `check_fresh.py` requires the TAS tables to have synced past 00:30 IST. Until then the data is not refreshed.
+- **A push never refreshes data.** A push to `main` (page or query change) publishes within about a minute using the data files already on the live site. Only the 3-hourly run (and a manual run) refreshes data.
 - **A run always publishes the page.** The data refresh is cut off at 12 minutes (it normally takes 2 to 3; a Metabase query sometimes hangs for 20+). If the refresh is skipped, cut off or fails, the run reuses the data files already on the live site and shows a warning, so a page change still goes live.
 - **Steps:** `refresh_all.py` → `build_site.py` (wraps `index.html` with `site_shim.js`) → copy the 4 JSON files into `docs/data/` → publish `docs/` to GitHub Pages as an artifact.
 - **Nothing is committed.** Pages is set to "GitHub Actions" as its source. `docs/index.html` and the 4 refreshed JSON files are git-ignored; only `docs/data/b2i_oct_snapshot.json` (static) is in the repo. This keeps the repo from growing by about 6 MB a day.
