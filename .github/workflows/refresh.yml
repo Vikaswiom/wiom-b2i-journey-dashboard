@@ -7,7 +7,7 @@ on:
     - cron: '0 22 * * *'    # 03:30 IST
     - cron: '30 22 * * *'   # 04:00 IST
   push:
-    branches: ['claude/refresh-trigger']   # pushed by the Claude routine at 03:00 IST (GitHub's own schedule runs hours late)
+    branches: ['claude/refresh-trigger']   # pushed by the Ship Tracker's daily refresh, so one trigger refreshes both dashboards
   workflow_dispatch:
     inputs:
       force:

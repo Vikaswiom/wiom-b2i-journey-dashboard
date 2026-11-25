@@ -113,6 +113,7 @@ The full background for this dashboard: what it shows, how the data is defined, 
 **GitHub Action** (`.github/workflows/refresh.yml`):
 - **Schedule:** crons at 03:00, 03:30 and 04:00 IST. GitHub's scheduler fires hours late (about 10:00 IST on 24 and 25 Nov).
 - **Other ways to start it:** by hand (`workflow_dispatch`), or by a push to branch `claude/refresh-trigger`, which the workflow deletes afterwards. That branch trigger was built for a Claude cloud routine, but the routine is **disabled**: cloud sessions can't push to the repo (HTTP 403).
+- **Started by the Ship Tracker (25 Nov):** every run of the Ship Tracker's `daily-refresh.yml` pushes `claude/refresh-trigger` here with a write deploy key ("Ship Tracker refresh starts B2I refresh"), so one trigger refreshes both dashboards.
 - **In progress (25 Nov):** an external cron (cron-job.org) calling `workflow_dispatch` at 03:00 IST with a fine-grained GitHub token. Setup details are in the ship tracker's `CONTEXT.md` (`~/Projects/wiom-csp-adoption-tracker`). Not yet confirmed working.
 - **Retries:** each run makes 3 attempts, 3 minutes apart.
 - **Skip rule:** a run is skipped if `docs/data` already has yesterday's data.
