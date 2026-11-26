@@ -145,15 +145,15 @@ td.iss{min-width:260px}
 
 <div class="wrap">
   <h1>CSP Understanding Tree</h1>
-  <p class="lede">287 CSP support tickets (7 Sep – 15 Nov 2026), split from the top: how each ticket was filed, what caused it, then which part of the CSP's work it touched. Every % is a share of the box above it. <strong>Click any box or row</strong> to jump to its tickets below; use <strong>−/+</strong> under a box to fold its branch.</p>
+  <p class="lede">287 CSP support tickets (7 Sep – 15 Nov 2026), split from the top into experience issues, bugs and feature requests. Experience issues split into communication gaps and action gaps, then by the part of the CSP's work they touched. Every % is a share of the box above it. <strong>Click any box or row</strong> to jump to its tickets below; use <strong>−/+</strong> under a box to fold its branch.</p>
   <div class="bar">
     <div class="legend">
       <span><i class="sw" style="background:var(--comm)"></i>Communication gap</span>
-      <span><i class="sw" style="background:var(--exp)"></i>Experience gap</span>
-      <span><i class="sw" style="background:var(--out)"></i>Outside design</span>
+      <span><i class="sw" style="background:var(--exp)"></i>Action gap</span>
+      <span><i class="sw" style="background:var(--out)"></i>Bug</span>
     </div>
     <div class="tools">
-      <button type="button" id="design">Design gaps only</button>
+      <button type="button" id="design">Experience issues only</button>
       <button type="button" id="expand">Expand all</button>
       <button type="button" id="zout" aria-label="Zoom out">−</button>
       <button type="button" id="zfit">Fit</button>
@@ -182,6 +182,7 @@ const R=RAW.map(a=>({ref:a[0],u:a[1]==="U",rc:a[2],cat:a[3],sub:a[4],st:a[5],iss
 const DES=new Set(["Communication gap","Experience gap"]);
 const RCT={"Communication gap":"comm","Experience gap":"exp"};
 const RCCOL={"Communication gap":"var(--comm)","Experience gap":"var(--exp)","Ops / external":"#8a93a3","No issue / CSP error":"#b5bcc8","System defect":"#6b7385","Business request":"#a1a8b6"};
+const RCNAME={"Experience gap":"Action gap"};const rcn=k=>RCNAME[k]||k;
 const SUBN={C1:"Rule not explained",C2:"Charge not itemised",C3:"Next step not shown",C4:"Auto-action not warned",C5:"Status unclear",E1:"No self-serve",E2:"Dead end",E3:"Mistake-prone",E4:"Stale display"};
 const by=(arr,k)=>{const m=new Map();arr.forEach(r=>{m.set(r[k],(m.get(r[k])||0)+1)});return [...m].sort((a,b)=>b[1]-a[1])};
 
@@ -195,13 +196,15 @@ function catsUnder(parentF,t){
   const base=R.filter(parentF);
   return by(base,"cat").map(([c])=>listFrom(N(c,t,r=>parentF(r)&&r.cat===c),"sub"));
 }
-const fComm=r=>r.u&&r.rc==="Communication gap", fExp=r=>r.u&&r.rc==="Experience gap", fOut=r=>r.u&&!DES.has(r.rc);
+const fComm=r=>r.u&&r.rc==="Communication gap", fExp=r=>r.u&&r.rc==="Experience gap", fOut=r=>r.u&&!DES.has(r.rc), fDes=r=>r.u&&DES.has(r.rc);
+// Three branches from the top: experience issues (what the app's design could have prevented), bugs and other
+// causes outside design, and feature requests. "Action gap" is the display name of the root cause "Experience gap".
 const TREE=N("All tickets","root",()=>true,{big:1,kids:[
-  N("Understanding","root",r=>r.u,{kids:[
+  N("Experience issue","root",fDes,{sub:"the CSP app's design could have prevented it",kids:[
     N("Communication gap","comm",fComm,{gap:1,vert:1,sub:"an app message or screen could have prevented it",kids:catsUnder(fComm,"comm")}),
-    N("Experience gap","exp",fExp,{gap:1,vert:1,sub:"the app lacks the action or dead-ends",kids:catsUnder(fExp,"exp")}),
-    listFrom(N("Outside design","out",fOut,{outside:1,sub:"bank, carrier, warehouse, defects, CSP error"}),"rc")
+    N("Action gap","exp",fExp,{gap:1,vert:1,sub:"the app lacks the action or dead-ends",kids:catsUnder(fExp,"exp")})
   ]}),
+  listFrom(N("Bug","out",fOut,{outside:1,sub:"bank, carrier, warehouse, defects, CSP error"}),"rc"),
   listFrom(N("Feature request & Request","root",r=>!r.u,{outside:1,sub:"filed as an ask"}),"cat")
 ]});
 // parent links + index
@@ -271,14 +274,14 @@ function renderPanel(){
   document.getElementById("ptitle").textContent=n.name;
   document.getElementById("pcount").innerHTML=`<b>${rows.length}</b> tickets · ${pct(rows.length,R.length)} of all`;
   const mix=by(rows,"rc");
-  document.getElementById("mix").innerHTML=mix.map(([k,v])=>`<i style="width:${v/rows.length*100}%;background:${RCCOL[k]}" title="${esc(k)}: ${v}"></i>`).join("");
-  document.getElementById("mixkey").innerHTML=mix.map(([k,v])=>`<span><i style="background:${RCCOL[k]}"></i>${esc(k)} ${v} (${pct(v,rows.length)})</span>`).join("");
+  document.getElementById("mix").innerHTML=mix.map(([k,v])=>`<i style="width:${v/rows.length*100}%;background:${RCCOL[k]}" title="${esc(rcn(k))}: ${v}"></i>`).join("");
+  document.getElementById("mixkey").innerHTML=mix.map(([k,v])=>`<span><i style="background:${RCCOL[k]}"></i>${esc(rcn(k))} ${v} (${pct(v,rows.length)})</span>`).join("");
   const q=document.getElementById("q").value.trim().toLowerCase(),m=msel.value;
   const list=rows.filter(r=>(!m||r.m===m)&&(!q||(r.ref+" "+r.iss+" "+r.sub+" "+r.cat).toLowerCase().includes(q)))
     .sort((a,b)=>+b.ref.replace(/\D/g,"")- +a.ref.replace(/\D/g,""));
   document.getElementById("rows").innerHTML=list.length?list.map(r=>{
     const t=RCT[r.rc]||"out";
-    return `<tr><td class="ref">${esc(r.ref)}</td><td class="iss">${esc(r.iss)}</td><td><span class="chip t-${t}">${esc(r.rc)}</span></td><td>${r.st?`<span class="chip t-${t}" title="${esc(SUBN[r.st]||"")}">${esc(r.st)} · ${esc(SUBN[r.st]||"")}</span>`:"—"}</td><td>${esc(r.sub)}<br><small style="color:var(--muted)">${esc(r.cat)}${r.u?"":" · "+esc(r.ft)}</small></td><td style="white-space:nowrap">${esc(MN(r.m))}</td></tr>`}).join("")
+    return `<tr><td class="ref">${esc(r.ref)}</td><td class="iss">${esc(r.iss)}</td><td><span class="chip t-${t}">${esc(rcn(r.rc))}</span></td><td>${r.st?`<span class="chip t-${t}" title="${esc(SUBN[r.st]||"")}">${esc(r.st)} · ${esc(SUBN[r.st]||"")}</span>`:"—"}</td><td>${esc(r.sub)}<br><small style="color:var(--muted)">${esc(r.cat)}${r.u?"":" · "+esc(r.ft)}</small></td><td style="white-space:nowrap">${esc(MN(r.m))}</td></tr>`}).join("")
     :`<tr><td colspan="6" class="empty">No tickets match this search.</td></tr>`;
 }
 function select(id){SEL=id;renderChart();renderPanel()}
