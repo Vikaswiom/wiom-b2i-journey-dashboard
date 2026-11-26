@@ -15,6 +15,14 @@ for r in d['rows']:
 here = os.path.dirname(os.path.abspath(__file__))
 json.dump(d, open(os.path.join(here, 'tickets.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
 shutil.copy(os.path.join(src, 'index.html'), os.path.join(here, 'index.html'))
+# Names used on this dashboard (user's naming, 26 Nov 2026). The Issue Lens project itself still tags tickets with
+# the lens "Experience gap"; here it is shown as "Action gap", and its two summary groups take the tree's names.
+RENAME = [('Experience gap', 'Action gap'), ('experience gap', 'action gap'), ('Design can act on', 'Experience issue'), ('Outside design', 'Bug')]
+for f in ('tickets.json', 'index.html'):
+    fp = os.path.join(here, f); t = open(fp).read()
+    for a, b in RENAME: t = t.replace(a, b)
+    open(fp, 'w').write(t)
+
 # The Understanding tree page (ticket rows are embedded in it): mask the same way inside its RAW array only.
 t = open(os.path.join(src, 'understanding_tree.html')).read()
 i = t.index('const RAW'); a = t.index('[', i); b = t.index('];', a) + 1
