@@ -98,6 +98,12 @@
 .bj-tab { font: inherit; font-size: var(--cds-font-size-body); background: transparent; color: var(--color-fg-muted); border: 0; border-bottom: 2px solid transparent; padding: 8px 12px 10px; cursor: pointer; margin-bottom: -1px; }
 .bj-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
 .bj-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.bj-nav { display: grid; gap: 12px; }
+.bj-subtabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.bj-subtab { font: inherit; font-size: 13px; color: var(--color-fg-muted); background: transparent; border: 1px solid var(--color-border-line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.bj-subtab:hover { color: var(--color-fg); border-color: var(--color-fg-muted); }
+.bj-subtab[aria-current="true"] { color: var(--color-bg); background: var(--color-fg); border-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.bj-subtab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
 a.bj-ps { text-decoration: none; color: inherit; max-width: 760px; gap: var(--cds-gap-sm); transition: border-color 120ms; }
 a.bj-ps:hover { border-color: var(--color-fg-muted); }
 a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
@@ -232,17 +238,25 @@ a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px;
 </style>
 
 <div class="bj">
-  <nav class="bj-tabs" id="bj-tabs" role="tablist" aria-label="Pages">
-    <button type="button" class="bj-tab" role="tab" id="tab-overview" aria-controls="overview" aria-selected="true">Overview: install back to FPN</button>
-    <button type="button" class="bj-tab" role="tab" id="tab-october" aria-controls="october" aria-selected="false" tabindex="-1">October</button>
-    <button type="button" class="bj-tab" role="tab" id="tab-after-assign" aria-controls="after-assign" aria-selected="false" tabindex="-1">Deep dive: after technician assigned</button>
-    <button type="button" class="bj-tab" role="tab" id="tab-daily-tracker" aria-controls="daily-tracker" aria-selected="false" tabindex="-1">Daily tracker</button>
-    <button type="button" class="bj-tab" role="tab" id="tab-csp-reschedule" aria-controls="csp-reschedule" aria-selected="false" tabindex="-1">CSP reschedule behaviour</button>
-    <button type="button" class="bj-tab" role="tab" id="tab-definitions" aria-controls="definitions" aria-selected="false" tabindex="-1">Definitions</button>
-    <button type="button" class="bj-tab" role="tab" id="tab-issues" aria-controls="issues" aria-selected="false" tabindex="-1">Understanding issues</button>
-    <button type="button" class="bj-tab" role="tab" id="tab-problems" aria-controls="problems" aria-selected="false" tabindex="-1">Problem statements picked</button>
-    <button type="button" class="bj-tab" role="tab" id="tab-shipped" aria-controls="shipped" aria-selected="false" tabindex="-1">Shipped features</button>
-  </nav>
+  <div class="bj-nav" id="bj-nav">
+    <nav class="bj-tabs" id="bj-tabs" role="tablist" aria-label="Pages">
+      <button type="button" class="bj-tab" role="tab" id="tab-journey" data-pages="overview daily-tracker october" aria-controls="overview" aria-selected="true">Installation full journey</button>
+      <button type="button" class="bj-tab" role="tab" id="tab-technician" data-pages="after-assign csp-reschedule problems" aria-controls="after-assign" aria-selected="false" tabindex="-1">Technician assigned deep dive</button>
+      <button type="button" class="bj-tab" role="tab" id="tab-issues" data-pages="issues" aria-controls="issues" aria-selected="false" tabindex="-1">Understanding issues</button>
+      <button type="button" class="bj-tab" role="tab" id="tab-shipped" data-pages="shipped" aria-controls="shipped" aria-selected="false" tabindex="-1">Shipped features</button>
+      <button type="button" class="bj-tab" role="tab" id="tab-definitions" data-pages="definitions" aria-controls="definitions" aria-selected="false" tabindex="-1">Definitions</button>
+    </nav>
+    <nav class="bj-subtabs" id="bj-sub-journey" data-group="tab-journey" aria-label="Pages in Installation full journey">
+      <button type="button" class="bj-subtab" data-page="overview" aria-current="true">Overview: install back to FPN</button>
+      <button type="button" class="bj-subtab" data-page="daily-tracker">Daily tracker</button>
+      <button type="button" class="bj-subtab" data-page="october">October</button>
+    </nav>
+    <nav class="bj-subtabs" id="bj-sub-technician" data-group="tab-technician" aria-label="Pages in Technician assigned deep dive" hidden>
+      <button type="button" class="bj-subtab" data-page="after-assign">After technician assigned</button>
+      <button type="button" class="bj-subtab" data-page="csp-reschedule">CSP reschedule behaviour</button>
+      <button type="button" class="bj-subtab" data-page="problems">Problem statements picked</button>
+    </nav>
+  </div>
   <div class="bj-status" id="bj-status">
     <span><span class="dot" aria-hidden="true"></span>Data updated <b data-draw="num" data-source="y_summary" data-field="snapshot" data-row="0" data-fmt="stamp">—</b></span>
     <span>Yesterday = <b data-draw="num" data-source="y_summary" data-field="date" data-row="0" data-fmt="dayname">—</b></span>
@@ -1354,11 +1368,16 @@ dash.loader('d_live', { description: 'Open tasks right now by stage and age', fn
 </script>
 
 <script>
-// Tabs: show one page at a time, keep it in the link.
+// Tabs: five main tabs. "Installation full journey" and "Technician assigned deep dive" each hold
+// several pages, picked from the row of buttons under the tabs. One page shows at a time, and the link
+// names it, so old links (#overview, #october, #daily-tracker, #after-assign, ...) still open the right page.
 (function () {
   document.querySelectorAll('.bj').forEach((el) => el.style.setProperty('--bj-early', dash.colors[0]));
   const pages = () => Array.from(document.querySelectorAll('.bj-page'));
   const tabs = () => Array.from(document.querySelectorAll('.bj-tab'));
+  const pagesOf = (t) => (t.getAttribute('data-pages') || '').split(' ').filter(Boolean);
+  const tabOf = (id) => tabs().find((t) => pagesOf(t).includes(id));
+  const lastSeen = {};   // main tab id -> the page last open in it
   // Framed pages (Ship Tracker, Issue Lens) load only when their tab is first opened. On the same site
   // (GitHub Pages) the frame grows to fit its content.
   const FRAMES = { shipped: ['bj-shipped-frame'], issues: ['bj-tree-frame', 'bj-issues-frame'] };
@@ -1374,23 +1393,34 @@ dash.loader('d_live', { description: 'Open tasks right now by stage and age', fn
     });
     f.src = f.getAttribute('data-src');
   };
-  const show = (id, scroll) => {
+  const show = (id, scroll, link) => {
     if (!pages().some((p) => p.id === id)) return;
+    const tab = tabOf(id);
     pages().forEach((p) => { p.hidden = p.id !== id; });
-    tabs().forEach((t) => { const on = t.getAttribute('aria-controls') === id; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
-    dash.setLink(id);
+    tabs().forEach((t) => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      if (on) t.setAttribute('aria-controls', id);
+    });
+    document.querySelectorAll('.bj-subtabs').forEach((n) => { n.hidden = !tab || n.getAttribute('data-group') !== tab.id; });
+    document.querySelectorAll('.bj-subtab').forEach((b) => {
+      if (b.getAttribute('data-page') === id) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+    });
+    if (tab) lastSeen[tab.id] = id;
+    if (link !== false) dash.setLink(id);
     (FRAMES[id] || []).forEach(loadFrame);
-    if (scroll) { const n = document.getElementById('bj-tabs'); if (n) n.scrollIntoView({ block: 'start' }); }
+    if (scroll) { const n = document.getElementById('bj-nav'); if (n) n.scrollIntoView({ block: 'start' }); }
   };
-  tabs().forEach((t) => t.addEventListener('click', () => show(t.getAttribute('aria-controls'), false)));
+  tabs().forEach((t) => t.addEventListener('click', () => show(lastSeen[t.id] || pagesOf(t)[0], false)));
+  document.querySelectorAll('.bj-subtab').forEach((b) => b.addEventListener('click', () => show(b.getAttribute('data-page'), false)));
   document.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => show(b.getAttribute('data-goto'), true)));
   let h = (location.hash || '').slice(1);
   if (h === 'yesterday') h = 'daily-tracker';
-  if (h) {
-    const target = document.getElementById(h);
-    const page = target && target.closest('.bj-page');
-    if (page) show(page.id, false);
-  }
+  const target = h && document.getElementById(h);
+  const page = target && target.closest('.bj-page');
+  if (page) show(page.id, false);
+  else { const open = pages().find((p) => !p.hidden); if (open) show(open.id, false, false); }
 })();
 </script>
 
