@@ -2,7 +2,8 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: summary strip (calls → tickets) → org chart of cards, each with calls, tickets and a split bar → drill-down panel with Calls / Tickets tabs */
+/* Layout: summary strip → the total, then one wide card per category on a spine; every row is one topic with its
+   call issues, its tickets and what those tickets were → drill-down panel with Calls / Tickets tabs */
 :root{
   --bg:#f3f5f9; --panel:#ffffff; --ink:#18202e; --fg:#1d2433; --muted:#5f6878; --line:#dfe4ec; --grid:#e9edf3; --hover:#f2f5fa;
   --root:#2b3446; --root-soft:#eceff5;
@@ -193,25 +194,44 @@ tr.det td{background:var(--hover);padding:4px 16px 16px 34px}
 .tabs{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .tabs button{border:0;border-radius:0;padding:7px 14px}
 .tabs button[aria-selected="true"]{background:var(--ink);color:var(--on-ink)}
+/* topic-first: the total on top, categories stacked on a spine, one row per topic */
+.tn.rootv{align-items:flex-start}
+.stack.wide>.tn>.box{width:1020px}
+.box.big .tg{left:20px;transform:none}
+.box li.r8,.lh.t8{grid-template-columns:minmax(0,1fr) 92px 66px 76px 92px 86px 52px 70px}
+.lh.t8{padding:0}
+.box li.r8>span{text-align:right}
+.box li.r8>span:first-child{text-align:left}
+.lh.t8 span{white-space:nowrap}
+.lh.t8 .gh{color:var(--gc)}
+.box li .g{font-weight:700;font-variant-numeric:tabular-nums;color:var(--gc)}
+.box li .g.z{color:var(--muted);font-weight:400;opacity:.55}
+.box li .pc{font-variant-numeric:tabular-nums;color:var(--muted)}
+.box li .pc.over{color:var(--warn);font-weight:600}
+.tm{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:.8rem;color:var(--muted)}
+.tm span{display:inline-flex;align-items:center;gap:6px}
+.tm i{width:9px;height:9px;border-radius:3px;background:var(--gc)}
+.tm b{color:var(--fg);font-weight:700;font-variant-numeric:tabular-nums}
 </style>
 <div class="wrap">
   <header>
     <p class="eyebrow">Partner support · 7 Sep – 15 Nov 2026</p>
     <h1>CSP Calls to Tickets</h1>
-    <p class="lede">What CSPs raised on calls to the partner-support team, cut to the same buckets as the 287 tickets your team sorted, and how much of it became a ticket. Each card shows <strong>call issues</strong>, the <strong>tickets</strong> created in the same area, and the rest, <strong>resolved on call</strong>. Calls and tickets are sorted with the same root causes and categories, so every card compares like with like. Click any card or row to jump to its details: the actual tickets (and the calls) in that area.</p>
+    <p class="lede">What CSPs called partner support about, lined up <strong>topic by topic</strong> with the tickets raised on the same topic. Every row is one topic: its <strong>call issues</strong>, its <strong>tickets</strong>, and the share that became a ticket; the rest was handled on the call. The last four columns say what the tickets on that topic turned out to be. Root cause is shown for tickets only, because only a ticket has an RCA. Click any card or row to jump to its tickets and calls.</p>
   </header>
 
   <section class="kpis" id="kpis" aria-label="Summary"></section>
 
   <div class="bar">
     <div class="legend">
-      <span class="t-comm"><i class="sw"></i>Communication gap</span>
-      <span class="t-exp"><i class="sw"></i>Action gap</span>
-      <span class="t-out"><i class="sw"></i>Bug</span>
-      <span class="barkey"><span><i style="background:var(--root)"></i>Ticket created</span><span><i style="background:color-mix(in srgb,var(--root) 18%,var(--grid))"></i>Resolved on call</span></span>
+      <span style="font-weight:600;color:var(--fg)">Tickets were:</span>
+      <span style="--c:var(--comm)"><i class="sw"></i>Communication gap</span>
+      <span style="--c:var(--exp)"><i class="sw"></i>Action gap</span>
+      <span style="--c:var(--out)"><i class="sw"></i>Bug</span>
+      <span style="--c:var(--root)"><i class="sw"></i>Request</span>
+      <span class="barkey"><span><i style="background:var(--root)"></i>Became a ticket</span><span><i style="background:color-mix(in srgb,var(--root) 18%,var(--grid))"></i>Handled on the call</span></span>
     </div>
     <div class="tools">
-      <button type="button" id="design">Focus experience issues</button>
       <button type="button" id="expand">Expand all</button>
       <span class="seg"><button type="button" id="zout" aria-label="Zoom out">−</button><button type="button" id="zfit">Fit</button><button type="button" id="zin" aria-label="Zoom in">+</button></span>
     </div>
@@ -231,7 +251,7 @@ tr.det td{background:var(--hover);padding:4px 16px 16px 34px}
     <div class="tbl"><table><thead id="thead"></thead><tbody id="rows"></tbody></table></div>
     <div class="note" id="tnote"></div>
   </section>
-  <p class="foot"><strong>How to read it.</strong> Only call issues that fall in a bucket the 287 tickets use are kept: a bucket is the root-cause group (communication gap, action gap, bug or request) plus the subcategory. Call issues in buckets with no ticket (customer internet and outages, app-link and customer-number requests, unclear calls and similar) are left out and counted in the summary. Call issues come from Ameyo partner-support inbound calls, counted once per CSP + ticket note (the export repeats one note on every call from a number) and dated by the first call. Calls with blank notes, dropped calls and unregistered callers are left out of the tree and counted in the summary. Tickets are the 287 rows of the CSP Bug Data sheet in the same window. "Resolved on call" is call issues minus tickets in the same card: the two systems share no ID, so it shows how much never reached a ticket, not a call-by-call match. Where a card has more tickets than call issues (marked in amber), those tickets came in by another route. Call root causes are set per agent label (no RCA); ticket root causes come from each ticket's RCA. Phone numbers and emails masked.</p>
+  <p class="foot"><strong>How to read it.</strong> Calls and tickets are matched by topic (category and subcategory), which both are sorted into the same way. A call issue is counted when its topic has at least one ticket; topics with no ticket at all (customer internet and outages, unclear calls) are left out and counted in the summary. Call issues come from Ameyo partner-support inbound calls, counted once per CSP + ticket note (the export repeats one note on every call from a number) and dated by the first call. Calls with blank notes, dropped calls and unregistered callers are left out and counted in the summary. Tickets are the 287 rows of the CSP Bug Data sheet in the same window. "Handled on the call" is call issues minus tickets on the same topic: the two systems share no ID, so it shows how much never reached a ticket, not a call-by-call match. Where a topic has more tickets than call issues (marked in amber), some of its tickets were raised without a call note we could match. Root cause (communication gap, action gap, bug, request) comes from each ticket's RCA. Calls have no RCA: the "likely cause" in the calls list is read from the agent's label, so treat it as a hint, and it is not used in any count on this page. Phone numbers and emails masked.</p>
 </div>
 
 <script>
@@ -239,8 +259,14 @@ Promise.all([fetch("cvt_calls.json").then(r=>r.json()),fetch("cvt_tickets.json")
 const mk=a=>({ref:a[0],k:a[1],rc:a[2],cat:a[3],sub:a[4],st:a[5],iss:a[6],m:a[7],n:a[8],d:a[9]||null});
 const DF=[["csp_issue","What the CSP faced"],["issue","Issue"],["system_issue","System issue"],["rca","RCA"],["design_fix","Design fix"],["theme","Theme"],["workflow","Workflow"],["type","Filed as"],["feature_ask","Feature ask"],["status","Status"],["priority","Priority"],["created","Created"],["closed","Closed"],["sla","SLA"],["frequency","Frequency"],["plus_ones","Plus-ones"],["roadmap","On roadmap"],["pending_on","Pending on"],["secondary","Secondary subtype"]];
 const OPEN=new Set();
-const ALLC=CR.map(mk),C=ALLC.filter(r=>"EBR".includes(r.k)),T=TR.map(mk);
-const NOCONV=ALLC.filter(r=>r.k==="N"),OUTB=ALLC.filter(r=>r.k==="X");
+// Calls and tickets are matched by topic (category + subcategory). A call issue counts when its topic has a ticket.
+const ALLC=CR.map(mk),T=TR.map(mk);
+const topic=r=>r.cat+"|"+r.sub,TOPICS=new Set(T.map(topic));
+const REAL=ALLC.filter(r=>r.k!=="N"),C=REAL.filter(r=>TOPICS.has(topic(r)));
+const NOCONV=ALLC.filter(r=>r.k==="N"),OUTB=REAL.filter(r=>!TOPICS.has(topic(r)));
+// What a ticket turned out to be (from its RCA). Calls have no RCA, so they are never split this way.
+const GRP=[["Communication gap","var(--comm)",r=>r.k==="E"&&r.rc==="Communication gap","Comm. gap"],["Action gap","var(--exp)",r=>r.k==="E"&&r.rc==="Action gap","Action gap"],["Bug","var(--out)",r=>r.k==="B","Bug"],["Request","var(--root)",r=>r.k==="R","Request"]];
+const grp=a=>GRP.map(g=>a.filter(g[2]).length);
 const RCT={"Communication gap":"comm","Action gap":"exp"};
 const RCCOL={"Communication gap":"var(--comm)","Action gap":"var(--exp)","Ops / external":"#8a93a3","System defect":"#5f6879","Business request":"#a7adbb","No issue / misrouted":"#b5bcc8","Unclear":"#c6cbd5"};
 const SUBN={C1:"Rule not explained",C2:"Charge not itemised",C3:"Next step not shown",C4:"Auto-action not warned",C5:"Status unclear",E1:"No self-serve",E2:"Dead end",E3:"Mistake-prone",E4:"Stale display"};
@@ -252,17 +278,15 @@ const keysBy=(f,key)=>{const m=new Map();C.filter(f).forEach(r=>m.set(r[key],(m.
 
 // summary strip
 (function(){
-  const c=C.length,t=T.length,res=c-t;
-  const g=k=>[C.filter(r=>r.k===k).length,T.filter(r=>r.k===k).length];
-  const [ec,et]=g("E"),[bc,bt]=g("B"),[rc,rt]=g("R");
+  const c=C.length,t=T.length,res=c-t,g=grp(T);
   const K=[
-    {cls:"hero",k:"Call issues in ticket buckets",v:fmt(c),vs:`from ${fmt(calls(C))} calls`},
-    {k:"Tickets created",v:fmt(t),sm:pct(t,c)+" of call issues",vs:"CSP Bug Data sheet"},
-    {c:"var(--comm)",k:"Resolved on call",v:fmt(res),sm:pct(res,c),vs:"never became a ticket"},
-    {k:"Experience issues",v:`${fmt(ec)} → ${fmt(et)}`,vs:`<b>${pct(et,ec)}</b> became tickets`},
-    {k:"Bug",v:`${fmt(bc)} → ${fmt(bt)}`,vs:`<b>${pct(bt,bc)}</b> became tickets`},
-    {k:"Requests",v:`${fmt(rc)} → ${fmt(rt)}`,vs:`<b>${pct(rt,rc)}</b> became tickets`},
-    {c:"var(--out)",k:"Left out",v:fmt(OUTB.length+NOCONV.length),vs:`${fmt(OUTB.length)} outside ticket buckets · ${fmt(NOCONV.length)} no conversation`}
+    {cls:"hero",k:"Call issues on ticket topics",v:fmt(c),vs:`from ${fmt(calls(C))} calls`},
+    {k:"Tickets on the same topics",v:fmt(t),sm:pct(t,c)+" of call issues",vs:"CSP Bug Data sheet"},
+    {c:"var(--comm)",k:"Handled on the call",v:fmt(res),sm:pct(res,c),vs:"never became a ticket"},
+    {k:"Tickets: experience issue",v:fmt(g[0]+g[1]),vs:`${fmt(g[0])} communication gap, ${fmt(g[1])} action gap`},
+    {k:"Tickets: bug",v:fmt(g[2]),vs:"ops, bank, defects, CSP error"},
+    {k:"Tickets: request",v:fmt(g[3]),vs:"the CSP asked for something"},
+    {c:"var(--out)",k:"Left out",v:fmt(OUTB.length+NOCONV.length),vs:`${fmt(OUTB.length)} on topics with no ticket · ${fmt(NOCONV.length)} no conversation`}
   ];
   document.getElementById("kpis").innerHTML=K.map(x=>`<div class="kpi ${x.cls||""}" ${x.c?`style="--c:${x.c}"`:""}><span class="k">${x.k}</span><span class="v">${x.v}${x.sm?`<small>${x.sm}</small>`:""}</span><span class="vs">${x.vs}</span></div>`).join("");
 })();
@@ -274,38 +298,32 @@ function listFrom(node,key){
   return node;
 }
 function catsUnder(pf,t){return keysBy(pf,"cat").map(c=>listFrom(N(c,t,r=>pf(r)&&r.cat===c),"sub"))}
-const fComm=r=>r.k==="E"&&r.rc==="Communication gap",fAct=r=>r.k==="E"&&r.rc==="Action gap";
-const TREE=N("Call issues in ticket buckets","root",r=>r.k!=="N",{big:1,kids:[
-  N("Experience issue","root",r=>r.k==="E",{sub:"the app could have answered or handled it",kids:[
-    N("Communication gap","comm",fComm,{gap:1,sub:"an app message or screen could have answered it",kids:catsUnder(fComm,"comm")}),
-    N("Action gap","exp",fAct,{gap:1,sub:"the app lacks the action or dead-ends",kids:catsUnder(fAct,"exp")})
-  ]}),
-  listFrom(N("Bug","out",r=>r.k==="B",{sub:"ops / field, bank, defects, misrouted"}),"rc"),
-  listFrom(N("Feature request & Request","root",r=>r.k==="R",{sub:"the CSP asked for something"}),"cat")
-]});
+const TREE=N("Call issues on ticket topics","root",()=>true,{big:1,st:1,kids:keysBy(()=>true,"cat").map(c=>listFrom(N(c,"root",r=>r.cat===c),"sub"))});
 const IDX={};
 (function link(n,p){n.parent=p;IDX[n.id]=n;(n.kids||[]).forEach(k=>link(k,n));(n.list||[]).forEach(l=>{l.parent=n;IDX[l.id]=l});})(TREE,null);
 
 let SEL=TREE.id;const collapsed=new Set();let edges=[];let TAB="C";
 const pathIds=()=>{const s=new Set();let n=IDX[SEL];while(n){s.add(n.id);n=n.parent}return s};
 function splitBar(c,t){const over=t>c,w=over?100:(c?t/c*100:0);return `<div class="split${over?" over":""}"><i style="width:${w.toFixed(1)}%"></i></div>`}
-function resLine(c,t){return t>c?`<div class="res over"><b>${fmt(t-c)} more tickets</b> than call issues</div>`:`<div class="res"><b>${fmt(c-t)}</b> resolved on call</div>`}
+function resLine(c,t){return t>c?`<div class="res over"><b>${fmt(t-c)} more tickets</b> than call issues</div>`:`<div class="res"><b>${fmt(c-t)}</b> handled on the call</div>`}
+const gcell=(v,i)=>v?`<span class="g" style="--gc:${GRP[i][1]}">${fmt(v)}</span>`:`<span class="g z">·</span>`;
+function tmLine(a){const g=grp(a);return `<div class="tm"><span>Of the tickets:</span>${GRP.map((x,i)=>`<span style="--gc:${x[1]}"><i></i>${x[0]} <b>${fmt(g[i])}</b></span>`).join("")}</div>`}
 function boxHTML(n){
   const P=pathIds();const c=n.c.length,t=n.tk.length;
   const plain=n.t==="root"&&!n.big&&!n.list;
   const cls=["box","t-"+n.t,n.big?"big":"",n.gap?"gap":"",plain?"plain":"",(!n.big&&!plain)?"rail":"",SEL===n.id?"sel":"",P.has(n.id)&&SEL!==n.id?"path":""].join(" ");
-  const list=n.list?`<div class="lh"><span></span><span>Calls</span><span>Tickets</span></div><ul>${n.list.map(l=>{const lc=l.c.length,lt=l.tk.length;return `<li class="r2 ${SEL===l.id?"sel":""}" data-id="${l.id}" tabindex="0" role="button" aria-label="${esc(l.name)}: ${lc} call issues, ${lt} tickets"><span>${esc(l.name)}</span><span class="lv">${fmt(lc)}</span><span class="tv">${fmt(lt)}</span>${splitBar(lc,lt)}</li>`}).join("")}</ul>`:"";
+  const list=n.list?`<div class="lh t8"><span>Topic</span><span>Call issues</span><span>Tickets</span><span>Ticketed</span>${GRP.map(x=>`<span class="gh" style="--gc:${x[1]}">${x[3]}</span>`).join("")}</div><ul>${n.list.map(l=>{const lc=l.c.length,lt=l.tk.length,g=grp(l.tk);return `<li class="r8 ${SEL===l.id?"sel":""}" data-id="${l.id}" tabindex="0" role="button" aria-label="${esc(l.name)}: ${lc} call issues, ${lt} tickets"><span>${esc(l.name)}</span><span class="lv">${fmt(lc)}</span><span class="tv">${fmt(lt)}</span><span class="pc${lt>lc?" over":""}">${pct(lt,lc)}</span>${g.map(gcell).join("")}${splitBar(lc,lt)}</li>`}).join("")}</ul>`:"";
   const isC=collapsed.has(n.id);
   const tg=n.kids?`<button type="button" class="tg" data-tg="${n.id}" aria-label="${isC?"Expand":"Collapse"} ${esc(n.name)}">${isC?"+":"−"}</button>`:"";
   const hid=n.kids&&isC?`<div class="hidden-n">${n.kids.length} cards folded</div>`:"";
   const nm=n.big?`<div class="lbl">${esc(n.name)}</div>`:`<div class="nm">${esc(n.name)}</div>`;
   const mx=`<div class="mx"><div class="m"><span>Calls</span><b>${fmt(c)}</b></div><div class="arr">→</div><div class="m tk"><span>Tickets</span><b>${fmt(t)}</b></div>${n.big?"":`<span class="pill">${pct(t,c)} ticketed</span>`}</div>`;
-  return `<div class="${cls}" id="${n.id}" data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${c} call issues, ${t} tickets">${nm}${n.sub?`<div class="sub">${esc(n.sub)}</div>`:""}${mx}${splitBar(c,t)}${resLine(c,t)}${list}${hid}${tg}</div>`;
+  return `<div class="${cls}" id="${n.id}" data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${c} call issues, ${t} tickets">${nm}${n.sub?`<div class="sub">${esc(n.sub)}</div>`:""}${mx}${splitBar(c,t)}${resLine(c,t)}${n.list?tmLine(n.tk):""}${list}${hid}${tg}</div>`;
 }
 function build(n){
-  let h=`<div class="tn">${boxHTML(n)}`;
+  let h=`<div class="tn${n.st?" rootv":""}">${boxHTML(n)}`;
   if(n.kids&&!collapsed.has(n.id)){
-    if(n.gap) h+=`<div class="stack t-${n.t}">${n.kids.map(build).join("")}</div>`;
+    if(n.gap||n.st) h+=`<div class="stack${n.st?" wide":""} t-${n.t}">${n.kids.map(build).join("")}</div>`;
     else h+=`<div class="kids">${n.kids.map(k=>{edges.push([n.id,k.id,k.t]);return build(k)}).join("")}</div>`;
   }
   return h+"</div>";
@@ -336,21 +354,23 @@ function renderPanel(){
   document.getElementById("crumbs").innerHTML=chain.slice(0,-1).map(x=>`<button type="button" data-id="${x.id}">${esc(x.name)}</button><span>›</span>`).join("")+`<span>${esc(n.name)}</span>`;
   const c=n.c.length,t=n.tk.length;
   document.getElementById("ptitle").textContent=n.name;
-  document.getElementById("pcount").innerHTML=`<b>${fmt(c)}</b> call issues → <b>${fmt(t)}</b> tickets · ${t>c?`${fmt(t-c)} more tickets than call issues`:`${fmt(c-t)} resolved on call`}`;
+  document.getElementById("pcount").innerHTML=`<b>${fmt(c)}</b> call issues → <b>${fmt(t)}</b> tickets · ${t>c?`${fmt(t-c)} more tickets than call issues`:`${fmt(c-t)} handled on the call`}`;
   document.getElementById("tabC").textContent=`Calls (${fmt(c)})`;document.getElementById("tabT").textContent=`Tickets (${fmt(t)})`;
   const rows=TAB==="C"?n.c:n.tk;
-  const mixM=new Map();rows.forEach(r=>mixM.set(r.rc,(mixM.get(r.rc)||0)+1));const mix=[...mixM].sort((a,b)=>b[1]-a[1]);
-  document.getElementById("mix").innerHTML=mix.map(([k,v])=>`<i style="width:${v/rows.length*100}%;background:${RCCOL[k]||"var(--out)"}" title="${esc(k)}: ${v}"></i>`).join("");
-  document.getElementById("mixkey").innerHTML=mix.map(([k,v])=>`<span><i style="background:${RCCOL[k]||"var(--out)"}"></i>${esc(k)} ${fmt(v)} (${pct(v,rows.length)})</span>`).join("");
+  // the mix bar is for tickets only: what the tickets on this topic turned out to be
+  const g=TAB==="T"?grp(rows):[],mix=TAB==="T"?GRP.map((x,i)=>[x[0],g[i],x[1]]).filter(x=>x[1]):[];
+  document.getElementById("mix").hidden=document.getElementById("mixkey").hidden=!mix.length;
+  document.getElementById("mix").innerHTML=mix.map(([k,v,col])=>`<i style="width:${v/rows.length*100}%;background:${col}" title="${esc(k)}: ${v}"></i>`).join("");
+  document.getElementById("mixkey").innerHTML=mix.map(([k,v,col])=>`<span><i style="background:${col}"></i>${esc(k)} ${fmt(v)} (${pct(v,rows.length)})</span>`).join("");
   const q=document.getElementById("q").value.trim().toLowerCase(),m=msel.value;
   const all=rows.filter(r=>(!m||r.m===m)&&(!q||(r.ref+" "+r.iss+" "+r.sub+" "+r.cat+" "+(r.d?Object.values(r.d).join(" "):"")).toLowerCase().includes(q))).sort((a,b)=>+b.ref.replace(/\D/g,"")- +a.ref.replace(/\D/g,""));
   const list=all.slice(0,300);
-  document.getElementById("thead").innerHTML=TAB==="C"?`<tr><th>First call</th><th>What the CSP said</th><th>Calls</th><th>Root cause</th><th>Subtype</th><th>Category</th><th>Month</th></tr>`:`<tr><th>Ticket</th><th>What the CSP faced</th><th>Root cause</th><th>Subtype</th><th>Category</th><th>Status</th><th>Month</th></tr>`;
+  document.getElementById("thead").innerHTML=TAB==="C"?`<tr><th>First call</th><th>What the CSP said</th><th>Calls</th><th>Topic</th><th title="Read from the agent's label, not from an RCA. A hint only.">Likely cause (agent label)</th><th>Month</th></tr>`:`<tr><th>Ticket</th><th>What the CSP faced</th><th>Root cause</th><th>Subtype</th><th>Category</th><th>Status</th><th>Month</th></tr>`;
   document.getElementById("tnote").textContent=all.length>300?`Showing the latest 300 of ${fmt(all.length)}. Search or pick a month to narrow.`:`${fmt(all.length)} ${TAB==="C"?"call issues":"tickets"}.`;
   document.getElementById("rows").innerHTML=list.length?list.map(r=>{
     const tt=RCT[r.rc]||"out";
     const rcCell=`<td><span class="chip t-${tt}">${esc(r.rc)}</span></td><td>${r.st?`<span class="chip t-${tt}" title="${esc(SUBN[r.st]||"")}">${esc(r.st)} · ${esc(SUBN[r.st]||"")}</span>`:"—"}</td><td>${esc(r.sub)}<br><small style="color:var(--muted)">${esc(r.cat)}</small></td>`;
-    if(TAB==="C")return `<tr><td class="ref">${esc(r.ref)}</td><td class="iss">${esc(r.iss)||"<span class='note'>No notes</span>"}</td><td class="ref" style="color:var(--fg);font-weight:600">${r.n}</td>${rcCell}<td style="white-space:nowrap">${esc(MN(r.m))}</td></tr>`;
+    if(TAB==="C")return `<tr><td class="ref">${esc(r.ref)}</td><td class="iss">${esc(r.iss)||"<span class='note'>No notes</span>"}</td><td class="ref" style="color:var(--fg);font-weight:600">${r.n}</td><td>${esc(r.sub)}<br><small style="color:var(--muted)">${esc(r.cat)}</small></td><td><span class="note">${esc(r.rc)}</span></td><td style="white-space:nowrap">${esc(MN(r.m))}</td></tr>`;
     const d=r.d||{},op=OPEN.has(r.ref);
     const links=[d.portal?`<a href="${esc(d.portal)}" target="_blank" rel="noopener">Open in frontline portal ↗</a>`:"",d.slack?`<a href="${esc(d.slack)}" target="_blank" rel="noopener">Slack thread ↗</a>`:""].filter(Boolean).join(" · ");
     const det=`<tr class="det"${op?"":" hidden"}><td colspan="7"><dl class="dl">${DF.filter(([k])=>d[k]).map(([k,l])=>`<dt>${l}</dt><dd>${esc(d[k])}</dd>`).join("")}</dl>${links?`<div class="links">${links}</div>`:""}</td></tr>`;
@@ -387,9 +407,7 @@ msel.addEventListener("change",renderPanel);
 document.getElementById("zin").addEventListener("click",()=>setZoom(Z+.1));
 document.getElementById("zout").addEventListener("click",()=>setZoom(Z-.1));
 document.getElementById("zfit").addEventListener("click",fit);
-const dBtn=document.getElementById("design");
-document.getElementById("expand").addEventListener("click",()=>{collapsed.clear();dBtn.classList.remove("on");renderChart();fit()});
-dBtn.addEventListener("click",()=>{collapsed.clear();if(dBtn.classList.toggle("on"))select(TREE.kids[0].id);else select(TREE.id);fit()});
+document.getElementById("expand").addEventListener("click",()=>{collapsed.clear();renderChart();fit()});
 window.addEventListener("resize",()=>requestAnimationFrame(layout));
 renderChart();renderPanel();
 (document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{drawLines();if(stage.clientWidth<canvas.offsetWidth)fit()});
