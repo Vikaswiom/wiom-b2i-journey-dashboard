@@ -1,0 +1,397 @@
+<title>CSP Calls to Tickets</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: summary strip (calls → tickets) → org chart of cards, each with calls, tickets and a split bar → drill-down panel with Calls / Tickets tabs */
+:root{
+  --bg:#f3f5f9; --panel:#ffffff; --ink:#18202e; --fg:#1d2433; --muted:#5f6878; --line:#dfe4ec; --grid:#e9edf3; --hover:#f2f5fa;
+  --root:#2b3446; --root-soft:#eceff5;
+  --comm:#2a5fd6; --comm-soft:#ebf1fe;
+  --exp:#cf6512; --exp-soft:#fdf1e6;
+  --out:#7f8899; --out-soft:#f2f3f6;
+  --sel:#6d3ce0; --warn:#b7791f; --shadow:rgba(24,32,46,.10); --on-ink:#ffffff;
+  --f-disp:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1218; --panel:#171c25; --ink:#dfe5f0; --fg:#e4e8ef; --muted:#9aa3b3; --line:#2a3240; --grid:#1d232d; --hover:#1f2631;
+  --root:#c3ccdc; --root-soft:#212836; --comm:#82a6ff; --comm-soft:#1a2440;
+  --exp:#f39d55; --exp-soft:#30221a; --out:#8f98a8; --out-soft:#1e232c; --sel:#b394ff; --warn:#e8a63c; --shadow:rgba(0,0,0,.45); --on-ink:#11151c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1218; --panel:#171c25; --ink:#dfe5f0; --fg:#e4e8ef; --muted:#9aa3b3; --line:#2a3240; --grid:#1d232d; --hover:#1f2631;
+  --root:#c3ccdc; --root-soft:#212836; --comm:#82a6ff; --comm-soft:#1a2440;
+  --exp:#f39d55; --exp-soft:#30221a; --out:#8f98a8; --out-soft:#1e232c; --sel:#b394ff; --warn:#e8a63c; --shadow:rgba(0,0,0,.45); --on-ink:#11151c; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.eyebrow{font:600 .72rem var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0}
+h1{font:800 clamp(1.8rem,4vw,2.6rem)/1.05 var(--f-disp);margin:4px 0 0;letter-spacing:-.02em;text-wrap:balance;color:var(--ink)}
+.lede{margin:8px 0 0;color:var(--muted);max-width:70ch}
+.lede strong{color:var(--fg);font-weight:600}
+
+/* summary strip */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .k{font-size:.78rem;color:var(--muted);font-weight:500}
+.kpi .v{font:700 1.45rem/1.2 var(--f-disp);white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--c,var(--ink));letter-spacing:-.02em}
+.kpi .v small{display:block;margin-left:0!important;font-size:.85rem;color:var(--muted);font-weight:500;margin-left:6px}
+.kpi .vs{font-size:.76rem;color:var(--muted);display:flex;gap:6px;align-items:center;margin-top:4px}
+.kpi .vs b{font:600 .74rem var(--f-num);color:var(--fg);background:var(--hover);border-radius:999px;padding:1px 7px}
+.kpi.hero{background:var(--ink);border-color:var(--ink)}
+.kpi.hero .k,.kpi.hero .vs{color:color-mix(in srgb,var(--on-ink) 70%,transparent)}
+.kpi.hero .v{color:var(--on-ink)}
+
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.84rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:12px;height:12px;border-radius:4px;display:inline-block;background:var(--c)}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;border-radius:0;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+button{font:500 .82rem var(--f-body);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 12px;cursor:pointer}
+button:hover{background:var(--hover)}
+button.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+
+.stage{border:1px solid var(--line);border-radius:16px;overflow:auto;max-height:80vh;background-color:var(--panel);
+  background-image:radial-gradient(var(--line) 1px,transparent 1.2px);background-size:18px 18px}
+.sizer{position:relative;margin:0 auto}
+.canvas{position:absolute;left:0;top:0;padding:30px 30px 44px;box-sizing:border-box;transform-origin:0 0;width:max-content}
+.loading{padding:60px 30px;color:var(--muted);font-family:var(--f-num)}
+svg.lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+svg.lines path{fill:none;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;opacity:.55;transition:opacity .15s,stroke-width .15s}
+svg.lines path.on{stroke-width:3.5;opacity:1}
+.dim svg.lines path:not(.on){opacity:.2}
+
+.tn{display:flex;flex-direction:column;align-items:center}
+.kids{display:flex;gap:26px;align-items:flex-start;margin-top:64px;justify-content:center}
+.stack{display:flex;flex-direction:column;gap:20px;align-self:stretch;margin:22px 0 0 18px;padding-left:22px;border-left:2px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.stack>.tn{align-items:stretch}
+.stack>.tn>.box{max-width:none;width:auto}
+.stack>.tn>.box::before{content:"";position:absolute;left:-26px;top:34px;width:22px;height:2px;background:color-mix(in srgb,var(--c) 45%,transparent)}
+.box{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:16px 18px 16px;text-align:left;width:300px;position:relative;z-index:1;cursor:pointer;box-sizing:border-box;
+  box-shadow:0 1px 2px var(--shadow),0 12px 28px -18px var(--shadow);transition:box-shadow .15s,transform .15s}
+.box:hover{transform:translateY(-1px);box-shadow:0 2px 4px var(--shadow),0 18px 34px -18px var(--shadow)}
+.box.rail{border-left:5px solid var(--c)}
+.box.gap{background:var(--soft);border-color:color-mix(in srgb,var(--c) 70%,var(--line));border-left-color:var(--c);width:390px}
+.box.plain{border-color:var(--fg);width:270px;text-align:center}
+.box.path{box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}
+.box.sel{border-color:var(--sel);box-shadow:0 0 0 4px color-mix(in srgb,var(--sel) 30%,transparent)}
+.box .hd{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px}
+.box.plain .hd{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 10px}
+.box.plain .nm{flex-basis:100%}
+.box .nm{font:650 1.08rem/1.22 var(--f-disp);text-wrap:balance;color:var(--ink);letter-spacing:-.005em}
+.box .num{font:700 1.65rem/1 var(--f-disp);font-variant-numeric:tabular-nums;color:var(--c);letter-spacing:-.02em}
+.box.plain .num{color:var(--ink)}
+.box .pill{font:600 .74rem/1 var(--f-disp);font-variant-numeric:tabular-nums;color:var(--c);background:color-mix(in srgb,var(--c) 15%,transparent);border-radius:999px;padding:5px 9px}
+.box.plain .pill{color:var(--fg);background:var(--hover)}
+.box .sub{font-size:.8rem;color:var(--muted);margin-top:6px;line-height:1.45}
+.box .share{height:5px;background:var(--grid);border-radius:5px;overflow:hidden;margin-top:12px}
+.box .share i{display:block;height:100%;background:var(--c);border-radius:5px}
+.box.plain .share i{background:var(--fg)}
+.box.big{background:var(--ink);border-color:var(--ink);width:260px;text-align:center;padding:18px}
+.box.big .lbl{font:600 .78rem var(--f-disp);letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb,var(--on-ink) 65%,transparent)}
+.box.big .bignum{font:800 2.7rem/1.1 var(--f-disp);font-variant-numeric:tabular-nums;color:var(--on-ink);letter-spacing:-.03em}
+.box.big .sub{color:color-mix(in srgb,var(--on-ink) 60%,transparent);margin-top:2px}
+.box.big.sel{box-shadow:0 0 0 4px color-mix(in srgb,var(--sel) 40%,transparent)}
+.box ul{list-style:none;margin:14px -8px 0;padding:10px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.box li{display:grid;grid-template-columns:minmax(0,1fr) auto 3.2em;gap:6px 12px;align-items:baseline;font-size:.88rem;padding:6px 8px;border-radius:8px;cursor:pointer;color:var(--fg)}
+.box li:hover{background:color-mix(in srgb,var(--c) 8%,transparent)}
+.box li.sel{background:color-mix(in srgb,var(--sel) 12%,transparent);box-shadow:inset 0 0 0 1.5px var(--sel)}
+.box li .lv{font-weight:700;font-variant-numeric:tabular-nums}
+.box li .lp{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.8rem;text-align:right}
+.box li .mb{grid-column:1/-1;height:4px;background:var(--grid);border-radius:4px;overflow:hidden}
+.box li .mb i{display:block;height:100%;background:var(--c);border-radius:4px}
+.tg{position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);width:26px;height:26px;padding:0;border-radius:50%;border:1.5px solid var(--line);background:var(--panel);color:var(--fg);font:600 15px/1 var(--f-disp);display:grid;place-items:center;z-index:2}
+.box.gap .tg{left:20px;transform:none;border-color:var(--c);color:var(--c)}
+.tg:hover{background:var(--hover)}
+.hidden-n{font-size:.74rem;color:var(--muted);margin-top:8px}
+.t-root{--c:var(--root);--soft:var(--root-soft)}
+.t-comm{--c:var(--comm);--soft:var(--comm-soft)}
+.t-exp{--c:var(--exp);--soft:var(--exp-soft)}
+.t-out{--c:var(--out);--soft:var(--out-soft)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.crumbs{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;font-size:.8rem;color:var(--muted)}
+.crumbs button{border:none;background:none;padding:0;color:var(--muted);text-decoration:underline;text-underline-offset:2px;border-radius:0}
+.crumbs button:hover{color:var(--fg);background:none}
+.ph{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between}
+.ph h2{font:700 1.45rem/1.2 var(--f-disp);margin:0;text-wrap:balance;color:var(--ink);letter-spacing:-.01em}
+.ph .big{font-family:var(--f-num);font-variant-numeric:tabular-nums;color:var(--muted)}
+.ph .big b{color:var(--fg);font-size:1.35rem;font-weight:600}
+.mix{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--grid);gap:2px}
+.mix i{display:block;height:100%}
+.mixkey{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.78rem;color:var(--muted)}
+.mixkey span{display:inline-flex;gap:6px;align-items:center}
+.mixkey i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+input[type=search],select{font:400 .86rem var(--f-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 12px}
+input[type=search]{flex:1 1 220px;min-width:0}
+.tbl{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:480px}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+th{position:sticky;top:0;background:var(--panel);text-align:left;font-weight:600;color:var(--muted);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;z-index:1}
+td{padding:9px 12px;border-bottom:1px solid var(--grid);vertical-align:top}
+tbody tr:hover td{background:var(--hover)}
+td.ref{font-family:var(--f-num);font-size:.76rem;color:var(--muted);white-space:nowrap}
+td.iss{min-width:280px;max-width:520px}
+.chip{display:inline-block;font:600 .7rem var(--f-body);padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--c);white-space:nowrap}
+.empty{color:var(--muted);padding:16px;text-align:center}
+.note{font-size:.76rem;color:var(--muted)}
+.foot{color:var(--muted);font-size:.8rem;max-width:90ch;margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* calls → tickets */
+.box .pill{white-space:nowrap}
+.box .mx{display:flex;align-items:flex-end;gap:14px;margin-top:10px}
+.box .mx .m{display:flex;flex-direction:column;gap:1px}
+.box .mx .m span{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.box .mx .m b{font:700 1.55rem/1 var(--f-disp);font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--c)}
+.box .mx .m.tk b{color:var(--ink);font-size:1.3rem}
+.box .mx .arr{color:var(--muted);font-size:1rem;padding-bottom:3px}
+.box .mx .pill{margin-left:auto;align-self:center}
+.split{display:flex;height:7px;border-radius:6px;overflow:hidden;background:color-mix(in srgb,var(--c) 18%,var(--grid));margin-top:10px}
+.split i{display:block;height:100%;background:var(--c)}
+.split.over{box-shadow:inset 0 0 0 1.5px var(--warn)}
+.box .res{font-size:.78rem;color:var(--muted);margin-top:6px}
+.box .res b{color:var(--fg);font-weight:600}
+.box .res.over b{color:var(--warn)}
+.box.big .mx{justify-content:center}
+.box.big .mx .m b{color:var(--on-ink)}
+.box.big .mx .m span,.box.big .mx .arr,.box.big .res{color:color-mix(in srgb,var(--on-ink) 65%,transparent)}
+.box.big .res b{color:var(--on-ink)}
+.box.big .split{background:color-mix(in srgb,var(--on-ink) 22%,transparent)}
+.box.big .split i{background:var(--on-ink)}
+.box.plain .mx{justify-content:center}
+.box li.r2{grid-template-columns:minmax(0,1fr) auto auto}
+.box li .tv{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600;min-width:2.2em;text-align:right}
+.box li .tv small{color:var(--muted);font-weight:500;font-size:.72rem}
+.box li .split{grid-column:1/-1;height:5px;margin-top:2px}
+.lh{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:0 8px;margin-top:12px}
+.lh span:nth-child(n+2){text-align:right;min-width:2.2em}
+.barkey{display:flex;gap:16px;font-size:.8rem;color:var(--muted);align-items:center}
+.barkey span{display:inline-flex;align-items:center;gap:6px}
+.barkey i{width:22px;height:7px;border-radius:4px;display:inline-block}
+.ptop{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between}
+.backbtn{font-size:.8rem;padding:5px 11px}
+.panel{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 12px)}
+@keyframes flash{from{box-shadow:0 0 0 4px color-mix(in srgb,var(--sel) 45%,transparent)}to{box-shadow:0 0 0 0 transparent}}
+.panel.flash{animation:flash 1.4s ease-out}
+@media (prefers-reduced-motion:reduce){.panel.flash{animation:none}}
+tr.trow{cursor:pointer}
+tr.trow .car{display:inline-block;transition:transform .15s;color:var(--muted)}
+tr.trow.open .car{transform:rotate(90deg)}
+tr.trow.open td{background:var(--hover)}
+.ttl{font-weight:600;color:var(--ink)}
+tr.det td{background:var(--hover);padding:4px 16px 16px 34px}
+.dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 16px;margin:0;font-size:.84rem;max-width:110ch}
+.dl dt{color:var(--muted);font-weight:600;font-size:.74rem;letter-spacing:.04em;text-transform:uppercase;padding-top:2px}
+.dl dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.links{margin-top:10px;font-size:.82rem;display:flex;gap:12px;flex-wrap:wrap}
+.links a{color:var(--comm)}
+@media (max-width:560px){.dl{grid-template-columns:1fr}.dl dt{padding-top:6px}}
+.tabs{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tabs button{border:0;border-radius:0;padding:7px 14px}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--on-ink)}
+</style>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Partner support · 7 Sep – 15 Nov 2026</p>
+    <h1>CSP Calls to Tickets</h1>
+    <p class="lede">What CSPs raised on calls to the partner-support team, cut to the same buckets as the 287 tickets your team sorted, and how much of it became a ticket. Each card shows <strong>call issues</strong>, the <strong>tickets</strong> created in the same area, and the rest, <strong>resolved on call</strong>. Calls and tickets are sorted with the same root causes and categories, so every card compares like with like. Click any card or row to jump to its details: the actual tickets (and the calls) in that area.</p>
+  </header>
+
+  <section class="kpis" id="kpis" aria-label="Summary"></section>
+
+  <div class="bar">
+    <div class="legend">
+      <span class="t-comm"><i class="sw"></i>Communication gap</span>
+      <span class="t-exp"><i class="sw"></i>Action gap</span>
+      <span class="t-out"><i class="sw"></i>Bug</span>
+      <span class="barkey"><span><i style="background:var(--root)"></i>Ticket created</span><span><i style="background:color-mix(in srgb,var(--root) 18%,var(--grid))"></i>Resolved on call</span></span>
+    </div>
+    <div class="tools">
+      <button type="button" id="design">Focus experience issues</button>
+      <button type="button" id="expand">Expand all</button>
+      <span class="seg"><button type="button" id="zout" aria-label="Zoom out">−</button><button type="button" id="zfit">Fit</button><button type="button" id="zin" aria-label="Zoom in">+</button></span>
+    </div>
+  </div>
+  <div class="stage" id="stage"><div class="sizer" id="sizer"><div class="canvas" id="canvas"><svg class="lines" id="lines" aria-hidden="true"></svg><div id="chart"><div class="loading">Loading calls and tickets…</div></div></div></div></div>
+
+  <section class="panel" id="panel" aria-live="polite">
+    <div class="ptop"><div class="crumbs" id="crumbs"></div><button type="button" id="back" class="backbtn">↑ Back to tree</button></div>
+    <div class="ph"><h2 id="ptitle"></h2><div class="big" id="pcount"></div></div>
+    <div class="mix" id="mix"></div>
+    <div class="mixkey" id="mixkey"></div>
+    <div class="filters">
+      <span class="tabs" role="tablist"><button type="button" role="tab" id="tabC" aria-selected="true">Calls</button><button type="button" role="tab" id="tabT" aria-selected="false">Tickets</button></span>
+      <input type="search" id="q" placeholder="Search notes, titles, RCA…" aria-label="Search">
+      <select id="month" aria-label="Month"><option value="">All months</option></select>
+    </div>
+    <div class="tbl"><table><thead id="thead"></thead><tbody id="rows"></tbody></table></div>
+    <div class="note" id="tnote"></div>
+  </section>
+  <p class="foot"><strong>How to read it.</strong> Only call issues that fall in a bucket the 287 tickets use are kept: a bucket is the root-cause group (communication gap, action gap, bug or request) plus the subcategory. Call issues in buckets with no ticket (customer internet and outages, app-link and customer-number requests, unclear calls and similar) are left out and counted in the summary. Call issues come from Ameyo partner-support inbound calls, counted once per CSP + ticket note (the export repeats one note on every call from a number) and dated by the first call. Calls with blank notes, dropped calls and unregistered callers are left out of the tree and counted in the summary. Tickets are the 287 rows of the CSP Bug Data sheet in the same window. "Resolved on call" is call issues minus tickets in the same card: the two systems share no ID, so it shows how much never reached a ticket, not a call-by-call match. Where a card has more tickets than call issues (marked in amber), those tickets came in by another route. Call root causes are set per agent label (no RCA); ticket root causes come from each ticket's RCA. Phone numbers and emails masked.</p>
+</div>
+
+<script>
+Promise.all([fetch("cvt_calls.json").then(r=>r.json()),fetch("cvt_tickets.json").then(r=>r.json())]).then(([CR,TR])=>{
+const mk=a=>({ref:a[0],k:a[1],rc:a[2],cat:a[3],sub:a[4],st:a[5],iss:a[6],m:a[7],n:a[8],d:a[9]||null});
+const DF=[["csp_issue","What the CSP faced"],["issue","Issue"],["system_issue","System issue"],["rca","RCA"],["design_fix","Design fix"],["theme","Theme"],["workflow","Workflow"],["type","Filed as"],["feature_ask","Feature ask"],["status","Status"],["priority","Priority"],["created","Created"],["closed","Closed"],["sla","SLA"],["frequency","Frequency"],["plus_ones","Plus-ones"],["roadmap","On roadmap"],["pending_on","Pending on"],["secondary","Secondary subtype"]];
+const OPEN=new Set();
+const ALLC=CR.map(mk),C=ALLC.filter(r=>"EBR".includes(r.k)),T=TR.map(mk);
+const NOCONV=ALLC.filter(r=>r.k==="N"),OUTB=ALLC.filter(r=>r.k==="X");
+const RCT={"Communication gap":"comm","Action gap":"exp"};
+const RCCOL={"Communication gap":"var(--comm)","Action gap":"var(--exp)","Ops / external":"#8a93a3","System defect":"#5f6879","Business request":"#a7adbb","No issue / misrouted":"#b5bcc8","Unclear":"#c6cbd5"};
+const SUBN={C1:"Rule not explained",C2:"Charge not itemised",C3:"Next step not shown",C4:"Auto-action not warned",C5:"Status unclear",E1:"No self-serve",E2:"Dead end",E3:"Mistake-prone",E4:"Stale display"};
+const fmt=n=>n.toLocaleString("en-IN");
+const pct=(a,b)=>b?Math.round(a/b*100)+"%":"–";
+const calls=a=>a.reduce((t,r)=>t+r.n,0);
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const keysBy=(f,key)=>{const m=new Map();C.filter(f).forEach(r=>m.set(r[key],(m.get(r[key])||0)+1));T.filter(f).forEach(r=>{if(!m.has(r[key]))m.set(r[key],0)});return [...m].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(x=>x[0])};
+
+// summary strip
+(function(){
+  const c=C.length,t=T.length,res=c-t;
+  const g=k=>[C.filter(r=>r.k===k).length,T.filter(r=>r.k===k).length];
+  const [ec,et]=g("E"),[bc,bt]=g("B"),[rc,rt]=g("R");
+  const K=[
+    {cls:"hero",k:"Call issues in ticket buckets",v:fmt(c),vs:`from ${fmt(calls(C))} calls`},
+    {k:"Tickets created",v:fmt(t),sm:pct(t,c)+" of call issues",vs:"CSP Bug Data sheet"},
+    {c:"var(--comm)",k:"Resolved on call",v:fmt(res),sm:pct(res,c),vs:"never became a ticket"},
+    {k:"Experience issues",v:`${fmt(ec)} → ${fmt(et)}`,vs:`<b>${pct(et,ec)}</b> became tickets`},
+    {k:"Bug",v:`${fmt(bc)} → ${fmt(bt)}`,vs:`<b>${pct(bt,bc)}</b> became tickets`},
+    {k:"Requests",v:`${fmt(rc)} → ${fmt(rt)}`,vs:`<b>${pct(rt,rc)}</b> became tickets`},
+    {c:"var(--out)",k:"Left out",v:fmt(OUTB.length+NOCONV.length),vs:`${fmt(OUTB.length)} outside ticket buckets · ${fmt(NOCONV.length)} no conversation`}
+  ];
+  document.getElementById("kpis").innerHTML=K.map(x=>`<div class="kpi ${x.cls||""}" ${x.c?`style="--c:${x.c}"`:""}><span class="k">${x.k}</span><span class="v">${x.v}${x.sm?`<small>${x.sm}</small>`:""}</span><span class="vs">${x.vs}</span></div>`).join("");
+})();
+
+let nid=0;
+function N(name,t,f,o={}){return Object.assign({id:"n"+(nid++),name,t,f,c:C.filter(f),tk:T.filter(f)},o)}
+function listFrom(node,key){
+  node.list=keysBy(node.f,key).map(v=>{const f=r=>node.f(r)&&r[key]===v;return {id:"n"+(nid++),name:v,t:node.t,f,c:C.filter(f),tk:T.filter(f),parent:node}});
+  return node;
+}
+function catsUnder(pf,t){return keysBy(pf,"cat").map(c=>listFrom(N(c,t,r=>pf(r)&&r.cat===c),"sub"))}
+const fComm=r=>r.k==="E"&&r.rc==="Communication gap",fAct=r=>r.k==="E"&&r.rc==="Action gap";
+const TREE=N("Call issues in ticket buckets","root",r=>r.k!=="N",{big:1,kids:[
+  N("Experience issue","root",r=>r.k==="E",{sub:"the app could have answered or handled it",kids:[
+    N("Communication gap","comm",fComm,{gap:1,sub:"an app message or screen could have answered it",kids:catsUnder(fComm,"comm")}),
+    N("Action gap","exp",fAct,{gap:1,sub:"the app lacks the action or dead-ends",kids:catsUnder(fAct,"exp")})
+  ]}),
+  listFrom(N("Bug","out",r=>r.k==="B",{sub:"ops / field, bank, defects, misrouted"}),"rc"),
+  listFrom(N("Feature request & Request","root",r=>r.k==="R",{sub:"the CSP asked for something"}),"cat")
+]});
+const IDX={};
+(function link(n,p){n.parent=p;IDX[n.id]=n;(n.kids||[]).forEach(k=>link(k,n));(n.list||[]).forEach(l=>{l.parent=n;IDX[l.id]=l});})(TREE,null);
+
+let SEL=TREE.id;const collapsed=new Set();let edges=[];let TAB="C";
+const pathIds=()=>{const s=new Set();let n=IDX[SEL];while(n){s.add(n.id);n=n.parent}return s};
+function splitBar(c,t){const over=t>c,w=over?100:(c?t/c*100:0);return `<div class="split${over?" over":""}"><i style="width:${w.toFixed(1)}%"></i></div>`}
+function resLine(c,t){return t>c?`<div class="res over"><b>${fmt(t-c)} more tickets</b> than call issues</div>`:`<div class="res"><b>${fmt(c-t)}</b> resolved on call</div>`}
+function boxHTML(n){
+  const P=pathIds();const c=n.c.length,t=n.tk.length;
+  const plain=n.t==="root"&&!n.big&&!n.list;
+  const cls=["box","t-"+n.t,n.big?"big":"",n.gap?"gap":"",plain?"plain":"",(!n.big&&!plain)?"rail":"",SEL===n.id?"sel":"",P.has(n.id)&&SEL!==n.id?"path":""].join(" ");
+  const list=n.list?`<div class="lh"><span></span><span>Calls</span><span>Tickets</span></div><ul>${n.list.map(l=>{const lc=l.c.length,lt=l.tk.length;return `<li class="r2 ${SEL===l.id?"sel":""}" data-id="${l.id}" tabindex="0" role="button" aria-label="${esc(l.name)}: ${lc} call issues, ${lt} tickets"><span>${esc(l.name)}</span><span class="lv">${fmt(lc)}</span><span class="tv">${fmt(lt)}</span>${splitBar(lc,lt)}</li>`}).join("")}</ul>`:"";
+  const isC=collapsed.has(n.id);
+  const tg=n.kids?`<button type="button" class="tg" data-tg="${n.id}" aria-label="${isC?"Expand":"Collapse"} ${esc(n.name)}">${isC?"+":"−"}</button>`:"";
+  const hid=n.kids&&isC?`<div class="hidden-n">${n.kids.length} cards folded</div>`:"";
+  const nm=n.big?`<div class="lbl">${esc(n.name)}</div>`:`<div class="nm">${esc(n.name)}</div>`;
+  const mx=`<div class="mx"><div class="m"><span>Calls</span><b>${fmt(c)}</b></div><div class="arr">→</div><div class="m tk"><span>Tickets</span><b>${fmt(t)}</b></div>${n.big?"":`<span class="pill">${pct(t,c)} ticketed</span>`}</div>`;
+  return `<div class="${cls}" id="${n.id}" data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${c} call issues, ${t} tickets">${nm}${n.sub?`<div class="sub">${esc(n.sub)}</div>`:""}${mx}${splitBar(c,t)}${resLine(c,t)}${list}${hid}${tg}</div>`;
+}
+function build(n){
+  let h=`<div class="tn">${boxHTML(n)}`;
+  if(n.kids&&!collapsed.has(n.id)){
+    if(n.gap) h+=`<div class="stack t-${n.t}">${n.kids.map(build).join("")}</div>`;
+    else h+=`<div class="kids">${n.kids.map(k=>{edges.push([n.id,k.id,k.t]);return build(k)}).join("")}</div>`;
+  }
+  return h+"</div>";
+}
+const chart=document.getElementById("chart"),canvas=document.getElementById("canvas"),svg=document.getElementById("lines"),stage=document.getElementById("stage"),sizer=document.getElementById("sizer");
+let Z=1;
+function renderChart(){edges=[];chart.innerHTML=build(TREE);drawLines()}
+function drawLines(){
+  const P=pathIds();
+  svg.setAttribute("viewBox",`0 0 ${canvas.offsetWidth} ${canvas.offsetHeight}`);
+  svg.innerHTML=edges.map(([a,b,t])=>{
+    const A=document.getElementById(a),B=document.getElementById(b);const on=P.has(a)&&P.has(b);
+    const x1=A.offsetLeft+A.offsetWidth/2,y1=A.offsetTop+A.offsetHeight+(IDX[a].kids?14:0),x2=B.offsetLeft+B.offsetWidth/2,y2=B.offsetTop,my=(y1+y2)/2;
+    return `<path class="${on?"on":""}" d="M${x1} ${y1}C${x1} ${my} ${x2} ${my} ${x2} ${y2}" style="stroke:var(--${t==="root"?"muted":t})"/>`;
+  }).join("");
+  canvas.classList.toggle("dim",SEL!==TREE.id);layout();
+}
+function layout(){canvas.style.transform=`scale(${Z})`;sizer.style.width=(canvas.offsetWidth*Z)+"px";sizer.style.height=(canvas.offsetHeight*Z)+"px";document.getElementById("zfit").textContent=Math.round(Z*100)+"%"}
+function setZoom(z){Z=Math.round(Math.max(.3,Math.min(1.5,z))*100)/100;layout()}
+function fit(){setZoom(Math.min(1,(stage.clientWidth-2)/canvas.offsetWidth))}
+
+const months=[...new Set(C.map(r=>r.m).concat(T.map(r=>r.m)))].sort();
+const msel=document.getElementById("month");
+const MN=m=>{const [y,mo]=m.split("-");return new Date(+y,+mo-1,1).toLocaleString("en-GB",{month:"short",year:"numeric"})};
+months.forEach(m=>{const o=document.createElement("option");o.value=m;o.textContent=MN(m);msel.appendChild(o)});
+function renderPanel(){
+  const n=IDX[SEL];const chain=[];let p=n;while(p){chain.unshift(p);p=p.parent}
+  document.getElementById("crumbs").innerHTML=chain.slice(0,-1).map(x=>`<button type="button" data-id="${x.id}">${esc(x.name)}</button><span>›</span>`).join("")+`<span>${esc(n.name)}</span>`;
+  const c=n.c.length,t=n.tk.length;
+  document.getElementById("ptitle").textContent=n.name;
+  document.getElementById("pcount").innerHTML=`<b>${fmt(c)}</b> call issues → <b>${fmt(t)}</b> tickets · ${t>c?`${fmt(t-c)} more tickets than call issues`:`${fmt(c-t)} resolved on call`}`;
+  document.getElementById("tabC").textContent=`Calls (${fmt(c)})`;document.getElementById("tabT").textContent=`Tickets (${fmt(t)})`;
+  const rows=TAB==="C"?n.c:n.tk;
+  const mixM=new Map();rows.forEach(r=>mixM.set(r.rc,(mixM.get(r.rc)||0)+1));const mix=[...mixM].sort((a,b)=>b[1]-a[1]);
+  document.getElementById("mix").innerHTML=mix.map(([k,v])=>`<i style="width:${v/rows.length*100}%;background:${RCCOL[k]||"var(--out)"}" title="${esc(k)}: ${v}"></i>`).join("");
+  document.getElementById("mixkey").innerHTML=mix.map(([k,v])=>`<span><i style="background:${RCCOL[k]||"var(--out)"}"></i>${esc(k)} ${fmt(v)} (${pct(v,rows.length)})</span>`).join("");
+  const q=document.getElementById("q").value.trim().toLowerCase(),m=msel.value;
+  const all=rows.filter(r=>(!m||r.m===m)&&(!q||(r.ref+" "+r.iss+" "+r.sub+" "+r.cat+" "+(r.d?Object.values(r.d).join(" "):"")).toLowerCase().includes(q))).sort((a,b)=>+b.ref.replace(/\D/g,"")- +a.ref.replace(/\D/g,""));
+  const list=all.slice(0,300);
+  document.getElementById("thead").innerHTML=TAB==="C"?`<tr><th>First call</th><th>What the CSP said</th><th>Calls</th><th>Root cause</th><th>Subtype</th><th>Category</th><th>Month</th></tr>`:`<tr><th>Ticket</th><th>What the CSP faced</th><th>Root cause</th><th>Subtype</th><th>Category</th><th>Status</th><th>Month</th></tr>`;
+  document.getElementById("tnote").textContent=all.length>300?`Showing the latest 300 of ${fmt(all.length)}. Search or pick a month to narrow.`:`${fmt(all.length)} ${TAB==="C"?"call issues":"tickets"}.`;
+  document.getElementById("rows").innerHTML=list.length?list.map(r=>{
+    const tt=RCT[r.rc]||"out";
+    const rcCell=`<td><span class="chip t-${tt}">${esc(r.rc)}</span></td><td>${r.st?`<span class="chip t-${tt}" title="${esc(SUBN[r.st]||"")}">${esc(r.st)} · ${esc(SUBN[r.st]||"")}</span>`:"—"}</td><td>${esc(r.sub)}<br><small style="color:var(--muted)">${esc(r.cat)}</small></td>`;
+    if(TAB==="C")return `<tr><td class="ref">${esc(r.ref)}</td><td class="iss">${esc(r.iss)||"<span class='note'>No notes</span>"}</td><td class="ref" style="color:var(--fg);font-weight:600">${r.n}</td>${rcCell}<td style="white-space:nowrap">${esc(MN(r.m))}</td></tr>`;
+    const d=r.d||{},op=OPEN.has(r.ref);
+    const links=[d.portal?`<a href="${esc(d.portal)}" target="_blank" rel="noopener">Open in frontline portal ↗</a>`:"",d.slack?`<a href="${esc(d.slack)}" target="_blank" rel="noopener">Slack thread ↗</a>`:""].filter(Boolean).join(" · ");
+    const det=`<tr class="det"${op?"":" hidden"}><td colspan="7"><dl class="dl">${DF.filter(([k])=>d[k]).map(([k,l])=>`<dt>${l}</dt><dd>${esc(d[k])}</dd>`).join("")}</dl>${links?`<div class="links">${links}</div>`:""}</td></tr>`;
+    return `<tr class="trow${op?" open":""}" data-ref="${esc(r.ref)}" tabindex="0" aria-expanded="${op}"><td class="ref"><span class="car">▸</span> ${esc(r.ref)}</td><td class="iss"><b class="ttl">${esc(d.title||r.iss)}</b>${d.title&&r.iss?`<br><span class="note">${esc(r.iss)}</span>`:""}</td>${rcCell}<td style="white-space:nowrap">${esc(d.status||"—")}${d.priority?` · ${esc(d.priority)}`:""}</td><td style="white-space:nowrap">${esc(MN(r.m))}</td></tr>${det}`}).join("")
+    :`<tr><td colspan="7" class="empty">Nothing matches this search.</td></tr>`;
+}
+function select(id){SEL=id;renderChart();renderPanel()}
+// open the details: tickets tab when the area has tickets, then scroll to the panel
+function openDetail(id){
+  const n=IDX[id];if(n.tk.length&&n.tk.length<=20)n.tk.forEach(r=>OPEN.add(r.ref));
+  select(id);
+  setTab(n.tk.length?"T":"C");
+  const pnl=document.getElementById("panel");
+  pnl.classList.remove("flash");void pnl.offsetWidth;pnl.classList.add("flash");
+  pnl.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"auto",block:"start"});
+}
+document.getElementById("back").addEventListener("click",()=>{document.getElementById("stage").scrollIntoView({behavior:"auto",block:"start"});const el=document.getElementById(SEL)||document.querySelector(`[data-id="${SEL}"]`);if(el)el.focus({preventScroll:true})});
+document.getElementById("rows").addEventListener("click",e=>{if(e.target.closest("a"))return;const tr=e.target.closest("tr.trow");if(!tr)return;toggleRow(tr)});
+document.getElementById("rows").addEventListener("keydown",e=>{const tr=e.target.closest("tr.trow");if(tr&&(e.key==="Enter"||e.key===" ")){e.preventDefault();toggleRow(tr)}});
+function toggleRow(tr){const ref=tr.dataset.ref,op=!OPEN.has(ref);op?OPEN.add(ref):OPEN.delete(ref);tr.classList.toggle("open",op);tr.setAttribute("aria-expanded",op);tr.nextElementSibling.hidden=!op}
+function setTab(x){TAB=x;document.getElementById("tabC").setAttribute("aria-selected",x==="C");document.getElementById("tabT").setAttribute("aria-selected",x==="T");renderPanel()}
+document.getElementById("tabC").addEventListener("click",()=>setTab("C"));
+document.getElementById("tabT").addEventListener("click",()=>setTab("T"));
+chart.addEventListener("click",e=>{
+  const tg=e.target.closest("[data-tg]");
+  if(tg){e.stopPropagation();const id=tg.dataset.tg;collapsed.has(id)?collapsed.delete(id):collapsed.add(id);renderChart();return}
+  const li=e.target.closest("li[data-id]");if(li){openDetail(li.dataset.id);return}
+  const b=e.target.closest(".box[data-id]");if(b)openDetail(b.dataset.id);
+});
+chart.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches("[data-id]")&&!e.target.matches("button")){e.preventDefault();e.stopPropagation();openDetail(e.target.dataset.id)}});
+document.getElementById("crumbs").addEventListener("click",e=>{const b=e.target.closest("[data-id]");if(b)select(b.dataset.id)});
+document.getElementById("q").addEventListener("input",renderPanel);
+msel.addEventListener("change",renderPanel);
+document.getElementById("zin").addEventListener("click",()=>setZoom(Z+.1));
+document.getElementById("zout").addEventListener("click",()=>setZoom(Z-.1));
+document.getElementById("zfit").addEventListener("click",fit);
+const dBtn=document.getElementById("design");
+document.getElementById("expand").addEventListener("click",()=>{collapsed.clear();dBtn.classList.remove("on");renderChart();fit()});
+dBtn.addEventListener("click",()=>{collapsed.clear();if(dBtn.classList.toggle("on"))select(TREE.kids[0].id);else select(TREE.id);fit()});
+window.addEventListener("resize",()=>requestAnimationFrame(layout));
+renderChart();renderPanel();
+(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{drawLines();if(stage.clientWidth<canvas.offsetWidth)fit()});
+}).catch(()=>{document.getElementById("chart").innerHTML='<div class="loading">The data did not load. Reload the page to try again.</div>'});
+</script>

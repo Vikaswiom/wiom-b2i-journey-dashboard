@@ -955,8 +955,16 @@ a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px;
     <header class="bj-head">
       <div class="bj-eyebrow">CSP support tickets · CSP Issue Lens</div>
       <h1>Understanding issues</h1>
-      <p class="bj-take">CSP support tickets (understanding issues, requests and feature requests) sorted by root cause, to show which ones CSP app design can fix: a communication gap, an experience gap, or something outside design. The tree comes first, then every ticket. This data is updated by hand when new tickets are tagged, not by the dashboard's refresh.</p>
+      <p class="bj-take">CSP partner-support calls and support tickets (understanding issues, requests and feature requests) sorted by root cause, to show which ones CSP app design can fix: a communication gap, an experience gap, or something outside design. Three views: partner-support calls against tickets, the ticket tree, then every ticket. This data is updated by hand, not by the dashboard's refresh.</p>
     </header>
+    <section class="bj-sec" id="calls-to-tickets">
+      <header>
+        <h2>Calls to tickets</h2>
+        <p class="bj-sub"><a href="issues/calls/" target="_blank" rel="noopener">Open it on its own page</a></p>
+      </header>
+      <iframe class="bj-frame" id="bj-calls-frame" title="CSP Calls to Tickets" data-src="issues/calls/" loading="lazy"></iframe>
+    </section>
+
     <section class="bj-sec" id="understanding-tree">
       <header>
         <h2>Understanding tree</h2>
@@ -1380,7 +1388,7 @@ dash.loader('d_live', { description: 'Open tasks right now by stage and age', fn
   const lastSeen = {};   // main tab id -> the page last open in it
   // Framed pages (Ship Tracker, Issue Lens) load only when their tab is first opened. On the same site
   // (GitHub Pages) the frame grows to fit its content.
-  const FRAMES = { shipped: ['bj-shipped-frame'], issues: ['bj-tree-frame', 'bj-issues-frame'] };
+  const FRAMES = { shipped: ['bj-shipped-frame'], issues: ['bj-calls-frame', 'bj-tree-frame', 'bj-issues-frame'] };
   const loadFrame = (fid) => {
     const f = document.getElementById(fid);
     if (!f || f.src) return;

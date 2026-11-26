@@ -66,3 +66,11 @@ tree = open('issues/tree.html').read()
 open('docs/issues/tree/index.html', 'w').write('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<meta name="robots" content="noindex, nofollow">\n<style>html, body { margin: 0; }</style>\n' + tree.split('<div class="wrap">')[0] + '</head>\n<body>\n<div class="wrap">' + tree.split('<div class="wrap">', 1)[1] + '\n</body>\n</html>\n')
 print('docs/issues/tree/index.html', len(tree), 'bytes')
 
+# The Calls to Tickets page: self-contained too; its two data files sit beside it. The tree's box is not height-capped
+# here, because the dashboard frame grows to fit the page.
+os.makedirs('docs/issues/calls', exist_ok=True)
+cpage = open('issues/calls/page.html').read()
+open('docs/issues/calls/index.html', 'w').write('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<meta name="robots" content="noindex, nofollow">\n<style>html, body { margin: 0; }</style>\n' + cpage.split('<div class="wrap">')[0] + '<style>.stage { max-height: none !important; }</style>\n</head>\n<body>\n<div class="wrap">' + cpage.split('<div class="wrap">', 1)[1] + '\n</body>\n</html>\n')
+for f in ('cvt_calls.json', 'cvt_tickets.json'): shutil.copy('issues/calls/' + f, 'docs/issues/calls/' + f)
+print('docs/issues/calls/index.html', len(cpage), 'bytes')
+
