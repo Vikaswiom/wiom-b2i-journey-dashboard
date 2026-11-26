@@ -110,6 +110,23 @@ a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px;
 .bj-ps h3 { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; text-wrap: balance; }
 .bj-ps p { margin: 0; }
 .bj-ps .open { font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); }
+/* Findings tab: dated answers with fixed numbers */
+.bj-find { display: grid; gap: var(--cds-gap-lg); }
+.bj-points { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 86ch; line-height: 1.5; }
+.bj-points b { font-weight: var(--cds-font-weight-medium); }
+.bj table.bj-ftable { min-width: 620px; font-size: var(--cds-font-size-body); }
+.bj-ftable th.num, .bj-ftable td.num { text-align: right; white-space: nowrap; }
+.bj-ftable td small { color: var(--color-fg-muted); margin-left: 4px; }
+.bj-ftable tr.tot td { font-weight: var(--cds-font-weight-medium); border-bottom: 0; }
+.bj-ftable td.barc { width: 28%; min-width: 150px; vertical-align: middle; padding-right: 0; }
+.bj-fbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--cds-chart-grid); gap: 2px; }
+.bj-fbar i { display: block; height: 100%; }
+.bj-fbar .f0, .bj-fkey .f0 { background: var(--cds-chart-muted); }
+.bj-fbar .f1, .bj-fkey .f1 { background: var(--series-1); }
+.bj-fbar .f2, .bj-fkey .f2 { background: var(--series-2); }
+.bj-fkey { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.bj-fkey span { display: inline-flex; align-items: center; gap: 6px; }
+.bj-fkey i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .bj-frame { display: block; width: 100%; height: 1400px; min-height: 80vh; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); }
 .bj-tab-link { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); text-decoration: none; padding: 8px 12px 10px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .bj-tab-link:hover { color: var(--color-fg); border-bottom-color: var(--color-border-line); }
@@ -242,6 +259,7 @@ a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px;
     <nav class="bj-tabs" id="bj-tabs" role="tablist" aria-label="Pages">
       <button type="button" class="bj-tab" role="tab" id="tab-journey" data-pages="overview daily-tracker october" aria-controls="overview" aria-selected="true">Installation full journey</button>
       <button type="button" class="bj-tab" role="tab" id="tab-technician" data-pages="after-assign csp-reschedule problems" aria-controls="after-assign" aria-selected="false" tabindex="-1">Technician assigned deep dive</button>
+      <button type="button" class="bj-tab" role="tab" id="tab-findings" data-pages="findings" aria-controls="findings" aria-selected="false" tabindex="-1">Findings</button>
       <button type="button" class="bj-tab" role="tab" id="tab-issues" data-pages="issues" aria-controls="issues" aria-selected="false" tabindex="-1">Understanding issues</button>
       <button type="button" class="bj-tab" role="tab" id="tab-shipped" data-pages="shipped" aria-controls="shipped" aria-selected="false" tabindex="-1">Shipped features</button>
       <button type="button" class="bj-tab" role="tab" id="tab-definitions" data-pages="definitions" aria-controls="definitions" aria-selected="false" tabindex="-1">Definitions</button>
@@ -948,6 +966,74 @@ a.bj-ps:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px;
         <li>History starts 1 Aug 2026. Reschedules are recorded from 18 Sep 2026. The CSP-acceptance step exists for every task from 3 Nov 2026.</li>
         <li>Every number is a snapshot from Snowflake through Metabase; the exact SQL is in Sources for each figure.</li>
       </ul>
+    </section>
+  </section>
+
+  <section class="bj-page" id="findings" hidden>
+    <header class="bj-head">
+      <div class="bj-eyebrow">Answers from the data</div>
+      <h1>Findings</h1>
+      <p class="bj-take">Answers to specific questions asked of this data, newest first. Each finding is fixed at the date shown; its numbers do not refresh with the rest of the dashboard.</p>
+    </header>
+
+    <!-- To add one: copy a whole <section class="bj-sec"> block, put it on top, and change the date, question and numbers. -->
+    <section class="bj-sec" id="finding-2026-11-26-self-vs-other">
+      <header>
+        <div class="bj-eyebrow">26 Nov 2026 · Technician assigned, then removed by the system</div>
+        <h2>Removed tasks: who was assigned, and did they reschedule?</h2>
+        <p class="bj-take">Install tasks where a technician was assigned and the system then removed the task four days after the slot day. Split by who the task was assigned to (the CSP itself, or another technician) and by how often the CSP rescheduled it.</p>
+      </header>
+
+      <div class="bj-find">
+        <div class="bj-kpis">
+          <div class="bj-kpi"><span class="v">1,070</span><span class="l">tasks removed, created in October</span></div>
+          <div class="bj-kpi"><span class="v">83%</span><span class="l">of them assigned to another technician (892)</span></div>
+          <div class="bj-kpi"><span class="v">89%</span><span class="l">never rescheduled (955)</span></div>
+          <div class="bj-kpi"><span class="v">115</span><span class="l">rescheduled at least once and still removed</span></div>
+        </div>
+
+        <div class="bj-card">
+          <h3>What it shows</h3>
+          <ul class="bj-points">
+            <li><b>Most removed tasks were assigned to another technician</b>, not to the CSP itself: 892 of 1,070 in October (83%) and 347 of 484 in November so far (72%).</li>
+            <li><b>Rescheduling is rare, whoever was assigned.</b> About 9 in 10 removed tasks in October and 8 in 10 in November were never rescheduled. The gap between the two groups is too small to be meaningful in either month.</li>
+            <li><b>Rescheduling did not save these tasks.</b> 115 removed tasks in October and 92 in November had been rescheduled at least once and were still removed.</li>
+            <li><b>Self-assignment is not a stable explanation.</b> In October, tasks given to another technician were removed more often (11.5% against 7.5%). In November it was the other way round (7.1% against 9.7%).</li>
+          </ul>
+        </div>
+
+        <div class="bj-card">
+          <div class="bj-cardhead"><h3>October: tasks created 1–31 Oct, 1,070 removed</h3><div class="bj-fkey"><span><i class="f0"></i>Never rescheduled</span><span><i class="f1"></i>Rescheduled once</span><span><i class="f2"></i>Rescheduled twice or more</span></div></div>
+          <div class="bj-tablewrap"><table class="bj-ftable"><thead><tr><th>Assigned to</th><th class="num">Removed</th><th class="num">Never rescheduled</th><th class="num">Rescheduled once</th><th class="num">Rescheduled twice or more</th><th></th></tr></thead><tbody><tr><td>Another technician</td><td class="num">892</td><td class="num">798<small>89%</small></td><td class="num">48<small>5%</small></td><td class="num">46<small>5%</small></td><td class="barc"><div class="bj-fbar" role="img" aria-label="89% never rescheduled, 5% once, 5% twice or more"><i class="f0" style="width:89.5%"></i><i class="f1" style="width:5.4%"></i><i class="f2" style="width:5.2%"></i></div></td></tr><tr><td>CSP itself</td><td class="num">178</td><td class="num">157<small>88%</small></td><td class="num">13<small>7%</small></td><td class="num">8<small>4%</small></td><td class="barc"><div class="bj-fbar" role="img" aria-label="88% never rescheduled, 7% once, 4% twice or more"><i class="f0" style="width:88.2%"></i><i class="f1" style="width:7.3%"></i><i class="f2" style="width:4.5%"></i></div></td></tr><tr class="tot"><td>All removed tasks</td><td class="num">1,070</td><td class="num">955<small>89%</small></td><td class="num">61<small>6%</small></td><td class="num">54<small>5%</small></td><td class="barc"><div class="bj-fbar" role="img" aria-label="89% never rescheduled, 6% once, 5% twice or more"><i class="f0" style="width:89.3%"></i><i class="f1" style="width:5.7%"></i><i class="f2" style="width:5.0%"></i></div></td></tr></tbody></table></div>
+        </div>
+
+        <div class="bj-card">
+          <div class="bj-cardhead"><h3>November so far: tasks created 1–21 Nov, 484 removed</h3><div class="bj-fkey"><span><i class="f0"></i>Never rescheduled</span><span><i class="f1"></i>Rescheduled once</span><span><i class="f2"></i>Rescheduled twice or more</span></div></div>
+          <div class="bj-tablewrap"><table class="bj-ftable"><thead><tr><th>Assigned to</th><th class="num">Removed</th><th class="num">Never rescheduled</th><th class="num">Rescheduled once</th><th class="num">Rescheduled twice or more</th><th></th></tr></thead><tbody><tr><td>Another technician</td><td class="num">347</td><td class="num">282<small>81%</small></td><td class="num">40<small>12%</small></td><td class="num">25<small>7%</small></td><td class="barc"><div class="bj-fbar" role="img" aria-label="81% never rescheduled, 12% once, 7% twice or more"><i class="f0" style="width:81.3%"></i><i class="f1" style="width:11.5%"></i><i class="f2" style="width:7.2%"></i></div></td></tr><tr><td>CSP itself</td><td class="num">137</td><td class="num">110<small>80%</small></td><td class="num">10<small>7%</small></td><td class="num">17<small>12%</small></td><td class="barc"><div class="bj-fbar" role="img" aria-label="80% never rescheduled, 7% once, 12% twice or more"><i class="f0" style="width:80.3%"></i><i class="f1" style="width:7.3%"></i><i class="f2" style="width:12.4%"></i></div></td></tr><tr class="tot"><td>All removed tasks</td><td class="num">484</td><td class="num">392<small>81%</small></td><td class="num">50<small>10%</small></td><td class="num">42<small>9%</small></td><td class="barc"><div class="bj-fbar" role="img" aria-label="81% never rescheduled, 10% once, 9% twice or more"><i class="f0" style="width:81.0%"></i><i class="f1" style="width:10.3%"></i><i class="f2" style="width:8.7%"></i></div></td></tr></tbody></table></div>
+          <p class="bj-sub">November can still move: a task is removed four days after its slot day, so tasks created in the last few days of this window may still be removed.</p>
+        </div>
+
+        <div class="bj-card">
+          <h3>How often each group is removed</h3>
+          <p class="bj-sub">Removed tasks as a share of all tasks that got a technician. November uses tasks created 6–18 Nov, which have had time to finish.</p>
+          <div class="bj-tablewrap"><table class="bj-ftable"><thead><tr><th>Tasks created</th><th class="num">Another technician</th><th class="num">CSP itself</th></tr></thead><tbody>
+            <tr><td>October (1–31 Oct)</td><td class="num">11.5%<small>892 of 7,757</small></td><td class="num">7.5%<small>178 of 2,375</small></td></tr>
+            <tr><td>November (6–18 Nov)</td><td class="num">7.1%<small>201 of 2,850</small></td><td class="num">9.7%<small>89 of 913</small></td></tr>
+          </tbody></table></div>
+          <p class="bj-sub">Both gaps are statistically significant, but they point in opposite directions.</p>
+        </div>
+
+        <details>
+          <summary>How these numbers were counted</summary>
+          <ul class="bj-defs">
+            <li><b>Removed by the system</b>: the task ended with the system timeout (<code>CSP_NO_SHOW</code>) while still at “technician assigned”. Nobody had marked arrival, a failure or a cancellation.</li>
+            <li><b>CSP itself</b>: the CSP assigned the task to itself (<code>IS_SELF_ASSIGNED</code> on the task). If a task was reassigned, only its latest assignment counts.</li>
+            <li><b>Rescheduled</b>: the CSP changed the install date on that task (<code>ES_INSTALL_SLOT_AUTO_REDATED</code> with source <code>CSP_RESCHEDULE</code>).</li>
+            <li><b>October</b> matches the 1,070 removed tasks in the problem statement picked on 25 Nov.</li>
+            <li>Counted on 26 Nov 2026 from the TAS install tables. Query: <code>analyses/timeout_signals/self_vs_other_reschedule.sql</code> in this dashboard's repo.</li>
+          </ul>
+        </details>
+      </div>
     </section>
   </section>
 
